@@ -1,0 +1,1459 @@
+"""
+Vedic Prediction Engine — Main Pipeline.
+
+Four-step pipeline:
+  1. Static analysis  – chart features computed once
+  2. Dynamic analysis – dasha + transits for a given date
+  3. Domain queries   – filter/score by life area
+  4. Confidence       – multi-system agreement scoring
+
+Usage:
+    engine = PredictionEngine()
+    static = engine.analyze_static(chart)
+    report = engine.predict(chart, domain="career", on_date=datetime.now())
+"""
+from __future__ import annotations
+from datetime import datetime
+from typing import Dict, List, Optional, Any
+
+# ── Core & Strength ─────────────────────────────────────────────
+from vedic_engine.core.divisional import compute_all_vargas
+from vedic_engine.core.aspects    import compute_all_drik_bala, get_aspect_map
+from vedic_engine.strength.shadbala    import compute_all_shadbala
+from vedic_engine.strength.ashtakvarga import compute_full_ashtakvarga
+from vedic_engine.strength.bhavabala   import compute_all_bhavabala
+from vedic_engine.strength.vimshopak   import compute_all_vimshopak
+
+# ── Timing ──────────────────────────────────────────────────────
+from vedic_engine.timing.vimshottari  import compute_mahadasha_periods, get_active_dasha, detect_dasha_sandhi
+from vedic_engine.timing.yogini       import compute_yogini_periods, get_active_yogini
+from vedic_engine.timing.ashtottari   import ashtottari_details_on_date, ASHTOTTARI_YEARS
+from vedic_engine.timing.kp          import (
+    get_kp_layers, build_kp_significations, build_cusp_significations,
+    compute_ruling_planets,
+)
+
+# ── Analysis ────────────────────────────────────────────────────
+from vedic_engine.analysis.yogas         import detect_all_yogas
+from vedic_engine.analysis.karakas       import compute_chara_karakas, analyze_karaka_relationships
+from vedic_engine.analysis.functional    import compute_functional_analysis
+from vedic_engine.analysis.graha_yuddha  import detect_planetary_wars, apply_war_penalties
+from vedic_engine.analysis.special_points import compute_all_special_points
+from vedic_engine.analysis.dispositor    import analyze_dasha_lord_dispositor, compute_dispositor_graph
+from vedic_engine.analysis.lunations     import compute_upcoming_lunations, get_eclipse_alerts, get_high_significance_lunations
+
+# ── Prediction ──────────────────────────────────────────────────
+from vedic_engine.prediction.transits   import get_transit_positions, evaluate_all_transits, detect_sade_sati
+from vedic_engine.prediction.confidence import compute_confidence, multi_system_agreement
+from vedic_engine.prediction.fuzzy_confidence import compute_fuzzy_confidence, aggregate_for_fuzzy
+from vedic_engine.prediction.bayesian_layer import compute_bayesian_confidence
+from vedic_engine.prediction.dasha_transit  import analyze_dasha_lord_transit, compute_ingress_calendar
+from vedic_engine.prediction.calibration    import calibrate_confidence
+from vedic_engine.prediction.timing_optimizer import find_best_windows, find_worst_windows
+from vedic_engine.analysis.remedial          import get_remedies
+from vedic_engine.analysis.varga_analysis    import compute_varga_report
+from vedic_engine.timing.muhurta             import find_muhurta_windows
+from vedic_engine.core.divisional            import D9, D10, D7, D4
+from vedic_engine.timing.panchanga          import compute_panchanga
+from vedic_engine.analysis.argala           import compute_all_argala
+from vedic_engine.prediction.aspect_transits import (
+    compute_transit_aspects, compute_natal_activation_score, top_transit_aspects,
+)
+from vedic_engine.timing.progressions import (
+    compute_secondary_progressions, score_progression_activation, compute_solar_terms,
+)
+
+from vedic_engine.core.coordinates import sign_of
+from vedic_engine.data.models import VedicChart
+
+# ── Jaimini / new modules ───────────────────────────────────────
+from vedic_engine.analysis.arudha_padas import arudha_summary
+from vedic_engine.analysis.rashi_drishti import rashi_drishti_summary
+from vedic_engine.timing.chara_dasha import chara_dasha_details_on_date
+
+# ── Deep Dive research modules (sliding scale combustion, career, marriage, badhaka)
+try:
+    from vedic_engine.analysis.career_checklist import compute_career_checklist
+    _CAREER_CHECKLIST_AVAILABLE = True
+except ImportError:
+    _CAREER_CHECKLIST_AVAILABLE = False
+
+try:
+    from vedic_engine.analysis.marriage_synthesis import compute_marriage_synthesis
+    _MARRIAGE_SYNTHESIS_AVAILABLE = True
+except ImportError:
+    _MARRIAGE_SYNTHESIS_AVAILABLE = False
+
+try:
+    from vedic_engine.analysis.badhaka import (
+        get_badhaka_house, compute_badhaka_friction, apply_badhaka_to_confidence,
+    )
+    _BADHAKA_AVAILABLE = True
+except ImportError:
+    _BADHAKA_AVAILABLE = False
+
+try:
+    from vedic_engine.strength.vimshopak import compute_shadvarga_vimshopak, compute_all_shadvarga
+    _SHADVARGA_AVAILABLE = True
+except ImportError:
+    _SHADVARGA_AVAILABLE = False
+
+try:
+    from vedic_engine.strength.bhavabala import get_bhavabala_modifier_for_domain
+    _BHAVABALA_DOMAIN_AVAILABLE = True
+except ImportError:
+    _BHAVABALA_DOMAIN_AVAILABLE = False
+
+try:
+    from vedic_engine.timing.vimshottari import analyze_retrograde_dasha_lord
+    _RETRO_DASHA_AVAILABLE = True
+except ImportError:
+    _RETRO_DASHA_AVAILABLE = False
+
+# ── Promise Prerequisite Gate (Three Pillar Rule) ───────────────
+try:
+    from vedic_engine.prediction.promise import (
+        compute_promise, check_marriage_promise,
+        check_career_promise, check_wealth_promise,
+    )
+    _PROMISE_AVAILABLE = True
+except ImportError:
+    _PROMISE_AVAILABLE = False
+
+# ── Dasha Diagnostic Matrix ──────────────────────────────────────
+try:
+    from vedic_engine.timing.vimshottari import dasha_diagnostic_matrix
+    _DIAG_MATRIX_AVAILABLE = True
+except ImportError:
+    _DIAG_MATRIX_AVAILABLE = False
+
+# ── Yoga Compounding ─────────────────────────────────────────────
+try:
+    from vedic_engine.analysis.yogas import compute_yoga_compounding
+    _YOGA_COMPOUND_AVAILABLE = True
+except ImportError:
+    _YOGA_COMPOUND_AVAILABLE = False
+
+# ── GPT accuracy layer (graceful fallback if openai not installed) ──
+try:
+    from vedic_engine.ai.gpt_reasoner import (
+        resolve_yoga_fructification,
+        resolve_dasha_conflict,
+        resolve_kp_ambiguity,
+        apply_yoga_fructification,
+        analyze_multi_dasha_consensus,
+    )
+    _GPT_REASONER_AVAILABLE = True
+except ImportError:
+    _GPT_REASONER_AVAILABLE = False
+
+
+# ─── Domain definitions (KP-corrected) ──────────────────────────
+DOMAIN_HOUSES = {
+    "career":   [2, 6, 10, 11],        # 1/5/9 are NEGATORS for career
+    "finance":  [2, 6, 11],            # active income; use finance_invest for investments
+    "marriage": [2, 7, 11],            # 4 not in KP marriage set; 8 = duration only
+    "health":   [1, 6, 8, 12],         # crisis set (recovery = {1,11})
+    "children": [2, 5, 11],
+    "property": [4, 12],
+    "spiritual":[4, 8, 9, 12],
+    "travel":   [3, 9, 12],
+}
+
+DOMAIN_NEGATORS = {
+    "career":   [1, 5, 9],
+    "finance":  [12],
+    "marriage": [1, 6, 10],
+    "health":   [],
+    "children": [],
+    "property": [],
+    "spiritual":[],
+    "travel":   [],
+}
+
+DOMAIN_PLANETS = {
+    "career":   ["SUN", "SATURN", "MERCURY", "MARS", "JUPITER"],
+    "finance":  ["VENUS", "JUPITER", "MERCURY", "MOON"],
+    "marriage": ["VENUS", "JUPITER", "MOON", "MARS"],
+    "health":   ["MARS", "SUN", "SATURN", "MOON"],
+    "children": ["JUPITER", "VENUS", "MOON"],
+    "property": ["MOON", "JUPITER", "MARS"],
+    "spiritual":["JUPITER", "SATURN", "KETU", "MOON"],
+    "travel":   ["MERCURY", "RAHU", "MARS", "SATURN"],
+}
+
+
+def _planet_domain_map(planet_house_map: Dict[str, int]) -> Dict[str, List[str]]:
+    """Map each planet to domains whose houses it occupies."""
+    result: Dict[str, List[str]] = {}
+    for planet, house in planet_house_map.items():
+        domains = [d for d, houses in DOMAIN_HOUSES.items() if house in houses]
+        result[planet] = domains
+    return result
+
+
+class PredictionEngine:
+    """End-to-end Vedic prediction pipeline."""
+
+    # ── 1. Static Analysis ──────────────────────────────────────
+
+    def analyze_static(self, chart: VedicChart) -> Dict[str, Any]:
+        """
+        Compute all chart features that don't depend on a specific date.
+        Returns a rich dict of computed features.
+        """
+        # chart.planets is Dict[str, PlanetPosition]; fields: .planet, .longitude, .sign_index, .house_num, .is_retrograde
+        planet_lons  = {name: p.longitude for name, p in chart.planets.items()}
+        planet_signs = {name: p.sign_index for name, p in chart.planets.items()}
+        planet_houses= {name: p.house_num for name, p in chart.planets.items()}
+        retrogrades  = {name: p.is_retrograde for name, p in chart.planets.items()}
+        # cusp_lons as list for KP layers; as dict for Shadbala (expects {house: lon})
+        cusp_lons_list = [h.longitude for h in sorted(chart.houses, key=lambda h: h.house_num)]
+        cusp_lons      = {i+1: lon for i, lon in enumerate(cusp_lons_list)}
+
+        lagna_sign   = chart.lagna_sign   # VedicChart field name
+        moon_lon     = planet_lons.get("MOON", 0.0)
+        sun_lon      = planet_lons.get("SUN",  0.0)
+        rahu_lon     = planet_lons.get("RAHU", 0.0)
+        moon_sign    = sign_of(moon_lon)
+        # BirthInfo has date/time strings; reconstruct datetime
+        try:
+            birth_dt = datetime.fromisoformat(f"{chart.birth_info.date}T{chart.birth_info.time}")
+        except Exception:
+            birth_dt = datetime.now()
+
+        # ── Divisional charts
+        vargas = {p: compute_all_vargas(lon) for p, lon in planet_lons.items()}
+
+        # ── Aspects (use house numbers, not longitudes)
+        asp_map = get_aspect_map(planet_houses)
+        drik_bala = compute_all_drik_bala(planet_houses)
+
+        # ── Shadbala
+        try:
+            shadbala = compute_all_shadbala(chart.planets, birth_dt, cusp_lons)
+        except Exception as e:
+            shadbala = {"error": str(e)}
+
+        # Shadbala ratios (actual / minimum required)
+        shadbala_ratios = {}
+        if isinstance(shadbala, dict) and "error" not in shadbala:
+            for pname, data in shadbala.items():
+                if isinstance(data, dict):
+                    # compute_shadbala returns "rupas" and "ratio" directly
+                    shadbala_ratios[pname] = data.get("ratio", data.get("rupas", 1.0))
+
+        # ── Ashtakvarga
+        try:
+            av_data = compute_full_ashtakvarga(planet_signs, lagna_sign)
+        except Exception as e:
+            av_data = {"error": str(e)}
+
+        # ── Bhavabala
+        try:
+            bhavabala = compute_all_bhavabala(lagna_sign, shadbala_ratios, planet_houses)
+        except Exception as e:
+            bhavabala = {"error": str(e)}
+
+        # ── Vimshopak
+        try:
+            vimshopak = compute_all_vimshopak(planet_lons)
+        except Exception as e:
+            vimshopak = {"error": str(e)}
+
+        # ── Yogas
+        from vedic_engine.config import SIGN_LORDS, Sign as _Sign
+        house_lords = {}
+        for house_num in range(1, 13):
+            sign_of_house = (lagna_sign + house_num - 1) % 12
+            lord = SIGN_LORDS.get(_Sign(sign_of_house))
+            if lord:
+                house_lords[house_num] = lord.name
+
+        yogas = detect_all_yogas(planet_houses, planet_lons, shadbala_ratios,
+                                 house_lords, asp_map)
+
+        # ── Yoga Compounding (graph-based cluster boosting)
+        yoga_compounding = {}
+        if _YOGA_COMPOUND_AVAILABLE and yogas:
+            try:
+                yoga_compounding = compute_yoga_compounding(yogas)
+            except Exception:
+                yoga_compounding = {}
+
+        # ── Karakas
+        karakas_list = compute_chara_karakas(planet_lons)
+        karaka_analysis = analyze_karaka_relationships(
+            karakas_list, planet_houses, shadbala_ratios
+        )
+        karakas = {"list": karakas_list, "analysis": karaka_analysis}
+
+        # Extract AK (Atmakaraka) and DK (Dara Karaka) for Chara dasha enrichment
+        ak_planet: Optional[str] = None
+        dk_planet: Optional[str] = None
+        karakas_dict: Dict[str, str] = {}        # {role: planet_name}
+        try:
+            for item in (karakas_list or []):
+                if isinstance(item, dict):
+                    role = str(item.get("role", item.get("karaka", ""))).upper()
+                    planet = str(item.get("planet", ""))
+                    if role and planet:
+                        karakas_dict[role] = planet
+            ak_planet = karakas_dict.get("AK") or karakas_dict.get("ATMAKARAKA")
+            dk_planet = karakas_dict.get("DK") or karakas_dict.get("DARAKARAKA")
+        except Exception:
+            pass
+
+        # ── Functional analysis (lagna-specific roles)
+        try:
+            func_analysis = compute_functional_analysis(lagna_sign)
+        except Exception as e:
+            func_analysis = {"error": str(e)}
+
+        # ── Graha Yuddha (planetary war)
+        try:
+            wars = detect_planetary_wars(planet_lons)
+            if wars:
+                shadbala_ratios = apply_war_penalties(shadbala_ratios, wars)
+        except Exception as e:
+            wars = []
+
+        # ── Special points (Gulika, Hora Lagna, Ghati Lagna, Indu Lagna)
+        try:
+            lagna_lon_val = chart.lagna_degree
+            special_pts = compute_all_special_points(
+                birth_dt, lagna_lon_val, moon_lon, house_lords,
+                sun_lon=sun_lon, rahu_lon=rahu_lon
+            )
+        except Exception as e:
+            special_pts = {"error": str(e)}
+
+        # ── KP Significations
+        # Build KP layers for each planet by longitude
+        kp_layers_all = {pname: get_kp_layers(lon) for pname, lon in planet_lons.items()}
+        kp_sigs = build_kp_significations(planet_houses, kp_layers_all,
+                                          house_lords, lagna_sign)
+        # Build KP layers for each house cusp by cusp longitude (uses list indexing)
+        cusp_kp_layers = {i+1: get_kp_layers(cusp_lons_list[i])
+                          for i in range(min(12, len(cusp_lons_list)))}
+        cusp_sigs = build_cusp_significations(cusp_kp_layers, planet_houses, house_lords)
+
+        # ── Arudha Padas (Jaimini) ──────────────
+        try:
+            arudha = arudha_summary(lagna_sign, planet_signs)
+        except Exception as e:
+            arudha = {"error": str(e)}
+
+        # Extract UL (Upapada Lagna = A12) sign for marriage enrichment
+        ul_sign: Optional[int] = None
+        try:
+            if isinstance(arudha, dict):
+                ul_data = arudha.get("A12") or arudha.get("a12") or arudha.get("UL")
+                if isinstance(ul_data, dict):
+                    ul_sign = ul_data.get("sign") or ul_data.get("sign_index")
+                elif isinstance(ul_data, (int, float)):
+                    ul_sign = int(ul_data)
+        except Exception:
+            ul_sign = None
+
+        # ── Rashi Drishti (Jaimini sign aspects) ───────────
+        try:
+            rashi_drishti = rashi_drishti_summary(planet_signs)
+        except Exception as e:
+            rashi_drishti = {"error": str(e)}
+
+        # ── Domain map
+        domain_map = _planet_domain_map(planet_houses)
+
+        # ── Shadvarga Vimshopak (classical 6-chart quality scheme) ────
+        shadvarga_vimshopak: Dict = {}
+        if _SHADVARGA_AVAILABLE:
+            try:
+                shadvarga_vimshopak = compute_all_shadvarga(planet_lons)
+            except Exception:
+                shadvarga_vimshopak = {}
+
+        # ── Badhaka house + friction coefficient ─────────────────────────
+        badhaka_info: Dict = {}
+        if _BADHAKA_AVAILABLE:
+            try:
+                badhaka_info = get_badhaka_house(lagna_sign)
+                _badhakesh       = badhaka_info.get("badhakesh", "")
+                _badhakesh_house = planet_houses.get(_badhakesh, 0)
+                _is_malefic      = _badhakesh.upper() in {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+                _shad_ratio      = shadbala_ratios.get(_badhakesh, 1.0)
+                badhaka_info["friction"] = compute_badhaka_friction(
+                    lagna_sign=lagna_sign,
+                    badhakesh_house=_badhakesh_house,
+                    badhakesh_is_functional_benefic=not _is_malefic,
+                    badhakesh_shadbala_ratio=_shad_ratio,
+                    badhakesh=_badhakesh,
+                    event_domain="general",
+                )
+            except Exception as _e:
+                badhaka_info = {"error": str(_e)}
+
+        # ── Bhavabala domain modifier map ─────────────────────────────────
+        bhavabala_domain_modifiers: Dict = {}
+        if _BHAVABALA_DOMAIN_AVAILABLE:
+            try:
+                _bh_data = bhavabala if isinstance(bhavabala, dict) else {}
+                for _dom in DOMAIN_HOUSES:
+                    _dom_houses = DOMAIN_HOUSES[_dom]
+                    _mod = get_bhavabala_modifier_for_domain(_bh_data, _dom_houses)
+                    bhavabala_domain_modifiers[_dom] = _mod
+            except Exception:
+                bhavabala_domain_modifiers = {}
+
+        return {
+            "meta": {
+                "lagna_sign": lagna_sign,
+                "lagna_lon": chart.lagna_degree,
+                "moon_sign": moon_sign,
+                "moon_lon": moon_lon,
+                "birth_dt": birth_dt.isoformat(),
+            },
+            "chart_raw": {
+                "planet_lons": planet_lons,
+                "planet_signs": planet_signs,
+                "planet_houses": planet_houses,
+                "retrogrades": retrogrades,
+            },
+            "vargas": vargas,
+            "aspects": {"asp_map": asp_map, "drik_bala": drik_bala},
+            "shadbala": shadbala,
+            "shadbala_ratios": shadbala_ratios,
+            "ashtakvarga": av_data,
+            "bhavabala": bhavabala,
+            "bhavabala_domain_modifiers": bhavabala_domain_modifiers,
+            "vimshopak": vimshopak,
+            "shadvarga_vimshopak": shadvarga_vimshopak,
+            "yogas": yogas,
+            "karakas": karakas,
+            "kp": {"planet_sigs": kp_sigs, "cusp_sigs": cusp_sigs},
+            "domain_map":       domain_map,
+            "house_lords":      house_lords,
+            "functional":       func_analysis,
+            "graha_yuddha":     wars,
+            "special_points":   special_pts,
+            "dispositor_graph": _compute_dispositor_graph_safe(planet_signs, shadbala_ratios),
+            "varga_report":     _compute_varga_report_safe(
+                                    planet_lons, vargas, chart.lagna_degree),
+            "remedies":         _compute_remedies_safe(
+                                    planet_signs, planet_houses, shadbala_ratios,
+                                    retrogrades, wars),
+            "arudha_padas":     arudha,
+            "rashi_drishti":    rashi_drishti,
+            "yoga_compounding": yoga_compounding,
+            "ul_sign":          ul_sign,
+            "ak_planet":        ak_planet,
+            "dk_planet":        dk_planet,
+            "karakas_dict":     karakas_dict,
+            "badhaka":          badhaka_info,
+        }
+
+    # ── 2. Dynamic Analysis ─────────────────────────────────────
+
+    def analyze_dynamic(self, chart: VedicChart, static: Dict,
+                        on_date: Optional[datetime] = None) -> Dict[str, Any]:
+        """
+        Compute time-dependent features: dashas + transits for on_date.
+        """
+        if on_date is None:
+            on_date = datetime.now()
+
+        moon_lon  = static["meta"]["moon_lon"]
+        moon_sign = static["meta"]["moon_sign"]
+        try:
+            birth_dt = datetime.fromisoformat(f"{chart.birth_info.date}T{chart.birth_info.time}")
+        except Exception:
+            birth_dt = datetime.fromisoformat(static["meta"]["birth_dt"])
+
+        # ── Vimshottari dasha (3 levels)
+        try:
+            vim_periods = compute_mahadasha_periods(moon_lon, birth_dt, levels=3)
+            vim_active  = get_active_dasha(vim_periods, on_date)
+            vim_sandhi  = detect_dasha_sandhi(vim_periods, on_date)
+        except Exception as e:
+            vim_periods, vim_active, vim_sandhi = [], {"error": str(e)}, {"in_sandhi": False}
+
+        # ── Dasha Diagnostic Matrix (6-factor analysis)
+        dasha_diag: Dict = {}
+        if _DIAG_MATRIX_AVAILABLE:
+            try:
+                _vim_md = ""
+                _vim_ad = ""
+                if isinstance(vim_active, dict):
+                    _vim_md = vim_active.get("mahadasha", vim_active.get("planet", ""))
+                    _vim_ad = vim_active.get("antardasha", _vim_md)
+                elif isinstance(vim_active, list) and vim_active:
+                    _vim_md = vim_active[0].get("planet", "")
+                    _vim_ad = vim_active[1].get("planet", _vim_md) if len(vim_active) > 1 else _vim_md
+                if _vim_md:
+                    _retro_dict = static.get("chart_raw", {}).get("retrogrades", {})
+                    _retro_list = [p for p, r in _retro_dict.items() if r]
+                    _ls         = static.get("meta", {}).get("lagna_sign", 0)
+                    _hl_static  = {int(k): v for k, v in static.get("house_lords", {}).items()}
+                    _lagna_lord = _hl_static.get(1, "")
+                    dasha_diag = dasha_diagnostic_matrix(
+                        dasha_planet=_vim_md,
+                        antardasha_planet=_vim_ad,
+                        planet_houses=static.get("chart_raw", {}).get("planet_houses", {}),
+                        planet_lons=static.get("chart_raw", {}).get("planet_lons", {}),
+                        house_lords=_hl_static,
+                        shadbala_ratios=static.get("shadbala_ratios", {}),
+                        lagna_lord=_lagna_lord,
+                        retrograde_planets=_retro_list,
+                        vargas=static.get("vargas"),
+                    )
+            except Exception as _e:
+                dasha_diag = {"error": str(_e)}
+
+        # ── Ashtottari dasha (conditional — Rahu in kendra/trikona from lagna lord)
+        try:
+            _lagna_sign       = static["meta"].get("lagna_sign", 2)   # 0-indexed
+            _planet_signs     = static.get("chart_raw", {}).get("planet_signs", {})
+            _lagna_lord_map   = {2: "MERCURY", 0: "MARS", 1: "VENUS", 3: "MOON", 4: "SUN",
+                                 5: "MERCURY", 6: "VENUS", 7: "MARS", 8: "JUPITER",
+                                 9: "SATURN", 10: "SATURN", 11: "JUPITER"}
+            _lagna_lord_name  = _lagna_lord_map.get(_lagna_sign, "MERCURY")
+            _lagna_lord_sign  = _planet_signs.get(_lagna_lord_name, _lagna_sign)
+            _rahu_sign        = _planet_signs.get("RAHU", 1)  # default Taurus
+            ashto = ashtottari_details_on_date(
+                moon_lon, birth_dt,
+                lagna_sign=_lagna_sign,
+                lagna_lord_sign=_lagna_lord_sign,
+                rahu_sign=_rahu_sign,
+                on_date=on_date, levels=2,
+            )
+        except Exception as e:
+            ashto = {"eligible": False, "active": {}, "error": str(e)}
+
+        # ── Yogini dasha
+        try:
+            yog_periods = compute_yogini_periods(moon_lon, birth_dt)
+            yog_active  = get_active_yogini(yog_periods, on_date)
+        except Exception as e:
+            yog_periods, yog_active = [], {"error": str(e)}
+
+        # ── Transits
+        try:
+            transit_pos = get_transit_positions(on_date)
+            av_data = static.get("ashtakvarga", {})
+            bhinna_av = av_data.get("bhinna", {}) if isinstance(av_data, dict) else {}
+            sarva_av  = av_data.get("sarva", None) if isinstance(av_data, dict) else None
+
+            natal_moon_nak = int(moon_lon / (360.0 / 27))
+            transit_evals = evaluate_all_transits(
+                transit_positions=transit_pos,
+                natal_moon_sign=moon_sign,
+                bhinna_av=bhinna_av,
+                sarva_av=sarva_av,
+                natal_moon_nak=natal_moon_nak,
+            )
+        except Exception as e:
+            transit_pos, transit_evals = {}, {"error": str(e)}
+
+        # ── Sade Sati
+        sade_sati = {}
+        if "SATURN" in transit_pos:
+            sat_sign = sign_of(transit_pos["SATURN"])
+            sat_bav  = bhinna_av.get("SATURN") if isinstance(bhinna_av, dict) else None
+            sade_sati = detect_sade_sati(sat_sign, moon_sign, sat_bav)
+
+        # ── Ruling planets (KP) — needs longitude not sign index
+        try:
+            lagna_lon = static.get("meta", {}).get("lagna_lon", moon_lon)
+            ruling = compute_ruling_planets(on_date, moon_lon, lagna_lon)
+        except Exception as e:
+            ruling = {"error": str(e)}
+
+        # ── Panchanga (5 limbs of Vedic calendar for current date)
+        try:
+            sun_transit  = transit_pos.get("SUN", 0.0)
+            moon_transit = transit_pos.get("MOON", 0.0)
+            panchanga = compute_panchanga(sun_transit, moon_transit, on_date)
+        except Exception as e:
+            panchanga = {"error": str(e)}
+
+        # ── Dasha lord transit tracker
+        try:
+            vim_active_here = dynamic_vim_active if 'dynamic_vim_active' in dir() else vim_active
+            md_lord = "RAHU"
+            ad_lord = "SATURN"
+            if isinstance(vim_active, dict):
+                md_lord = vim_active.get("mahadasha", vim_active.get("planet", "RAHU"))
+                ad_lord = vim_active.get("antardasha", vim_active.get("planet", "SATURN"))
+            elif isinstance(vim_active, list) and vim_active:
+                md_lord = vim_active[0].get("planet", "RAHU")
+                ad_lord = vim_active[1].get("planet", "SATURN") if len(vim_active) > 1 else md_lord
+            natal_positions = static.get("chart_raw", {}).get("planet_lons", {})
+            natal_lagna_lon = static.get("meta", {}).get("lagna_lon", 0.0)
+            dasha_transit_info = analyze_dasha_lord_transit(
+                mahadasha_lord=md_lord,
+                antardasha_lord=ad_lord,
+                transit_positions=transit_pos,
+                natal_positions=natal_positions,
+                natal_moon_lon=moon_lon,
+                natal_lagna_lon=natal_lagna_lon,
+                on_date=on_date,
+            )
+            ingress_calendar = compute_ingress_calendar(transit_pos, on_date)
+        except Exception as e:
+            dasha_transit_info = {"error": str(e)}
+            ingress_calendar = []
+
+        # ── Transit-to-natal longitude aspects (continuous orb weighting + applying/separating)
+        try:
+            natal_lons = static.get("chart_raw", {}).get("planet_lons", {})
+            transit_aspects = compute_transit_aspects(transit_pos, natal_lons)
+        except Exception as e:
+            transit_aspects = {"error": str(e)}
+
+        # ── Secondary progressions + Solar arc directions (day-for-year symbolic chart)
+        try:
+            natal_lons = static.get("chart_raw", {}).get("planet_lons", {})
+            progressions = compute_secondary_progressions(
+                natal_positions=natal_lons,
+                birth_datetime=birth_dt,
+                analysis_date=on_date,
+                position_fn=get_transit_positions,
+            )
+        except Exception as e:
+            progressions = {"error": str(e)}
+
+        # ── Solar terms (Sun at every 15° multiple — 24 Vedic/East-Asian timing markers)
+        try:
+            solar_terms = compute_solar_terms(transit_pos.get("SUN", 0.0), on_date)
+        except Exception as e:
+            solar_terms = []
+
+        # ── Jaimini Chara Dasha
+        try:
+            _ps  = static.get("chart_raw", {}).get("planet_signs", {})
+            _pls = static.get("chart_raw", {}).get("planet_lons",  {})
+            _ls  = static.get("meta", {}).get("lagna_sign", 0)
+            # Pass Jaimini karakas + UL for marriage/AK enrichment
+            _karakas_dict = static.get("karakas_dict", {})
+            _ul_sign      = static.get("ul_sign")
+            _dk_planet    = static.get("dk_planet")
+            chara = chara_dasha_details_on_date(
+                lagna_sign=_ls,
+                planet_signs=_ps,
+                planet_lons=_pls,
+                birth_date=birth_dt,
+                on_date=on_date,
+                levels=2,
+                karakas=_karakas_dict,
+                ul_sign=_ul_sign,
+                dara_karaka=_dk_planet,
+            )
+        except Exception as e:
+            chara = {"error": str(e)}
+
+        return {
+            "date": on_date.isoformat(),
+            "vimshottari": {
+                "periods_summary": len(vim_periods),
+                "active": vim_active,
+                "sandhi": vim_sandhi,
+                "retrograde_lords": {
+                    lvl: pname
+                    for lvl, pname in {
+                        "mahadasha":    vim_active.get("mahadasha", "") if isinstance(vim_active, dict) else "",
+                        "antardasha":   vim_active.get("antardasha", "") if isinstance(vim_active, dict) else "",
+                    }.items()
+                    if pname and static.get("chart_raw", {}).get("retrogrades", {}).get(pname, False)
+                },
+            },
+            "ashtottari": ashto,
+            "yogini": {"active": yog_active},
+            "transits": transit_evals,
+            "transit_positions": transit_pos,
+            "sade_sati": sade_sati,
+            "ruling_planets": ruling,
+            "panchanga": panchanga,
+            "dasha_transit": dasha_transit_info,
+            "ingress_calendar": ingress_calendar,
+            "transit_aspects":  transit_aspects,
+            "progressions":     progressions,
+            "solar_terms":      solar_terms,
+            "chara_dasha":      chara,
+            "lunations":        _compute_lunations_safe(on_date, static, vim_periods, on_date),
+            "timing_windows":   _compute_timing_windows_safe(on_date, transit_pos, static),
+            "dasha_diagnostic": dasha_diag,
+            "retrograde_dasha": _compute_retrograde_dasha_safe(
+                vim_active, transit_pos, static
+            ),
+        }
+
+    # ── 3+4. Full Prediction ─────────────────────────────────────
+
+    def predict(self,
+                chart: VedicChart,
+                domain: str = "career",
+                on_date: Optional[datetime] = None,
+                static: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        Full domain prediction with confidence scoring.
+
+        Args:
+            chart:    The VedicChart to analyse
+            domain:   life area ('career','finance','marriage','health',...)
+            on_date:  prediction date (default: today)
+            static:   pre-computed static analysis (avoids recomputing)
+
+        Returns:
+            Structured prediction report dict.
+        """
+        if on_date is None:
+            on_date = datetime.now()
+        if static is None:
+            static = self.analyze_static(chart)
+
+        dynamic = self.analyze_dynamic(chart, static, on_date)
+
+        # ── Gather inputs for confidence scoring
+        vim_active = dynamic["vimshottari"].get("active", {})
+        yog_active = dynamic["yogini"].get("active", {})
+
+        dasha_planet = "SATURN"       # fallback
+        antar_planet = "SATURN"
+        if isinstance(vim_active, list) and vim_active:
+            dasha_planet = vim_active[0].get("planet", dasha_planet)
+            if len(vim_active) > 1:
+                antar_planet = vim_active[1].get("planet", antar_planet)
+        elif isinstance(vim_active, dict):
+            # Keys: mahadasha, antardasha, pratyantardasha
+            dasha_planet = vim_active.get("mahadasha",
+                           vim_active.get("planet", dasha_planet))
+            antar_planet = vim_active.get("antardasha",
+                           vim_active.get("planet", dasha_planet))
+
+        yogini_lord = (yog_active.get("major_planet",
+                        yog_active.get("planet")) if isinstance(yog_active, dict)
+                       else None) or dasha_planet
+
+        av_data   = static.get("ashtakvarga", {})
+        sarva_av  = av_data.get("sarva") if isinstance(av_data, dict) else None
+        bhinna_av = av_data.get("bhinna", {}) if isinstance(av_data, dict) else {}
+        dp_bav    = bhinna_av.get(dasha_planet) if isinstance(bhinna_av, dict) else None
+
+        domain_houses  = DOMAIN_HOUSES.get(domain.lower(), [1, 10])
+        negator_houses = DOMAIN_NEGATORS.get(domain.lower(), [])
+        domain_planets_list = DOMAIN_PLANETS.get(domain.lower(), [])
+
+        relevant_signs = [(static["meta"]["lagna_sign"] + h - 1) % 12 for h in domain_houses]
+
+        transit_evals = dynamic.get("transits", {})
+        if isinstance(transit_evals, dict) and "error" in transit_evals:
+            transit_evals = {}
+
+        kp_sigs = static.get("kp", {}).get("planet_sigs", {}) or {}
+        # Transform Dict[str, Dict] → Dict[str, List[int]] (extract signified_houses)
+        kp_sigs_houses = {
+            p: (data.get("signified_houses", []) if isinstance(data, dict) else [])
+            for p, data in kp_sigs.items()
+        }
+        yogas   = static.get("yogas", []) or []
+
+        # ── GPT accuracy layer (yoga fructification + KP ambiguity) ──
+        gpt_adjustments: Dict = {}
+        if _GPT_REASONER_AVAILABLE:
+            # 1. Yoga fructification — are detected yogas actually active?
+            chart_ctx = {
+                "lagna_sign": static.get("meta", {}).get("lagna_name", ""),
+                "yogakarakas": static.get("functional", {}).get("yogakarakas", []),
+            }
+            fruct_results = resolve_yoga_fructification(
+                yogas, dasha_planet, antar_planet, chart_ctx
+            )
+            if fruct_results:
+                yogas = apply_yoga_fructification(yogas, fruct_results)
+
+            # 2. KP ambiguity — when sublord signifies both domain + negator houses
+            raw_kp_score_prelim = sum(
+                1 for h in kp_sigs_houses.get(dasha_planet, []) if h in domain_houses
+            ) / max(len(domain_houses), 1)
+            kp_ambi = resolve_kp_ambiguity(
+                sublord_chain=kp_sigs_houses,
+                domain=domain,
+                domain_houses=domain_houses,
+                negator_houses=negator_houses,
+                raw_kp_score=raw_kp_score_prelim,
+            )
+            if kp_ambi and "adjusted_kp_score" in kp_ambi:
+                gpt_adjustments["adjusted_kp_score"] = kp_ambi["adjusted_kp_score"]
+
+        # ── Extract Dasha Diagnostic Matrix params for confidence gate ──
+        dasha_diag       = dynamic.get("dasha_diagnostic", {}) or {}
+        dasha_house      = dasha_diag.get("dasha_house", 0)
+        antardasha_house = dasha_diag.get("antardasha_house", 0)
+        dasha_lord_combust    = bool(dasha_diag.get("dasha_lord_combust", False))
+        dasha_lord_retrograde = bool(dasha_diag.get("dasha_lord_retrograde", False))
+
+        # ── Promise Prerequisite Gate (Three Pillar Rule) ──────────────
+        promise_result: Optional[Dict] = None
+        if _PROMISE_AVAILABLE:
+            try:
+                planet_houses_raw_for_pr = static.get("chart_raw", {}).get("planet_houses", {})
+                house_lords_for_pr        = {int(k): v for k, v in static.get("house_lords", {}).items()}
+                shadbala_for_pr           = static.get("shadbala_ratios", {})
+                vargas_for_pr             = static.get("vargas", {})
+                planet_lons_for_pr        = static.get("chart_raw", {}).get("planet_lons", {})
+                promise_result = compute_promise(
+                    domain=domain,
+                    planet_houses=planet_houses_raw_for_pr,
+                    house_lords=house_lords_for_pr,
+                    shadbala_ratios=shadbala_for_pr,
+                    planet_lons=planet_lons_for_pr,
+                    vargas=vargas_for_pr,
+                )
+            except Exception as _pe:
+                promise_result = None
+
+        confidence = compute_confidence(
+            dasha_planet=dasha_planet,
+            antardasha_planet=antar_planet,
+            domain=domain,
+            planet_domain_map=static.get("domain_map", {}),
+            shadbala_ratios=static.get("shadbala_ratios", {}),
+            transit_scores=transit_evals,
+            domain_planets=domain_planets_list,
+            sarva_av=sarva_av,
+            relevant_signs=relevant_signs,
+            active_yogas=yogas,
+            kp_significations=kp_sigs_houses,
+            domain_houses=domain_houses,
+            dasha_planet_bav=dp_bav,
+            functional_analysis=static.get("functional"),
+            house_lords={int(k): v for k, v in static.get("house_lords", {}).items()},
+            vargas=static.get("vargas"),
+            planet_houses=static.get("chart_raw", {}).get("planet_houses"),
+            negator_houses=negator_houses,
+            gpt_adjustments=gpt_adjustments if gpt_adjustments else None,
+            promise_result=promise_result,
+            dasha_house=dasha_house,
+            antardasha_house=antardasha_house,
+            dasha_lord_combust=dasha_lord_combust,
+            dasha_lord_retrograde=dasha_lord_retrograde,
+        )
+
+        # ── Multi-Dasha AND Consensus (Research Brief Block 3C) ──────────
+        chara_diag     = dynamic.get("chara_dasha", {}) or {}
+        chara_enrichment = chara_diag.get("enrichment", {}) or {}
+        chara_house    = chara_enrichment.get("house_from_lagna", 0)
+
+        # Determine which domains each system "supports" based on planet positioning
+        dasha_planet_map = static.get("domain_map", {}).get(dasha_planet, [])
+        yogini_planet_map = static.get("domain_map", {}).get(yogini_lord, [])
+        chara_active_sign = chara_diag.get("active", {})
+        if isinstance(chara_active_sign, dict):
+            chara_active_sign = chara_active_sign.get("mahadasha", "")
+        chara_lord_name = str(chara_active_sign)
+
+        vim_supports   = domain.lower() in [d.lower() for d in dasha_planet_map]
+        yogini_supports = domain.lower() in [d.lower() for d in yogini_planet_map]
+        # Chara supports if dasha sign is in domain-relevant houses
+        chara_supports = chara_house in domain_houses
+
+        consensus_result: Dict = {}
+        if _GPT_REASONER_AVAILABLE:
+            try:
+                consensus_result = analyze_multi_dasha_consensus(
+                    vim_supports_domain=vim_supports,
+                    yogini_supports_domain=yogini_supports,
+                    chara_supports_domain=chara_supports,
+                    vim_lord=dasha_planet,
+                    yogini_lord=yogini_lord,
+                    chara_lord=chara_lord_name,
+                    domain=domain,
+                    chara_house=chara_house,
+                    active_yogas=[
+                        (y.get("name") if isinstance(y, dict) else getattr(y, "name", ""))
+                        for y in yogas
+                    ],
+                    lagna_sign=static.get("meta", {}).get("lagna_name", ""),
+                )
+            except Exception:
+                consensus_result = {}
+
+        # Apply consensus multiplier to confidence
+        if consensus_result:
+            c_mult = consensus_result.get("confidence_multiplier", 1.0)
+            if consensus_result.get("blocked"):
+                # Hard denial: Vim denies → major capacity blocked
+                confidence["overall"] = min(confidence["overall"], 0.20)
+            elif c_mult != 1.0:
+                confidence["overall"] = round(
+                    min(1.0, max(0.0, confidence["overall"] * c_mult)), 3
+                )
+
+        agreement = multi_system_agreement(
+            vimshottari_active=dasha_planet,
+            yogini_active=yogini_lord,
+            domain=domain,
+            planet_domain_map=static.get("domain_map", {}),
+        )
+        # Apply agreement boost
+        boosted = min(1.0, confidence["overall"] + agreement["confidence_boost"])
+
+        # ── Fuzzy inference — non-linear multi-system convergence ──
+        try:
+            fuzzy_inputs = aggregate_for_fuzzy(confidence["components"])
+            fuzzy_result = compute_fuzzy_confidence(**fuzzy_inputs)
+            # Blend: 55% linear weighted + 45% fuzzy (fuzzy captures convergence better)
+            blended = 0.55 * boosted + 0.45 * fuzzy_result["fuzzy_confidence"]
+            confidence["fuzzy"] = fuzzy_result
+            confidence["fuzzy_inputs"] = fuzzy_inputs
+            confidence["overall_boosted"] = round(min(1.0, blended), 3)
+        except Exception:
+            confidence["overall_boosted"] = round(boosted, 3)
+            confidence["fuzzy"] = {}
+
+        confidence["overall_boosted"] = round(confidence["overall_boosted"], 3)
+        confidence["multi_system_agreement"] = agreement
+
+        # ── Bayesian posterior — Beta-conjugate update for domain probability ──
+        try:
+            bayes_result = compute_bayesian_confidence(
+                confidence["components"], domain=domain
+            )
+            # Triple-blend: 45% linear + 35% fuzzy + 20% Bayesian posterior
+            fuzzy_score = confidence.get("fuzzy", {}).get("fuzzy_confidence",
+                                                           confidence["overall_boosted"])
+            bayes_score = bayes_result["posterior_mean"]
+            triple_blend = round(min(1.0,
+                0.45 * boosted
+                + 0.35 * fuzzy_score
+                + 0.20 * bayes_score
+            ), 3)
+            confidence["bayesian"] = bayes_result
+            confidence["overall_boosted"] = triple_blend
+        except Exception:
+            confidence["bayesian"] = {}
+
+        # ── Vimshopak boost: dasha lord's multi-varga dignity score ──
+        try:
+            vimshopak_data = static.get("vimshopak", {})
+            if isinstance(vimshopak_data, dict) and dasha_planet in vimshopak_data:
+                vp = vimshopak_data[dasha_planet]
+                vp_pct = vp.get("percentage", 50.0) / 100.0      # 0-1 scale
+                # Apply as small modifier: if dasha lord is strong across vargas,
+                # boost overall by up to +4%; if weak, penalize by up to -4%
+                vm_mod = (vp_pct - 0.5) * 0.08
+                confidence["overall_boosted"] = round(
+                    min(1.0, max(0.0, confidence["overall_boosted"] + vm_mod)), 3
+                )
+                confidence["vimshopak_mod"] = round(vm_mod, 4)
+                confidence["vimshopak_pct"] = round(vp_pct * 100, 1)
+        except Exception:
+            pass
+
+        # ── Natal Argala modifier ──
+        try:
+            planet_houses_raw = static.get("chart_raw", {}).get("planet_houses", {})
+            shadbala_ratios   = static.get("shadbala_ratios", {})
+            dasha_lord_house  = planet_houses_raw.get(dasha_planet)
+            antar_lord_house  = planet_houses_raw.get(antar_planet)
+            argala_data = compute_all_argala(
+                planet_houses=planet_houses_raw,
+                lagna_house=1,
+                dasha_lord_house=dasha_lord_house,
+                antardasha_lord_house=antar_lord_house,
+                shadbala_ratios=shadbala_ratios,
+            )
+            argala_mod = argala_data.get("combined_confidence_mod", 0.0)
+            confidence["overall_boosted"] = round(
+                min(1.0, max(0.0, confidence["overall_boosted"] + argala_mod)), 3
+            )
+            confidence["argala_mod"] = round(argala_mod, 4)
+        except Exception:
+            argala_data = {}
+
+        # ── Transit-to-natal longitude aspects: weighted orb, applying/separating, [±5%]
+        try:
+            natal_lons_for_asp = static.get("chart_raw", {}).get("planet_lons", {})
+            trans_pos_for_asp  = dynamic.get("transit_positions", {})
+            aspect_transit_data = compute_transit_aspects(trans_pos_for_asp, natal_lons_for_asp)
+            asp_score = compute_natal_activation_score(aspect_transit_data, domain_planets_list)
+            asp_mod   = (asp_score - 0.5) * 0.10    # ±5% max modifier
+            confidence["overall_boosted"] = round(
+                min(1.0, max(0.0, confidence["overall_boosted"] + asp_mod)), 3
+            )
+            confidence["aspect_transit_score"] = round(asp_score, 3)
+            confidence["aspect_transit_mod"]   = round(asp_mod, 4)
+        except Exception:
+            aspect_transit_data = {}
+            asp_score = 0.5
+
+        # ── Secondary progressions + Solar arc activation boost [±8% cap]
+        try:
+            prog_data  = dynamic.get("progressions", {})
+            prog_boost = prog_data.get("combined_boost", 0.0) if isinstance(prog_data, dict) else 0.0
+            if prog_boost:
+                confidence["overall_boosted"] = round(
+                    min(1.0, max(0.0, confidence["overall_boosted"] + prog_boost)), 3
+                )
+            confidence["progression_boost"] = prog_boost
+        except Exception:
+            prog_boost = 0.0
+
+        # ── Domain-relevant transit summary
+        domain_transits = {p: transit_evals[p] for p in domain_planets_list
+                           if p in transit_evals}
+        favorable_transits = [p for p, t in domain_transits.items()
+                               if isinstance(t, dict) and t.get("is_favorable_gochar")]
+        vedha_blocked = [p for p, t in domain_transits.items()
+                         if isinstance(t, dict) and t.get("vedha_blocked")]
+
+        # ── Active domain yogas
+        domain_yoga_names = []
+        for y in yogas:
+            if isinstance(y, dict):
+                domain_yoga_names.append(y.get("name", str(y)))
+            else:
+                domain_yoga_names.append(getattr(y, "name", str(y)))
+
+        # ── Prediction text
+        prediction_text = _generate_prediction_text(
+            domain, confidence["level"], boosted,
+            dasha_planet, antar_planet, yogini_lord,
+            favorable_transits, vedha_blocked, domain_yoga_names,
+        )
+
+        # ── Dispositor chain for dasha lords
+        try:
+            planet_signs  = static.get("chart_raw", {}).get("planet_signs", {})
+            planet_houses_raw = static.get("chart_raw", {}).get("planet_houses", {})
+            shadbala_ratios   = static.get("shadbala_ratios", {})
+            dispositor_analysis = analyze_dasha_lord_dispositor(
+                dasha_planet, antar_planet,
+                planet_signs, planet_houses_raw, shadbala_ratios,
+            )
+        except Exception as e:
+            dispositor_analysis = {"error": str(e)}
+
+        # ── Calibrate confidence score ─────────────────────────────────────
+        raw_conf = confidence.get("overall_boosted", confidence.get("overall", 0.5))
+        try:
+            calibrated = calibrate_confidence(raw_conf, domain)
+        except Exception:
+            calibrated = {"raw": raw_conf, "calibrated": raw_conf, "reliability_band": "Unknown"}
+
+        return {
+            "domain": domain,
+            "date": on_date.isoformat(),
+            "dasha": {
+                "maha_dasha": dasha_planet,
+                "antar_dasha": antar_planet,
+                "yogini_lord": yogini_lord,
+            },
+            "confidence": confidence,
+            "calibrated_confidence": calibrated,
+            "transits": {
+                "domain_relevant": domain_transits,
+                "favorable": favorable_transits,
+                "vedha_blocked": vedha_blocked,
+            },
+            "active_yogas": domain_yoga_names,
+            "sade_sati": dynamic.get("sade_sati", {}),
+            "ruling_planets": dynamic.get("ruling_planets", {}),
+            "karakas": static.get("karakas", {}),
+            "prediction": prediction_text,
+            "dispositor": dispositor_analysis,
+            "panchanga":       dynamic.get("panchanga", {}),
+            "dasha_transit":   dynamic.get("dasha_transit", {}),
+            "ingress_calendar":dynamic.get("ingress_calendar", []),
+            "argala":          argala_data,
+            "transit_aspects": aspect_transit_data,
+            "progressions":    dynamic.get("progressions", {}),
+            "solar_terms":     dynamic.get("solar_terms", []),
+            "lunations":       dynamic.get("lunations", {}),
+            "timing_windows":  dynamic.get("timing_windows", {}).get(domain, {}),
+            "dispositor_graph":static.get("dispositor_graph", {}),
+            "varga_report":    static.get("varga_report", {}),
+            "remedies":        static.get("remedies", []),
+            # ── New promise / diagnostic / consensus layers ──
+            "promise":         promise_result or {},
+            "dasha_diagnostic":dasha_diag,
+            "multi_dasha_consensus": consensus_result,
+            "yoga_compounding":static.get("yoga_compounding", {}),
+            "chara_dasha":     dynamic.get("chara_dasha", {}),
+            "retrograde_dasha":dynamic.get("retrograde_dasha", {}),
+            # ── Deep Dive: Badhaka, Bhavabala domain, Career/Marriage synthesis ──
+            "badhaka": _compute_predict_badhaka(
+                static, domain, dasha_planet, antar_planet
+            ),
+            "bhavabala_domain_modifier": static.get(
+                "bhavabala_domain_modifiers", {}
+            ).get(domain.lower(), {}),
+            "shadvarga_vimshopak": static.get("shadvarga_vimshopak", {}),
+            "career_checklist": _compute_career_checklist_safe(static, dynamic, domain),
+        }
+
+    def full_report(self,
+                    chart: VedicChart,
+                    on_date: Optional[datetime] = None) -> Dict[str, Any]:
+        """
+        Generate predictions for ALL domains in one call.
+        """
+        if on_date is None:
+            on_date = datetime.now()
+        static  = self.analyze_static(chart)
+        dynamic = self.analyze_dynamic(chart, static, on_date)
+
+        reports = {}
+        for domain in DOMAIN_HOUSES:
+            reports[domain] = self.predict(chart, domain, on_date, static)
+
+        # Sort domains by confidence
+        sorted_domains = sorted(
+            reports.items(),
+            key=lambda kv: kv[1]["confidence"]["overall_boosted"],
+            reverse=True,
+        )
+
+        return {
+            "date": on_date.isoformat(),
+            "static_analysis": static,
+            "dynamic_analysis": dynamic,
+            "domain_reports": dict(sorted_domains),
+            "top_domains": [d for d, _ in sorted_domains[:3]],
+        }
+
+
+# ─── Safe wrappers for new modules ───────────────────────────────
+
+def _compute_dispositor_graph_safe(
+        planet_signs: dict,
+        shadbala_ratios: dict,
+) -> dict:
+    try:
+        return compute_dispositor_graph(planet_signs, shadbala_ratios)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _compute_varga_report_safe(
+        planet_lons: dict,
+        vargas: dict,                 # {planet: {d_num: sign_idx}}
+        lagna_lon: float,
+) -> dict:
+    try:
+        d9_signs  = {p: vargas[p][9]  for p in vargas if 9  in vargas[p]}
+        d10_signs = {p: vargas[p][10] for p in vargas if 10 in vargas[p]}
+        d7_signs  = {p: vargas[p][7]  for p in vargas if 7  in vargas[p]}
+        d4_signs  = {p: vargas[p][4]  for p in vargas if 4  in vargas[p]}
+        d9_lagna  = D9(lagna_lon)
+        d10_lagna = D10(lagna_lon)
+        d7_lagna  = D7(lagna_lon)
+        d4_lagna  = D4(lagna_lon)
+        return compute_varga_report(
+            planet_d1_lons=planet_lons,
+            planet_d9_signs=d9_signs,
+            planet_d10_signs=d10_signs,
+            planet_d7_signs=d7_signs,
+            planet_d4_signs=d4_signs,
+            d9_lagna=d9_lagna,
+            d10_lagna=d10_lagna,
+            d7_lagna=d7_lagna,
+            d4_lagna=d4_lagna,
+        )
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _compute_remedies_safe(
+        planet_signs: dict,
+        planet_houses: dict,
+        shadbala_ratios: dict,
+        retrogrades: dict,
+        wars: list,
+) -> list:
+    try:
+        war_losers = {w["loser"] for w in wars if isinstance(w, dict) and "loser" in w}
+        planet_states = {}
+        for planet, sign in planet_signs.items():
+            planet_states[planet] = {
+                "sign_idx":        sign,
+                "house":           planet_houses.get(planet, 1),
+                "shadbala_ratio":  shadbala_ratios.get(planet, 1.0),
+                "retrograde":      retrogrades.get(planet, False),
+                "war_defeated":    planet in war_losers,
+                "malefic_aspects": 0,   # can be augmented later
+                "combust":         False,
+            }
+        return get_remedies(planet_states, threshold=0.12)
+    except Exception as e:
+        return [{"error": str(e)}]
+
+
+def _compute_lunations_safe(
+        on_date,
+        static: dict,
+        vim_periods: list,
+        analysis_date,
+) -> dict:
+    try:
+        planet_lons = static.get("chart_raw", {}).get("planet_lons", {})
+        rahu_lon = planet_lons.get("RAHU", 45.0)
+        # Include Lagna in natal_lons for proximity checks
+        lagna_lon = static.get("meta", {}).get("lagna_lon", 0.0)
+        natal_for_lunations = dict(planet_lons)
+        natal_for_lunations["LAGNA"] = lagna_lon
+        lunations = compute_upcoming_lunations(
+            on_date=on_date,
+            natal_lons=natal_for_lunations,
+            rahu_lon=rahu_lon,
+            months_ahead=12,
+        )
+        return {
+            "all": lunations,
+            "eclipses": get_eclipse_alerts(lunations),
+            "high_significance": get_high_significance_lunations(lunations),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _compute_timing_windows_safe(
+        on_date,
+        transit_pos: dict,
+        static: dict,
+) -> dict:
+    try:
+        natal_moon_sign = static.get("meta", {}).get("moon_sign", 0)
+        av_data = static.get("ashtakvarga", {})
+        sarva_av_raw = av_data.get("sarva", None) if isinstance(av_data, dict) else None
+        sarva_av = list(sarva_av_raw) if sarva_av_raw else None
+
+        results = {}
+        for domain in ["career", "finance", "health", "relationships"]:
+            best  = find_best_windows(
+                base_transit_lons=transit_pos,
+                reference_date=on_date,
+                natal_moon_sign=natal_moon_sign,
+                domain=domain,
+                months_ahead=12,
+                sarva_av=sarva_av,
+                top_k=3,
+            )
+            worst = find_worst_windows(
+                base_transit_lons=transit_pos,
+                reference_date=on_date,
+                natal_moon_sign=natal_moon_sign,
+                domain=domain,
+                months_ahead=12,
+                sarva_av=sarva_av,
+                top_k=2,
+            )
+            results[domain] = {"best": best, "worst": worst}
+        return results
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# ─── Prediction text generator ───────────────────────────────────
+
+def _generate_prediction_text(
+        domain: str, level: str, score: float,
+        maha: str, antar: str, yogini: str,
+        favorable: List[str], blocked: List[str], yogas: List[str]) -> str:
+
+    lines = [
+        f"DOMAIN: {domain.upper()} | Confidence: {level} ({score:.1%})",
+        f"Active dasha: {maha} / {antar}  (Yogini: {yogini})",
+    ]
+
+    if favorable:
+        lines.append(f"Supportive transits: {', '.join(favorable)}")
+    if blocked:
+        lines.append(f"Vedha (transit obstruction) by: {', '.join(blocked)} — results may be delayed")
+    if yogas:
+        lines.append(f"Active yogas: {', '.join(yogas[:5])}")
+
+    domain_advice = {
+        "career":   "Good period for professional assertion, visibility, and new responsibilities.",
+        "finance":  "Track income sources carefully; auspicious for investments when Jupiter supports.",
+        "marriage": "Relationship harmony depends on Venus/Jupiter dasha strength.",
+        "health":   "Attend to vitality; Saturn transit periods require rest and discipline.",
+        "spiritual":"Ideal for inner work, retreats, study of philosophy and meditation.",
+        "travel":   "Foreign travel or relocation indicated; confirm timing via muhurtha.",
+        "children": "Jupiter's significations are paramount; check 5th house strength.",
+        "property": "4th house activity; Moon-Mars combination favourable for property.",
+    }
+    lines.append(domain_advice.get(domain.lower(), "General period of activity in this area."))
+    return "\n".join(lines)
+
+
+def _compute_retrograde_dasha_safe(
+        vim_active,
+        transit_pos: dict,
+        static: dict,
+) -> dict:
+    """
+    Compute retrograde Dasha lord mechanics for the active Mahadasha lord.
+    Called from analyze_dynamic() — wrapped so any failure returns empty dict.
+    """
+    if not _RETRO_DASHA_AVAILABLE:
+        return {}
+    try:
+        _planet_lons = static.get("chart_raw", {}).get("planet_lons", {})
+        _retros      = static.get("chart_raw", {}).get("retrogrades", {})
+        _ph          = static.get("chart_raw", {}).get("planet_houses", {})
+        _ls          = static.get("meta", {}).get("lagna_sign", 0)
+
+        _md_lord = "SATURN"
+        if isinstance(vim_active, dict):
+            _md_lord = vim_active.get("mahadasha", vim_active.get("planet", "SATURN"))
+        elif isinstance(vim_active, list) and vim_active:
+            _md_lord = vim_active[0].get("planet", "SATURN")
+
+        if not _retros.get(_md_lord, False):
+            return {"is_retrograde": False, "planet": _md_lord}
+
+        _md_lon   = _planet_lons.get(_md_lord, 0.0)
+        _md_house = _ph.get(_md_lord, 0)
+
+        # Detect station: if transit speed is near zero (sign change pending)
+        _transit_lon = transit_pos.get(_md_lord, _md_lon)
+        _was_retro   = _retros.get(_md_lord, False)
+        # Use speed proxy: if transit lon differs direction from natal, likely direct now
+        _is_retro_now = _was_retro   # best approximation without live speed data
+
+        return analyze_retrograde_dasha_lord(
+            dasha_planet=_md_lord,
+            planet_longitude=_md_lon,
+            planet_house=_md_house,
+            lagna_sign=_ls,
+            transit_was_retrograde=_was_retro,
+            transit_is_retrograde=_is_retro_now,
+        )
+    except Exception as _e:
+        return {"error": str(_e)}
+
+
+def _compute_predict_badhaka(
+        static: dict,
+        domain: str,
+        md_lord: str,
+        ad_lord: str,
+) -> dict:
+    """Compute Badhaka friction for the predict() call's domain and active Dasha."""
+    if not _BADHAKA_AVAILABLE:
+        return {}
+    try:
+        _ls = static.get("meta", {}).get("lagna_sign", 0)
+        _bh_info = get_badhaka_house(_ls)
+        _badhakesh = _bh_info.get("badhakesh", "")
+        _ph = static.get("chart_raw", {}).get("planet_houses", {})
+        _sr = static.get("shadbala_ratios", {})
+        _badhakesh_house = _ph.get(_badhakesh, 0)
+        _is_malefic = _badhakesh.upper() in {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+        _shad_ratio = _sr.get(_badhakesh, 1.0)
+
+        friction = compute_badhaka_friction(
+            lagna_sign=_ls,
+            badhakesh_house=_badhakesh_house,
+            badhakesh_is_functional_benefic=not _is_malefic,
+            badhakesh_shadbala_ratio=_shad_ratio,
+            current_dasha_lord=md_lord,
+            badhakesh=_badhakesh,
+            event_domain=domain,
+        )
+        friction["badhaka_info"] = _bh_info
+        return friction
+    except Exception as _e:
+        return {"error": str(_e)}
+
+
+def _compute_career_checklist_safe(
+        static: dict,
+        dynamic: dict,
+        domain: str,
+) -> dict:
+    """Run the 5-step career checklist — only when domain == 'career'."""
+    if not _CAREER_CHECKLIST_AVAILABLE or domain.lower() != "career":
+        return {}
+    try:
+        _ls = static.get("meta", {}).get("lagna_sign", 0)
+        _ps = static.get("chart_raw", {}).get("planet_signs", {})
+        _ph = static.get("chart_raw", {}).get("planet_houses", {})
+        _ms = static.get("meta", {}).get("moon_sign", 0)
+        _sun_s = _ps.get("SUN", 0)
+
+        # Jaimini karakas
+        _kd = static.get("karakas_dict", {})
+        _ak_planet  = _kd.get("AK", "SUN")
+        _amk_planet = _kd.get("AmK", "SATURN")
+        _ak_sign    = _ps.get(_ak_planet, 0)
+        _amk_sign   = _ps.get(_amk_planet, 0)
+
+        # D10 planet houses (from vargas dict)
+        _vargas = static.get("vargas", {})
+        _d10_planet_houses: dict = {}
+        _hl = {int(k): v for k, v in static.get("house_lords", {}).items()}
+        _d10_lagna_sign = _ls  # fallback if D10 lagna not computed
+        for _p, _vg in _vargas.items():
+            if isinstance(_vg, dict) and 10 in _vg:
+                _d10_sign = _vg[10]
+                _d10_planet_houses[_p] = ((_d10_sign - _d10_lagna_sign) % 12) + 1
+
+        # D3 10th house occupants
+        _d3_tenth_lord_sign = (_ls + 9) % 12   # 10th from D3 lagna (approx = D1 lagna)
+        _d3_tenth_planets = [
+            _p for _p, _vg in _vargas.items()
+            if isinstance(_vg, dict) and _vg.get(3) == _d3_tenth_lord_sign
+        ]
+        _d3_tenth_lord = {0: "MARS", 1: "VENUS", 2: "MERCURY", 3: "MOON",
+                          4: "SUN", 5: "MERCURY", 6: "VENUS", 7: "MARS",
+                          8: "JUPITER", 9: "SATURN", 10: "SATURN",
+                          11: "JUPITER"}.get(_d3_tenth_lord_sign, "SATURN")
+        _d3_tenth_lord_house = _ph.get(_d3_tenth_lord, 0)
+
+        # Active dasha lords
+        _vim = dynamic.get("vimshottari", {}).get("active", {})
+        _md_lord = "SATURN"
+        _ad_lord = "SATURN"
+        if isinstance(_vim, dict):
+            _md_lord = _vim.get("mahadasha", _vim.get("planet", "SATURN"))
+            _ad_lord = _vim.get("antardasha", _md_lord)
+        elif isinstance(_vim, list) and _vim:
+            _md_lord = _vim[0].get("planet", "SATURN")
+            _ad_lord = _vim[1].get("planet", _md_lord) if len(_vim) > 1 else _md_lord
+
+        # 10th house occupants in D1
+        _tenth_sign = (_ls + 9) % 12
+        _tenth_occupants = [_p for _p, _s in _ps.items() if _s == _tenth_sign]
+
+        # Saturn and Jupiter transit houses from lagna
+        _tp = dynamic.get("transit_positions", {})
+        from vedic_engine.core.coordinates import sign_of as _so
+        _sat_t_sign = _so(_tp.get("SATURN", 0.0))
+        _jup_t_sign = _so(_tp.get("JUPITER", 0.0))
+        _sat_t_house = ((_sat_t_sign - _ls) % 12) + 1
+        _jup_t_house = ((_jup_t_sign - _ls) % 12) + 1
+
+        return compute_career_checklist(
+            lagna_sign=_ls,
+            moon_sign=_ms,
+            sun_sign=_sun_s,
+            planet_signs=_ps,
+            planet_houses=_ph,
+            ak_sign=_ak_sign,
+            amk_sign=_amk_sign,
+            amk_planet=_amk_planet,
+            d10_planet_houses=_d10_planet_houses,
+            d3_tenth_house_planets=_d3_tenth_planets,
+            d3_tenth_lord=_d3_tenth_lord,
+            d3_tenth_lord_house=_d3_tenth_lord_house,
+            md_lord=_md_lord,
+            ad_lord=_ad_lord,
+            tenth_house_occupants=_tenth_occupants,
+            saturn_transit_house=_sat_t_house,
+            jupiter_transit_house=_jup_t_house,
+        )
+    except Exception as _e:
+        return {"error": str(_e)}
+
