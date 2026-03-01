@@ -61,14 +61,31 @@ def load_from_dict(raw: Dict[str, Any]) -> VedicChart:
     """Parse a raw dict (from JSON) into a VedicChart object."""
     # ── Birth info ──────────────────────────────────────────────
     bi_raw = raw.get("birth_info", raw.get("birth", {}))
+
+    # Extract raw fields needed for timezone resolution
+    _lat  = float(bi_raw.get("latitude", 0))
+    _lon  = float(bi_raw.get("longitude", 0))
+    _date = bi_raw.get("date", "")
+    _time = bi_raw.get("time", "")
+    _json_tz = float(bi_raw.get("timezone", 5.5))
+
+    # Auto-resolve correct UTC offset using timezonefinder + pytz.
+    # This handles DST correctly (e.g. India always +5:30, US varies).
+    # Falls back to the JSON-supplied value if libraries are absent.
+    try:
+        from vedic_engine.core.timezone_utils import resolve_timezone as _resolve_tz
+        _resolved_tz = _resolve_tz(_lat, _lon, _date, _time, fallback_tz=_json_tz)
+    except Exception:
+        _resolved_tz = _json_tz
+
     birth_info = BirthInfo(
         name=bi_raw.get("name", "Unknown"),
-        date=bi_raw.get("date", ""),
-        time=bi_raw.get("time", ""),
+        date=_date,
+        time=_time,
         place=bi_raw.get("place", ""),
-        latitude=float(bi_raw.get("latitude", 0)),
-        longitude=float(bi_raw.get("longitude", 0)),
-        timezone=float(bi_raw.get("timezone", 5.5)),
+        latitude=_lat,
+        longitude=_lon,
+        timezone=_resolved_tz,
         ayanamsa=float(bi_raw.get("ayanamsa", 23.0)),
         ayanamsa_model=bi_raw.get("ayanamsa_model", "Lahiri"),
     )
@@ -253,6 +270,58 @@ def _parse_date(val: Any) -> Optional[datetime]:
         except ValueError:
             pass
     return None
+
+
+# ─── Swiss Ephemeris Chart Builder ────────────────────────────────────────────
+
+def build_chart_swe(
+    name: str,
+    date_str: str,
+    time_str: str,
+    place: str,
+    latitude: float,
+    longitude: float,
+    tz_offset: float = 5.5,
+    ayanamsa: str = "lahiri",
+    house_system: str = "placidus",
+) -> VedicChart:
+    """
+    Build a VedicChart entirely from birth data using Swiss Ephemeris.
+
+    No JSON export file needed — positions, house cusps, nakshatras,
+    and combustion are ALL computed by pyswisseph (gold standard).
+
+    Falls back to load_sample_chart() if pyswisseph is not installed.
+
+    Args:
+        name       : Native name
+        date_str   : "YYYY-MM-DD"
+        time_str   : "HH:MM:SS"
+        place      : Place name
+        latitude   : Birth place latitude (N positive)
+        longitude  : Birth place longitude (E positive)
+        tz_offset  : UTC offset (5.5 for IST)
+        ayanamsa   : "lahiri", "krishnamurti", "raman"
+        house_system: "placidus", "whole_sign", "equal"
+
+    Returns:
+        VedicChart object with all positions computed by Swiss Ephemeris.
+    """
+    try:
+        from vedic_engine.core.swisseph_bridge import build_chart_from_birth_data
+        raw = build_chart_from_birth_data(
+            name=name, date_str=date_str, time_str=time_str,
+            place=place, latitude=latitude, longitude=longitude,
+            tz_offset=tz_offset, ayanamsa=ayanamsa, house_system=house_system,
+        )
+        return load_from_dict(raw)
+    except ImportError:
+        import logging
+        logging.getLogger(__name__).warning(
+            "[loader] pyswisseph not installed — cannot build chart from birth data. "
+            "Falling back to sample chart."
+        )
+        return load_sample_chart()
 
 
 def load_sample_chart() -> VedicChart:

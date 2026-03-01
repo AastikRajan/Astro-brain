@@ -232,3 +232,237 @@ def compute_ruling_planets(
         "lagna_nak_lord": lagna_nak_lord.name,
         "ruling_planets": list({p.name for p in ruling}),
     }
+
+
+# ── PRASHNA (BRANCH A) ────────────────────────────────────────────────────────
+
+# House arrays for YES/NO query resolution (KP method)
+PRASHNA_HOUSE_ARRAYS: Dict[str, Dict[str, list]] = {
+    "marriage":       {"yes": [2, 7, 11],       "no": [1, 6, 10, 12]},
+    "job":            {"yes": [2, 6, 10, 11],   "no": [1, 5, 9, 12]},
+    "promotion":      {"yes": [2, 6, 10, 11],   "no": [1, 5, 9, 12]},
+    "health_recovery":{"yes": [1, 5, 11],       "no": [6, 8, 12]},
+    "financial_gain": {"yes": [2, 6, 11],       "no": [5, 8, 12]},
+    "foreign_travel": {"yes": [3, 9, 12],       "no": [2, 4, 11]},
+    "legal_victory":  {"yes": [6, 11],          "no": [7, 12]},
+}
+
+# Primary cusp for each query type
+PRASHNA_PRIMARY_CUSP: Dict[str, int] = {
+    "marriage": 7, "job": 10, "promotion": 10,
+    "health_recovery": 6, "financial_gain": 2,
+    "foreign_travel": 9, "legal_victory": 6,
+}
+
+
+def resolve_prashna_query(
+        query_type: str,
+        cusp_kp: Dict[int, Dict],        # from build_cusp_significations
+        kp_sigs: Dict[str, Dict],        # from build_kp_significations
+        ruling_planets: Dict,            # from compute_ruling_planets
+        moon_nak_lord: str = "",
+        lagna_cusp_sublord: str = "",
+) -> Dict:
+    """
+    KP Prashna YES/NO resolution.
+
+    Algorithm:
+      1. Get primary cusp for the query type.
+      2. Find sub-lord of that cusp.
+      3. Check if star-lord of sub-lord signifies the YES array.
+      4. Confirm via Ruling Planets intersection.
+      5. Return verdict + timing hint.
+    """
+    qt = query_type.lower().replace(" ", "_")
+    arrays = PRASHNA_HOUSE_ARRAYS.get(qt)
+    cusp_num = PRASHNA_PRIMARY_CUSP.get(qt)
+
+    if arrays is None or cusp_num is None:
+        return {"verdict": "UNKNOWN", "reason": f"Query type '{query_type}' not in ruleset."}
+
+    yes_houses = set(arrays["yes"])
+    no_houses = set(arrays["no"])
+
+    # Sub-lord of primary cusp
+    cusp_data = cusp_kp.get(cusp_num, {})
+    sub_lord = cusp_data.get("sub_lord", "")
+    sub_lord_signifies = set(cusp_data.get("sub_lord_signifies", []))
+
+    # Star-lord (nak_lord) of sub-lord
+    sub_lord_nak = kp_sigs.get(sub_lord, {}).get("nak_lord", "")
+    sub_lord_nak_sigs = set(kp_sigs.get(sub_lord_nak, {}).get("signified_houses", []))
+    sub_lord_nak_sigs.update(sub_lord_signifies)  # combine sub-lord + its nak-lord
+
+    yes_match = bool(sub_lord_nak_sigs & yes_houses)
+    no_match = bool(sub_lord_nak_sigs & no_houses)
+
+    # Ruling Planet confirmation
+    rp_set = set(ruling_planets.get("ruling_planets", []))
+    rp_confirmed = sub_lord in rp_set or sub_lord_nak in rp_set
+
+    # Determine verdict
+    if yes_match and not no_match:
+        verdict = "YES — EVENT PROMISED"
+    elif no_match and not yes_match:
+        verdict = "NO — EVENT DENIED"
+    elif yes_match and no_match:
+        verdict = "CONDITIONAL — Mixed signals; timing may delay or modify"
+    else:
+        verdict = "UNCLEAR — Insufficient house signification"
+
+    if rp_confirmed:
+        verdict += " (RP Confirmed)"
+
+    return {
+        "query_type": query_type,
+        "primary_cusp": cusp_num,
+        "cusp_sub_lord": sub_lord,
+        "cusp_sub_lord_nak": sub_lord_nak,
+        "sub_lord_signifies": sorted(sub_lord_nak_sigs),
+        "yes_houses": sorted(yes_houses),
+        "no_houses": sorted(no_houses),
+        "yes_match": yes_match,
+        "no_match": no_match,
+        "rp_confirmed": rp_confirmed,
+        "verdict": verdict,
+    }
+
+
+def compute_prashna_panchaka(
+        tithi: int,       # 1-30 lunar day
+        nakshatra: int,   # 1-27
+        weekday: int,     # 1=Sun, 2=Mon, ... 7=Sat
+        asc_sign: int,    # 1-12
+) -> Dict:
+    """
+    Prashna Panchaka: (Tithi + Nakshatra + Weekday + Asc_Sign) mod 9.
+    Remainder in {1,2,4,6,8} = flawed/obstacle timing.
+
+    Meanings:
+      1 = Mrityu (Death/Danger)
+      2 = Agni (Fire/Destruction)
+      4 = Raja (Authority Clash)
+      6 = Chora (Theft)
+      8 = Roga (Disease)
+      3,5,7,0 = Neutral/Auspicious
+    """
+    PANCHAKA_MEANINGS = {
+        0: ("Neutral", "No special obstacle."),
+        1: ("Mrityu", "Danger — unfavorable for new ventures."),
+        2: ("Agni", "Fire/Destruction — risk of loss or conflict."),
+        3: ("Neutral/Rajya", "Authority — generally auspicious."),
+        4: ("Raja", "Authority clash — friction with superiors."),
+        5: ("Neutral/Mitra", "Friendship — positive outcome."),
+        6: ("Chora", "Theft / betrayal risk."),
+        7: ("Neutral/Sukha", "Comfort — moderate support."),
+        8: ("Roga", "Disease — health-related timing flaw."),
+    }
+    total = tithi + nakshatra + weekday + asc_sign
+    remainder = total % 9
+    name, meaning = PANCHAKA_MEANINGS[remainder]
+    flawed = remainder in (1, 2, 4, 6, 8)
+
+    return {
+        "tithi": tithi,
+        "nakshatra": nakshatra,
+        "weekday": weekday,
+        "asc_sign": asc_sign,
+        "total": total,
+        "remainder": remainder,
+        "panchaka": name,
+        "meaning": meaning,
+        "timing_flawed": flawed,
+        "verdict": ("TIMING FLAWED — severe operational obstacles" if flawed
+                    else "TIMING AUSPICIOUS — proceed with query"),
+    }
+
+
+def analyze_ithasala_yoga(
+        faster_planet_lon: float,
+        slower_planet_lon: float,
+        faster_daily_motion: float,
+        slower_daily_motion: float,
+        orb_degrees: float = 5.0,
+) -> Dict:
+    """
+    Ithasala Yoga: faster planet applying to aspect slower planet.
+
+    Ithasala (Positive): faster planet approaching slower within orb.
+    Easarapha (Negative): faster planet past the slower (separating).
+
+    The Moon's applying aspect = primary indicator for imminent events.
+    """
+    diff = (slower_planet_lon - faster_planet_lon) % 360.0
+    if diff > 180:
+        diff = 360.0 - diff
+
+    applying = faster_daily_motion > slower_daily_motion
+
+    if diff <= orb_degrees:
+        if applying:
+            yoga = "Ithasala (Applying Aspect) — POSITIVE"
+            verdict = "Future event indicated; faster planet approaching slower."
+        else:
+            yoga = "Easarapha (Separating Aspect) — NEGATIVE"
+            verdict = "Historical context; event already past or denied for future."
+    else:
+        yoga = "Out of Orb"
+        verdict = f"No active Ithasala/Easarapha within {orb_degrees}° orb."
+
+    return {
+        "faster_planet_lon": round(faster_planet_lon, 3),
+        "slower_planet_lon": round(slower_planet_lon, 3),
+        "angular_separation": round(diff, 3),
+        "orb": orb_degrees,
+        "applying": applying,
+        "yoga": yoga,
+        "verdict": verdict,
+    }
+
+
+def analyze_missing_person_prashna(planet_houses: Dict[str, int]) -> Dict:
+    """
+    Classical Prashna rules for missing person / traveller return.
+
+    Positive indicators (safe/quick return):
+      - Benefics in 2nd, 3rd, or 5th from Prashna Lagna
+      - Moon un-afflicted in 7th
+
+    Negative indicators (confinement/restriction):
+      - Malefics in 7th or 8th
+
+    Death indicator:
+      - Prishthodaya Lagna heavily aspected by malefics
+      - Afflicted Mercury in 6th
+    """
+    MALEFICS = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+    BENEFICS = {"MOON", "MERCURY", "JUPITER", "VENUS"}
+
+    benefics_in_235 = [p for p, h in planet_houses.items() if h in (2, 3, 5) and p in BENEFICS]
+    moon_in_7 = planet_houses.get("MOON", 0) == 7
+    malefics_in_78 = [p for p, h in planet_houses.items() if h in (7, 8) and p in MALEFICS]
+    mercury_in_6_afflicted = planet_houses.get("MERCURY", 0) == 6 and bool(
+        [p for p, h in planet_houses.items() if h == 6 and p in MALEFICS]
+    )
+
+    if benefics_in_235 or moon_in_7:
+        status = "SAFE RETURN — imminent safe return of missing person"
+        indicators = benefics_in_235 + (["MOON in 7th"] if moon_in_7 else [])
+    elif mercury_in_6_afflicted:
+        status = "POSSIBLE DEATH — afflicted Mercury in 6th + malefic conjunction"
+        indicators = ["Mercury afflicted in 6th"]
+    elif malefics_in_78:
+        status = "CONFINEMENT OR RESTRICTION — person in constraint"
+        indicators = malefics_in_78
+    else:
+        status = "UNCERTAIN — no strong indicator; await transit confirmation"
+        indicators = []
+
+    return {
+        "benefics_in_235": benefics_in_235,
+        "moon_in_7th": moon_in_7,
+        "malefics_in_7_or_8": malefics_in_78,
+        "mercury_6th_afflicted": mercury_in_6_afflicted,
+        "status": status,
+        "indicators": indicators,
+    }

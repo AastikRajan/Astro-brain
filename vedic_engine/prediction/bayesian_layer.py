@@ -23,17 +23,23 @@ from typing import Dict, Tuple
 
 # ─── Prior setting ────────────────────────────────────────────────────────────
 
-def _structural_prior(yoga: float, functional: float, house_lord: float
-                      ) -> Tuple[float, float]:
+def _structural_prior(yoga: float, functional: float) -> Tuple[float, float]:
     """
     Build Beta(α, β) prior from natal chart strength.
     Strong natal potential → optimistic prior (α > β).
     Weak natal potential  → pessimistic prior (β > α).
 
     Prior concentration: total α+β = 4 (weak prior, data will dominate).
+
+    NOTE: house_lord_strength was removed from this prior (ad.md §9.3) because
+    it is already counted with W_HOUSE_LORD = 0.07 in confidence.py's weighted
+    sum. Including it here AND there caused Bayesian double-counting — inflating
+    posterior estimates by ≈6-10% for strong-lord charts.
+    Redistribution: prior now uses yoga (55%) + functional (45%).
     """
-    # Composite natal score
-    natal = 0.40 * yoga + 0.35 * functional + 0.25 * house_lord
+    # Composite natal score — yoga captures Raja/Dhana potential,
+    # functional captures Lagna-relative benefic/malefic role
+    natal = 0.55 * yoga + 0.45 * functional
     natal = max(0.05, min(0.95, natal))
 
     concentration = 4.0   # how strongly we trust the prior (4 = weak)
@@ -116,7 +122,7 @@ def compute_bayesian_confidence(
     hl  = float(components.get("house_lord_strength", 0.30))
 
     # ── Prior from natal chart ────────────────────────────────────
-    alpha, beta_ = _structural_prior(yo, fn, hl)
+    alpha, beta_ = _structural_prior(yo, fn)
     factors = {"prior_natal": round(alpha / (alpha + beta_), 3)}
 
     # ── Likelihood updates ────────────────────────────────────────

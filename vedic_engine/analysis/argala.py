@@ -18,6 +18,12 @@ Special rule: Benefics in Argala houses → positive Argala (wealth, support)
               Malefics in Argala houses → Paapa (negative) Argala (obstacles)
               Malefics in Virodha houses → they ALSO obstruct (double block)
 
+Ketu Exception (Jaimini — File 4 spec):
+  Ketu reverses ALL directions in Argala computation.
+  Ketu in Argala house (2nd,4th,11th,5th) → flips to Virodha role (obstruction).
+  Ketu in Virodha house (12th,10th,3rd,9th) → flips to Argala role (support).
+  This reflects Ketu's nature as a south node (inward/reverse vector).
+
 Integration into confidence:
   - Strong positive Argala from Jupiter/Venus on dasha lord → confidence boost
   - Paapa Argala from Saturn/Rahu on domain ruler → confidence penalty
@@ -58,6 +64,29 @@ def _planets_in_house(house: int, planet_houses: Dict[str, int]) -> List[str]:
 
 def _is_benefic(planet: str) -> bool:
     return planet in NATURAL_BENEFIC_NAMES
+
+
+def _apply_ketu_reversal(
+    a_planets: List[str],
+    v_planets: List[str],
+) -> Tuple[List[str], List[str]]:
+    """
+    Jaimini Ketu Exception: Ketu reverses ALL Argala directions.
+
+    Ketu in Argala house → moves to Virodha list (obstruction role).
+    Ketu in Virodha house → moves to Argala list (support role).
+
+    This is applied PER argala pair, after house lookups.
+    """
+    new_a = [p for p in a_planets if p != "KETU"]
+    new_v = [p for p in v_planets if p != "KETU"]
+
+    if "KETU" in a_planets:
+        new_v.append("KETU")   # Ketu flips from Argala → Virodha
+    if "KETU" in v_planets:
+        new_a.append("KETU")   # Ketu flips from Virodha → Argala
+
+    return new_a, new_v
 
 
 def _is_malefic(planet: str) -> bool:
@@ -127,6 +156,10 @@ def compute_argala(
 
         a_planets = _planets_in_house(a_house, planet_houses)
         v_planets = _planets_in_house(v_house, planet_houses)
+
+        # ── Ketu Exception (Jaimini): Ketu reverses its Argala direction ──────
+        # Ketu in Argala house → shifts to Virodha role; in Virodha → Argala role
+        a_planets, v_planets = _apply_ketu_reversal(a_planets, v_planets)
 
         if not a_planets:
             continue  # no argala from this house

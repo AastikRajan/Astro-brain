@@ -340,6 +340,45 @@ def score_house_lord_strength(
     return _clamp(sum(scores) / len(scores))
 
 
+def score_jaimini_sub(
+    jaimini_data: Optional[Dict],
+    domain: str,
+) -> float:
+    """
+    Jaimini system confidence sub-score for the queried domain.
+
+    Sub-score structure (ad.md §4.1):
+      Chara Dasha alignment      : 30%
+      Karakamsha dignity/strength: 25%
+      Arudha Pada concordance    : 25%
+      Rashi Drishti confirmation : 20%
+
+    Each sub-component is normalised to 0–1 from the pre-computed Jaimini
+    analysis modules (jaimini_dashas, karakamsha, arudha_padas, rashi_drishti).
+
+    Args:
+        jaimini_data : Dict from Jaimini analysis with keys:
+          chara_alignment     : float 0-1 — current Chara lord signifies domain
+          karakamsha_score    : float 0-1 — Karakamsha planet/sign strength
+          arudha_alignment    : float 0-1 — Arudha Pada concordance for domain
+          rashi_drishti_score : float 0-1 — Rashi Drishti to relevant houses
+        domain : str — not used directly (Jaimini analysis is pre-filtered)
+
+    Returns:
+        float in [0, 1] — Jaimini sub-score; 0.3 (neutral) if no data available
+    """
+    if not jaimini_data:
+        return 0.3   # neutral when Jaimini analysis not performed
+
+    chara   = _clamp(float(jaimini_data.get("chara_alignment",     0.30)))
+    kara    = _clamp(float(jaimini_data.get("karakamsha_score",    0.30)))
+    arudha  = _clamp(float(jaimini_data.get("arudha_alignment",    0.30)))
+    rashi_d = _clamp(float(jaimini_data.get("rashi_drishti_score", 0.30)))
+
+    score = 0.30 * chara + 0.25 * kara + 0.25 * arudha + 0.20 * rashi_d
+    return _clamp(score)
+
+
 # ─── Main Aggregator ─────────────────────────────────────────────
 
 def compute_confidence(
@@ -363,6 +402,7 @@ def compute_confidence(
     planet_houses: Optional[Dict[str, int]] = None,
     negator_houses: Optional[List[int]] = None,
     gpt_adjustments: Optional[Dict] = None,
+    jaimini_data: Optional[Dict] = None,     # Jaimini sub-score inputs (ad.md §4.1)
     # ── Promise Gate 0 (Three Pillar Rule result) ───────────
     promise_result: Optional[Dict] = None,
     # ── MD/AD Geometric check ─────────────────────────
@@ -486,21 +526,24 @@ def compute_confidence(
     dasha_confirmed = c_dasha >= DASHA_THRESHOLD
 
     # ── Adaptive weights based on gate passage ────────────────
+    # Jaimini sub-score (8th component — ad.md §4.1)
+    c_jaimini = score_jaimini_sub(jaimini_data, domain)
+
     if promise_failed:
         # Gate 1 failed: use minimal weights, promise not in chart
-        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord = (
-            0.20, 0.15, 0.10, 0.08, 0.30, 0.10, 0.07
+        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
+            0.20, 0.15, 0.10, 0.08, 0.30, 0.10, 0.02, 0.05
         )
     elif not dasha_confirmed:
         # Gate 1 passed but dasha not confirming: standard weights
-        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord = (
-            0.30, 0.18, 0.13, 0.12, 0.14, 0.07, 0.06
+        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
+            0.30, 0.18, 0.13, 0.12, 0.14, 0.07, 0.01, 0.05
         )
     else:
         # Both gates passed: transit becomes dominant for precise timing
         # This is the "activation" state — transit weight escalates to 0.50
-        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord = (
-            0.20, 0.35, 0.15, 0.12, 0.10, 0.05, 0.03
+        w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
+            0.20, 0.35, 0.15, 0.12, 0.10, 0.05, 0.00, 0.03
         )
 
     overall = (w_dasha   * c_dasha   +
@@ -509,7 +552,8 @@ def compute_confidence(
                w_yoga    * c_yoga    +
                w_kp      * c_kp     +
                w_func    * c_func   +
-               w_hlord   * c_hlord)
+               w_hlord   * c_hlord  +
+               w_jaimini * c_jaimini)
 
     # ── Gate caps ─────────────────────────────────────────────
     if promise_failed:
@@ -547,6 +591,7 @@ def compute_confidence(
             "kp_confirmation":      round(c_kp,      3),
             "functional_alignment": round(c_func,    3),
             "house_lord_strength":  round(c_hlord,   3),
+            "jaimini_sub":          round(c_jaimini, 3),
         },
         "weights_used": {
             "dasha":     round(w_dasha,   3),
@@ -556,6 +601,7 @@ def compute_confidence(
             "kp":        round(w_kp,      3),
             "functional":round(w_func,    3),
             "house_lord":round(w_hlord,   3),
+            "jaimini":   round(w_jaimini, 3),
         },
     }
 
@@ -565,20 +611,106 @@ def multi_system_agreement(
     yogini_active: str,
     domain: str,
     planet_domain_map: Dict[str, List[str]],
+    chara_dasha_lord: Optional[str] = None,
+    chara_supports_domain: Optional[bool] = None,
+    transit_supports_domain: Optional[bool] = None,
 ) -> Dict:
     """
-    Agreement bonus: if multiple dasha systems point to same planet/domain.
-    Returns boost factor (0-0.1 additive).
+    Triple-Lock Convergence Engine (Logic Integration Manifest §3.8).
+
+    Fuses Vimshottari, Yogini, and Chara Dasha (+ optional Transit support)
+    into a formal convergence lock with three confidence tiers:
+
+      Level 3 (all 3 dasha systems converge):   boost +0.15  (85-95% confidence zone)
+      Level 2 (any 2 of 3 dasha systems agree): boost +0.08  (50-70% confidence zone)
+      Level 1 (only 1 or no agreement):         boost +0.00  (<40% base reliability)
+
+    Transit is an optional 4th factor — if it also supports the domain when
+    Level 3 is already active, an additional micro-boost of +0.03 is added.
+
+    Classical justification:
+      Vimshottari = Nakshatra-lord time cycle (primary predictive dasha)
+      Yogini      = 8-fold Shakti-based dasha (corroborating cycle)
+      Chara Dasha = Jaimini sign-based dasha (3rd perpendicular view)
+      When all three independently point to the same domain/event,
+      the probability of manifestation is highest.
+
+    Args:
+        vimshottari_active      : Current Vimshottari Maha-dasha lord (e.g. "JUPITER")
+        yogini_active           : Current Yogini Maha-dasha lord
+        domain                  : Domain being tested (e.g. "career", "marriage")
+        planet_domain_map       : {planet → [domain1, domain2, ...]} lookup
+        chara_dasha_lord        : Current Jaimini Chara Dasha sign/lord (optional)
+        chara_supports_domain   : Whether Chara Dasha lord's significations cover
+                                  the domain (pre-computed — pass True/False/None)
+        transit_supports_domain : Whether current transit configuration supports
+                                  the domain (pre-computed — pass True/False/None)
+
+    Returns:
+        Dict with lock_level, confidence_boost, lock_details
     """
     vim_domains  = set(planet_domain_map.get(vimshottari_active, []))
     yog_domains  = set(planet_domain_map.get(yogini_active, []))
-    both_support = domain in vim_domains and domain in yog_domains
-    same_planet  = vimshottari_active == yogini_active
-    boost = 0.10 if same_planet else (0.05 if both_support else 0.0)
+
+    vim_supports  = domain in vim_domains
+    yog_supports  = domain in yog_domains
+    same_planet   = (vimshottari_active == yogini_active)
+
+    # Chara Dasha — use provided flag or fall back to domain map lookup
+    char_supports: bool
+    if chara_supports_domain is not None:
+        char_supports = chara_supports_domain
+    elif chara_dasha_lord is not None:
+        char_domains  = set(planet_domain_map.get(chara_dasha_lord, []))
+        char_supports = domain in char_domains
+    else:
+        char_supports = False   # No Chara data → conservatively exclude
+
+    # Score each lock: count how many of the 3 primary systems support the domain
+    # (Yogini gets an extra point if it's the same lord as Vimshottari)
+    supports = [vim_supports, yog_supports, char_supports]
+    n_agree  = sum(supports)
+
+    # Special case: if same lord in both Vimshottari + Yogini, treat both as
+    # strong agreement (weight = 1.5 systems)
+    if same_planet and vim_supports and yog_supports:
+        n_agree = max(n_agree, 2)   # at least Level 2
+
+    # Convergence level determination
+    if n_agree >= 3:
+        lock_level = 3
+        boost      = 0.15
+        tier_label = "LEVEL_3 (85-95%): All 3 dasha systems converge"
+    elif n_agree == 2:
+        lock_level = 2
+        boost      = 0.08
+        tier_label = "LEVEL_2 (50-70%): 2 of 3 dasha systems agree"
+    else:
+        lock_level = 1
+        boost      = 0.00
+        tier_label = "LEVEL_1 (<40%): No sufficient multi-system agreement"
+
+    # Transit micro-boost: only applies when Level 3 already confirmed
+    transit_micro_boost = 0.0
+    if lock_level == 3 and transit_supports_domain is True:
+        transit_micro_boost = 0.03
+        boost += transit_micro_boost
+        tier_label += " + Transit confirms (micro-boost +0.03)"
+
     return {
-        "vimshottari_dasha_lord": vimshottari_active,
-        "yogini_dasha_lord": yogini_active,
-        "same_lord": same_planet,
-        "both_support_domain": both_support,
-        "confidence_boost": boost,
-    }
+        "vimshottari_dasha_lord":   vimshottari_active,
+        "yogini_dasha_lord":        yogini_active,
+        "chara_dasha_lord":         chara_dasha_lord,
+        "vimshottari_supports":     vim_supports,
+        "yogini_supports":          yog_supports,
+        "chara_supports":           char_supports,
+        "transit_supports":         transit_supports_domain,
+        "same_lord_vim_yog":        same_planet,
+        "systems_agree_count":      n_agree,
+        "lock_level":               lock_level,
+        "tier_label":               tier_label,
+        "confidence_boost":         round(boost, 3),
+        "transit_micro_boost":      transit_micro_boost,
+        # Legacy keys (backwards compatibility)
+        "both_support_domain":      vim_supports and yog_supports,
+        "same_lord":                same_planet,    }

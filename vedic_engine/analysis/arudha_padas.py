@@ -252,3 +252,135 @@ def arudha_summary(
         "a10_sign": arudhas[10]["arudha_sign_name"],
         "arudhas": analyses,
     }
+
+
+# ─── Rashi Drishti lookup for extended Arudha analysis ───────────────────────
+
+_RASHI_DRISHTI: Dict[int, frozenset] = {
+    0:frozenset({4,7,10}),3:frozenset({7,10,1}),6:frozenset({10,1,4}),9:frozenset({1,4,7}),
+    1:frozenset({3,6,9}),4:frozenset({6,9,0}),7:frozenset({9,0,3}),10:frozenset({0,3,6}),
+    2:frozenset({5,8,11}),5:frozenset({8,11,2}),8:frozenset({11,2,5}),11:frozenset({2,5,8}),
+}
+
+def _has_rashidrishti(s1: int, s2: int) -> bool:
+    return s2 in _RASHI_DRISHTI.get(s1, frozenset()) or s1 in _RASHI_DRISHTI.get(s2, frozenset())
+
+
+def compute_arudha_extended_analysis(
+    lagna_sign: int,
+    planet_signs: Dict[str, int],
+) -> Dict:
+    """
+    Extended Jaimini Arudha Pada analysis (File 4 Sections 6 + 8).
+
+    Adds to the base arudha_summary:
+      1. AL-UL axis sustainability (Kendra/Trikona vs 6/8 or 2/12)
+      2. Rahu/Ketu on AL or 7th from AL → health/marital warning (SUTRA 5)
+      3. A10 influencing planets (occupants + Rashi Drishti aspirants)
+      4. A10 reputation analysis (benefic=clean; malefic=controversial)
+      5. Marriage probability summary from AL-UL
+    """
+    arudhas = compute_all_arudhas(lagna_sign, planet_signs)
+    al_sign  = arudhas[1]["arudha_sign"]
+    ul_sign  = arudhas[12]["arudha_sign"]
+    a10_sign = arudhas[10]["arudha_sign"]
+
+    # ── 1. AL-UL Axis Analysis ────────────────────────────────────────────────
+    dist_al_ul = ((ul_sign - al_sign) % 12) + 1  # 1-based (1=same, 7=opposite)
+    dist_ul_al = ((al_sign - ul_sign) % 12) + 1
+
+    _KENDRA   = {1, 4, 7, 10}
+    _TRIKONA  = {1, 5, 9}
+    _TROUBLES = {6, 8, 2, 12}
+
+    in_kendra   = dist_al_ul in _KENDRA
+    in_trikona  = dist_al_ul in _TRIKONA
+    is_troubled = dist_al_ul in _TROUBLES or dist_ul_al in _TROUBLES
+
+    if in_kendra or in_trikona:
+        al_ul_verdict = "SUSTAINABLE"
+        al_ul_note    = (f"AL ({SIGN_NAMES[al_sign]}) and UL ({SIGN_NAMES[ul_sign]}) in "
+                         f"Kendra/Trikona relationship ({dist_al_ul}th from AL). "
+                         "Sustainable, publically supported marriage.")
+    elif is_troubled:
+        al_ul_verdict = "FRICTION"
+        al_ul_note    = (f"AL and UL in 6/8 or 2/12 axis ({dist_al_ul}th from AL). "
+                         "Fundamental friction between public trajectory and private marital harmony. "
+                         "Separation risk possible.")
+    else:
+        al_ul_verdict = "NEUTRAL"
+        al_ul_note    = f"AL-UL distance {dist_al_ul}: moderate sustainability, other factors determine."
+
+    # ── 2. Rahu/Ketu on AL or 7th from AL (SUTRA 5) ──────────────────────────
+    seventh_from_al = (al_sign + 6) % 12
+    rahu_sign = planet_signs.get("RAHU", -1)
+    ketu_sign = planet_signs.get("KETU", -1)
+
+    node_on_al  = (rahu_sign == al_sign or ketu_sign == al_sign)
+    node_on_7th = (rahu_sign == seventh_from_al or ketu_sign == seventh_from_al)
+    node_flag   = node_on_al or node_on_7th
+    node_note   = ""
+    if node_flag:
+        loc = []
+        if node_on_al:  loc.append("on AL")
+        if node_on_7th: loc.append("on 7th from AL")
+        node_note = (f"SUTRA 5: Rahu/Ketu {', '.join(loc)} → "
+                     "severe chronic stomach disorders, high fire/accident risk, "
+                     "deeply rooted marital distress.")
+
+    # ── 3. A10 Aspecting Planets (Rujay Pada analysis) ───────────────────────
+    a10_occupants  = [p for p, s in planet_signs.items() if s == a10_sign]
+    a10_aspecting  = [p for p, s in planet_signs.items() if s != a10_sign and _has_rashidrishti(s, a10_sign)]
+    a10_influences = a10_occupants + a10_aspecting
+
+    a10_benefics = [p for p in a10_influences if p in _NATURAL_BENEFICS]
+    a10_malefics = [p for p in a10_influences if p in _NATURAL_MALEFICS]
+
+    if a10_benefics and not a10_malefics:
+        a10_reputation = "CLEAN — Untarnished professional reputation, steady promotions."
+    elif a10_malefics and not a10_benefics:
+        a10_reputation = "CONTROVERSIAL — Power through aggressive, dictatorial, or manipulative means."
+    elif a10_benefics and a10_malefics:
+        a10_reputation = "MIXED — Career success with occasional controversy; complex public image."
+    else:
+        a10_reputation = "NEUTRAL — Career uninfluenced by strong planetary signature on A10."
+
+    # ── 4. Contraargala check on A10 (2nd from A10 vs 12th from A10) ─────────
+    second_from_a10 = (a10_sign + 1) % 12    # 2nd from A10 = Argala support
+    twelfth_from_a10 = (a10_sign + 11) % 12  # 12th from A10 = Virodha Argala
+
+    a10_argala_planets  = [p for p, s in planet_signs.items() if s == second_from_a10]
+    a10_virodha_planets = [p for p, s in planet_signs.items() if s == twelfth_from_a10]
+
+    a10_argala_active = bool(a10_argala_planets) and len(a10_argala_planets) >= len(a10_virodha_planets)
+    a10_contraargala  = bool(a10_virodha_planets) and len(a10_virodha_planets) > len(a10_argala_planets)
+
+    contraargala_note = ""
+    if a10_contraargala:
+        contraargala_note = (f"Contraargala on A10: {a10_virodha_planets} in 12th from A10 blocks career "
+                             f"against {a10_argala_planets or 'empty'} in 2nd. Career leap obstructed until "
+                             "resolved by Dasha shift or transit.")
+    elif a10_argala_active:
+        contraargala_note = (f"Argala on A10: {a10_argala_planets} in 2nd from A10 provide career resources. "
+                             "No blocking Contraargala — manifestation supported.")
+
+    return {
+        "al_sign":         SIGN_NAMES[al_sign],
+        "ul_sign":         SIGN_NAMES[ul_sign],
+        "a10_sign":        SIGN_NAMES[a10_sign],
+        "al_ul_distance":  dist_al_ul,
+        "al_ul_verdict":   al_ul_verdict,
+        "al_ul_note":      al_ul_note,
+        "node_affliction": node_flag,
+        "node_note":       node_note,
+        "a10_occupants":   a10_occupants,
+        "a10_aspecting":   a10_aspecting,
+        "a10_benefics":    a10_benefics,
+        "a10_malefics":    a10_malefics,
+        "a10_reputation":  a10_reputation,
+        "a10_argala":      a10_argala_planets,
+        "a10_virodha":     a10_virodha_planets,
+        "a10_argala_active":    a10_argala_active,
+        "a10_contraargala":     a10_contraargala,
+        "contraargala_note":    contraargala_note,
+    }

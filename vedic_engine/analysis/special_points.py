@@ -17,6 +17,13 @@ from typing import Dict, List, Optional
 
 from vedic_engine.core.coordinates import normalize, nakshatra_of, sign_of
 
+# Swiss Ephemeris-powered precise sunrise/sunset (falls back to NOAA, then 6.0/18.0)
+try:
+    from vedic_engine.core.sunrise_utils import get_sunrise_sunset_hours
+    _HAS_SUNRISE_API = True
+except ImportError:
+    _HAS_SUNRISE_API = False
+
 
 # ─── Gulika (Mandi) ───────────────────────────────────────────────
 # Day is split into 8 equal parts (Praharas). Gulika owns a specific
@@ -408,6 +415,88 @@ def compute_bhrigu_bindu(moon_lon: float, rahu_lon: float) -> float:
     return round(bb, 3)
 
 
+def check_bhrigu_bindu_transit(
+    bb_degree: float,
+    transit_planet_lons: Dict[str, float],
+    natal_house_map: Optional[Dict[str, int]] = None,
+) -> Dict:
+    """
+    Check whether slow-moving planets are in triggering orb of Bhrigu Bindu.
+
+    Classical rule (ad.md §5.4): Jupiter, Saturn, and Rahu/Ketu transiting
+    over the Bhrigu Bindu correlate with karmic event activation.
+
+      Exact zone    : within ±1°  → strong activation (strength ~1.0)
+      Influence zone: within ±5°  → approaching activation (strength scaled
+                                     linearly from 0.20 at 5° to 1.0 at 0°)
+      Beyond 5°     : no activation for that planet
+
+    Args:
+        bb_degree          : Bhrigu Bindu longitude in degrees [0,360)
+        transit_planet_lons: {planet_name: longitude} for current transits
+        natal_house_map    : Optional {longitude_deg: house_num} for sign-to-house mapping
+
+    Returns:
+        Dict with:
+          triggered       : bool — at least one planet in exact zone
+          approaching     : bool — at least one planet in influence zone but not exact
+          activating_planets: list of dicts per planet in range
+          bb_degree       : float
+    """
+    # Trigger planets — classical slow-movers per Bhrigu Nadi tradition
+    TRIGGER_PLANETS = {"JUPITER", "SATURN", "RAHU", "KETU"}
+    EXACT_ORB = 1.0      # degrees — strong trigger
+    INFLUENCE_ORB = 5.0  # degrees — building / separating influence
+
+    activating = []
+    triggered = False
+    approaching = False
+
+    for planet, lon in transit_planet_lons.items():
+        p = planet.upper()
+        if p not in TRIGGER_PLANETS:
+            continue
+
+        # Arc distance (shortest path around zodiac)
+        arc = abs((lon - bb_degree + 180.0) % 360.0 - 180.0)
+
+        if arc <= EXACT_ORB:
+            strength = 1.0
+            zone = "EXACT"
+            triggered = True
+        elif arc <= INFLUENCE_ORB:
+            # Linear decay from 1.0 at orb=1° to 0.20 at orb=5°
+            strength = round(1.0 - (arc - EXACT_ORB) / (INFLUENCE_ORB - EXACT_ORB) * 0.80, 3)
+            zone = "INFLUENCE"
+            approaching = True
+        else:
+            continue
+
+        activating.append({
+            "planet":       p,
+            "transit_lon":  round(lon, 2),
+            "bb_degree":    round(bb_degree, 2),
+            "arc_degrees":  round(arc, 2),
+            "zone":         zone,
+            "strength":     strength,
+            "note": (
+                f"{p} is {'exactly' if zone == 'EXACT' else 'approaching'} "
+                f"Bhrigu Bindu ({bb_degree:.1f}°) — orb {arc:.1f}°"
+            ),
+        })
+
+    return {
+        "bb_degree":          round(bb_degree, 2),
+        "triggered":          triggered,
+        "approaching":        approaching,
+        "activating_planets": activating,
+        "transit_summary": (
+            f"{len(activating)} planet(s) in BB orb"
+            if activating else "No slow-moving planet in Bhrigu Bindu orb"
+        ),
+    }
+
+
 # ─── Drekkana Nature (Sarpa / Pakshi classification) ──────────────
 # Each 10° decanate of every sign has a traditional "nature" label.
 # Index: (sign_index 0-11, drekkana 0=first/1=second/2=third)
@@ -477,9 +566,15 @@ def compute_all_special_points(
     house_lords: Optional[Dict[int, str]] = None,
     sun_lon: float = 0.0,
     rahu_lon: float = 0.0,
+    latitude: float = 0.0,
+    longitude: float = 0.0,
+    tz_offset: float = 5.5,
 ) -> Dict:
     """
     Compute all special sensitive points for a birth chart.
+
+    Now uses SWE-precise sunrise/sunset (via get_sunrise_sunset_hours) for
+    Gulika, Mandi, Hora Lagna, and Ghati Lagna instead of hardcoded 6am/6pm.
 
     Args:
         birth_dt:    birth datetime
@@ -488,6 +583,9 @@ def compute_all_special_points(
         house_lords: {house_num: planet_name} (needed for Indu Lagna)
         sun_lon:     Sun longitude (needed for Upagrahas, Yogi)
         rahu_lon:    Rahu longitude (needed for Bhrigu Bindu)
+        latitude:    birth latitude (for precise sunrise)
+        longitude:   birth longitude (for precise sunrise)
+        tz_offset:   UTC offset hours (for precise sunrise)
 
     Returns dict with all computed points and their sign placements.
     """
@@ -495,10 +593,20 @@ def compute_all_special_points(
     sign_names = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo",
                   "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
 
-    gulika      = compute_gulika(birth_dt, lagna_lon)
-    mandi       = compute_mandi(birth_dt, lagna_lon)
-    hora_lagna  = compute_hora_lagna(birth_dt, lagna_lon)
-    ghati_lagna = compute_ghati_lagna(birth_dt, lagna_lon)
+    # ── Compute real sunrise/sunset for this birth date & location ──
+    sunrise_h, sunset_h = 6.0, 18.0
+    if _HAS_SUNRISE_API and (latitude != 0.0 or longitude != 0.0):
+        try:
+            sunrise_h, sunset_h = get_sunrise_sunset_hours(
+                birth_dt, latitude, longitude, tz_offset
+            )
+        except Exception:
+            pass  # keep defaults
+
+    gulika      = compute_gulika(birth_dt, lagna_lon, sunrise_h, sunset_h)
+    mandi       = compute_mandi(birth_dt, lagna_lon, sunrise_h, sunset_h)
+    hora_lagna  = compute_hora_lagna(birth_dt, lagna_lon, sunrise_h)
+    ghati_lagna = compute_ghati_lagna(birth_dt, lagna_lon, sunrise_h)
     indu_lagna  = compute_indu_lagna(lagna_lon, moon_lon, house_lords or {})
 
     def _describe(lon: float) -> Dict:

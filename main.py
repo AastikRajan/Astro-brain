@@ -881,6 +881,341 @@ def print_domain_report(domain_report: dict):
                     sv_tier  = sv.get("tier", "?")
                     print(f"\n  Shadvarga Vimshopak [{_lord}]: {sv_score:.2f}/20  [{sv_tier}]")
 
+    # ── Graha Yuddha (Planetary War) in natal chart ───────────────────────────
+    graha_wars = domain_report.get("graha_yuddha", [])
+    if graha_wars and isinstance(graha_wars, list):
+        print("\n  GRAHA YUDDHA (Planetary War):")
+        for war in graha_wars[:4]:  # show up to 4 wars
+            if isinstance(war, dict):
+                v = war.get("victor", "?")
+                d = war.get("defeated", "?")
+                sev = war.get("severity", "?")
+                orb = war.get("orb_deg", 0)
+                print(f"    {v} defeats {d}  [{sev}, {orb:.2f}° orb] — {d}'s yogas reduced")
+
+    # ── Dhana Stacking Tier ───────────────────────────────────────────────────
+    dhana_st = domain_report.get("dhana_stacking", {})
+    if dhana_st and isinstance(dhana_st, dict) and dhana_st.get("wealth_tier", "none") != "none":
+        tier   = dhana_st.get("wealth_tier", "?").upper()
+        n_d    = dhana_st.get("dhana_count", 0)
+        pariv  = dhana_st.get("parivartana_2_11", False)
+        dharma = dhana_st.get("dharma_integrated", False)
+        print(f"\n  Dhana Stacking: {n_d} Dhana Yoga(s) → Wealth Tier: [{tier}]")
+        if pariv:
+            print("    Parivartana 2L↔11L: maximum wealth circuit active")
+        if dharma:
+            print("    5th/9th lord integrated into 2-11 axis: dharmic prosperity")
+        ceiling = dhana_st.get("ceiling_note", "")
+        if ceiling:
+            print(f"    CEILING: {ceiling[:100]}")
+
+
+
+    # ── Tajika Varshaphala and further chart sections moved to print_chart_sections()
+
+
+# ─── Chart-Level Sections (printed once, not per domain) ─────────────────────
+
+def print_chart_sections(domain_report: dict):
+    """Print chart-level sections that are the same regardless of domain."""
+
+    # ── Nakshatra Analysis (File 2) ───────────────────────────────────────────
+    nak_data = domain_report.get("nakshatra_analysis", {})
+    if nak_data and isinstance(nak_data, dict):
+        print("\n  ── NAKSHATRA ANALYSIS ──")
+        tara = nak_data.get("tarabala", {})
+        if tara:
+            tara_name = tara.get("tara_name", "?")
+            tara_num  = tara.get("tara_num", "?")
+            nature    = tara.get("nature", "?")
+            mult      = tara.get("multiplier", 0)
+            flag = "⚠ NAIDHANA — avoid major decisions" if tara.get("is_highly_negative") else ""
+            print(f"  Tarabala: Tara {tara_num} ({tara_name}) — {nature}  "
+                  f"[multiplier {mult:+.2f}]  {flag}")
+        chandra = nak_data.get("chandrabala", {})
+        if chandra:
+            house_fm = chandra.get("house_from_natal_moon", "?")
+            qtier    = chandra.get("quality_tier", "?")
+            score    = chandra.get("score", 0)
+            print(f"  Chandrabala: House {house_fm} from natal Moon — "
+                  f"{qtier}  [score {score:.2f}]")
+            note = chandra.get("chandrabala_note", "")
+            if note and qtier in ("severe", "favorable_exception"):
+                print(f"    {note}")
+        moon_pada = nak_data.get("moon_naming_star", {})
+        if moon_pada:
+            nak_name = moon_pada.get("nakshatra", "?")
+            pada_n   = moon_pada.get("pada", "?")
+            syllable = moon_pada.get("syllable", "?")
+            tatwa    = moon_pada.get("tatwa", "?")
+            dosha    = moon_pada.get("dosha", "?")
+            purpose  = moon_pada.get("purpose", "?")
+            print(f"  Natal Moon: {nak_name} pada {pada_n}  "
+                  f"Bija Akshara: '{syllable}'  "
+                  f"[{tatwa} / {dosha} / {purpose}]")
+        vargo = nak_data.get("vargottama_planets", [])
+        if vargo:
+            print(f"  Vargottama Planets: {', '.join(vargo)}  "
+                  f"[D1=D9 sign — amplified natural expression]")
+        pushkara = nak_data.get("pushkara_planets", {})
+        if pushkara:
+            for pname, pk in pushkara.items():
+                mult = pk.get("multiplier", 1)
+                label = "PUSHKARA BHAGA (3×)" if pk.get("is_pushkara_bhaga") else "Pushkara Navamsa (2×)"
+                print(f"  {pname}: {label}  — {pk.get('note', '')[:80]}")
+        dwi = nak_data.get("dwisaptati", {})
+        if dwi and dwi.get("eligible"):
+            print(f"\n  DWISAPTATI SAMA DASHA ACTIVE — 72-year cycle")
+            print(f"    Reason: {dwi.get('reason', '')}")
+            print(f"    Planets: {', '.join(dwi.get('dasha_planets', []))}")
+
+    # ── Tajika Varshaphala (File 3) ───────────────────────────────────────────
+    vp_data = domain_report.get("varshaphala", {})
+    if vp_data and not vp_data.get("error"):
+        print("\n  ── TAJIKA VARSHAPHALA ──")
+
+        # Muntha
+        muntha = vp_data.get("muntha", {})
+        if muntha:
+            print(f"  Muntha      : {muntha.get('sign','?')} "
+                  f"({muntha.get('degree_in_sign',0):.1f}°) "
+                  f"— Lord: {muntha.get('lord','?')}")
+            print(f"    {muntha.get('interpretation','')}")
+
+        # Varsha Pati
+        vp = vp_data.get("varsha_pati", {})
+        if vp:
+            print(f"  Varsha Pati : {vp.get('varsha_pati','?')}  "
+                  f"({vp.get('role','')})  "
+                  f"PVB={vp.get('pvb',0):.1f} [{vp.get('tier','')}]")
+
+        # PVB summary (top 3 strongest planets)
+        pvb_all = vp_data.get("pvb", {})
+        if pvb_all:
+            ranked = sorted(pvb_all.items(), key=lambda x: -x[1]["pvb"])[:3]
+            pvb_strs = [f"{p}={d['pvb']:.1f}({d['tier'][0]})" for p, d in ranked]
+            print(f"  PVB Leaders : {', '.join(pvb_strs)}")
+
+        # Tajika Yogas
+        yogas = vp_data.get("tajika_yogas", [])
+        if yogas:
+            print(f"\n  Tajika Yogas ({len(yogas)} detected):")
+            quality_order = {"very_good": 0, "good": 1, "mixed": 2, "bad": 3, "very_bad": 4}
+            for y in sorted(yogas, key=lambda x: quality_order.get(x.get("quality","mixed"),2))[:6]:
+                q_sym = {"very_good":"✦","good":"◆","mixed":"◇","bad":"●","very_bad":"✖"}.get(
+                    y.get("quality","?"),"?")
+                pl = "+".join(y.get("planets",[]))[:30]
+                print(f"    {q_sym} {y['yoga']:<18} [{pl}]: {y['description'][:55]}")
+
+        # Active Sahams
+        active_sahams = vp_data.get("active_sahams", [])
+        if active_sahams:
+            print(f"\n  Active Sahams ({len(active_sahams)} activated):")
+            for s in active_sahams[:5]:
+                print(f"    {s['name']:<12} — {s['significance']}  "
+                      f"(lord {s['lord']}, sep {s['itthasala_sep']:.1f}°)")
+
+        # Mudda Dasha
+        mudda = vp_data.get("mudda_dasha", {})
+        current = mudda.get("current") if mudda else None
+        if current:
+            print(f"\n  Mudda Dasha : {current['lord']}  "
+                  f"{current['start_date']} → {current['end_date']}  "
+                  f"({current['days']:.0f} days)")
+            # Show next 3 periods
+            seq = mudda.get("sequence", [])
+            if len(seq) > 1:
+                ci = next((i for i, p in enumerate(seq) if p["lord"] == current["lord"]
+                           and p["start_date"] == current["start_date"]), 0)
+                upcoming = seq[ci+1:ci+4]
+                if upcoming:
+                    nxt = "  ".join(f"{p['lord']}({p['start_date'][:7]})" for p in upcoming)
+                    print(f"    Next: {nxt}")
+
+    # ── Jaimini Extended (File 4) ───────────────────────────────────────────────
+    je = domain_report.get("jaimini_extended", {})
+    if je:
+        print("\n  ── JAIMINI EXTENDED ANALYSIS ──")
+
+        # Sthira Karakas
+        sk = je.get("sthira_karakas", {})
+        if sk:
+            k_map = sk.get("karakas", {})
+            print(f"\n  Sthira Karakas (Ayur Dasha use only):")
+            print(f"    Father: {k_map.get('father','?')}  "
+                  f"Mother: {k_map.get('mother','?')}  "
+                  f"Longevity: {k_map.get('elder_sibling_longevity','SATURN')}")
+
+        # Svamsha + Karakamsha
+        sv = je.get("svamsha", {})
+        km = je.get("karakamsha", {})
+        if sv:
+            print(f"\n  Svamsha     : AK in {sv.get('sign_name','?')} Navamsha")
+            print(f"    {sv.get('indication','')[:90]}")
+        if km:
+            print(f"  Karakamsha  : {km.get('karakamsha_sign','?')} (D-1 rotated) — "
+                  f"Ishta Devata: {km.get('ishta_devata','?')}  "
+                  f"Moksha Yoga: {'YES' if km.get('moksha_yoga') else 'No'}")
+            if km.get("profession_indicator"):
+                print(f"    10th Lord (career indicator): {km['profession_indicator']}")
+
+        # Jaimini Yogas
+        jy = je.get("jaimini_yogas", [])
+        if jy:
+            print(f"\n  Jaimini Yogas ({len(jy)} detected):")
+            for y in jy[:5]:
+                strength_sym = {"very high":"★★★","high":"★★","absolute":"★★★","extraordinary":"★★★"}.get(
+                    y.get("strength",""), "★")
+                planets_str = "+".join(y.get("planets", []))[:25]
+                print(f"    {strength_sym} {y['name'][:38]:<38} [{planets_str}]")
+                print(f"       {y['meaning'][:80]}")
+
+        # Arudha Extended
+        ae = je.get("arudha_extended", {})
+        if ae:
+            print(f"\n  AL-UL Analysis:")
+            print(f"    AL={ae.get('al_sign','?')}  UL={ae.get('ul_sign','?')}  "
+                  f"A10={ae.get('a10_sign','?')}")
+            verdict = ae.get("al_ul_verdict","")
+            verdict_sym = {"SUSTAINABLE":"✓","FRICTION":"✗","NEUTRAL":"~"}.get(verdict, verdict)
+            print(f"    Marriage Axis: {verdict_sym} {verdict} — {ae.get('al_ul_note','')[:65]}")
+            if ae.get("node_affliction"):
+                print(f"    ⚠ {ae.get('node_note','')[:85]}")
+            print(f"    A10 Career Reputation: {ae.get('a10_reputation','')[:70]}")
+            if ae.get("contraargala_note"):
+                print(f"    Contraargala: {ae.get('contraargala_note','')[:75]}")
+
+        # Additional Jaimini Dashas summary
+        dasha_keys = [
+            ("shoola_dasha",  "Shoola  "),
+            ("niryana_shoola","Niryana "),
+            ("brahma_dasha",  "Brahma  "),
+            ("navamsha_dasha","Navamsha"),
+            ("sudasa",        "Sudasa  "),
+            ("drig_dasha",    "Drig    "),
+            ("trikona_dasha", "Trikona "),
+        ]
+        print(f"\n  Additional Jaimini Dasha Systems:")
+        for key, label in dasha_keys:
+            dd = je.get(key, {})
+            if dd:
+                start_sign = (dd.get("start_sign")
+                              or dd.get("brahma_sign")
+                              or dd.get("sree_lagna_sign")
+                              or dd.get("ninth_house")
+                              or dd.get("d9_lagna")
+                              or "?")
+                periods = dd.get("periods", [])
+                active_label = ""
+                if periods:
+                    first_p = periods[0]
+                    active_label = f"[{first_p.get('sign_name','?')} {first_p.get('years','?')}yr]"
+                rudra = dd.get("rudra","") or dd.get("brahma_planet","") or dd.get("prani_rudra","")
+                rudra_info = f" | Rudra={rudra}" if rudra else ""
+                print(f"    {label}: starts {start_sign}{rudra_info}  {active_label}")
+
+    # ── File 5: Kalachakra, Medical, Conditional Dashas ────────────────────────
+    f5 = domain_report.get("file5_analysis", {})
+    if f5 and not f5.get("error"):
+        print(banner("FILE 5: KALACHAKRA · MEDICAL · CONDITIONAL DASHAS"))
+
+        # ─ Kalachakra ────────────────────────────────────────────────────────
+        kc = f5.get("kalachakra", {})
+        if kc:
+            print(f"\n  ── KALACHAKRA DASHA ──")
+            print(f"  Direction   : {kc.get('direction','?')} | Group {kc.get('group','?')} | Pada {kc.get('pada','?')}")
+            print(f"  Paramayus   : {kc.get('paramayus','?')} years | Deha: {kc.get('deha_sign','?')} | Jeeva: {kc.get('jeeva_sign','?')}")
+            kc_periods = kc.get("periods", [])[:5]
+            for kp_item in kc_periods:
+                tag = ""
+                if kp_item.get("is_deha"):
+                    tag += " [DEHA]"
+                if kp_item.get("is_jeeva"):
+                    tag += " [JEEVA]"
+                gati = f" ← {kp_item['gati']}" if kp_item.get("gati") else ""
+                print(f"    {kp_item.get('maha_sign','?'):14} {kp_item.get('full_years','?'):2}yr{tag}{gati}")
+
+        djt = f5.get("deha_jeeva_transits", {})
+        if djt:
+            verdict_dj = djt.get("verdict", "")
+            if "ALERT" in verdict_dj or "CRITICAL" in verdict_dj:
+                print(f"\n  ⚠ Deha/Jeeva Transit: {verdict_dj}")
+
+        # ─ Medical Analysis ────────────────────────────────────────────────
+        med = f5.get("medical", {})
+        if med:
+            print(f"\n  ── MEDICAL ANALYSIS ──")
+            # Disease alerts
+            alerts = med.get("disease_alerts", [])
+            if alerts:
+                print(f"  Disease Alerts ({len(alerts)} detected):")
+                for al in alerts[:4]:
+                    sev = al.get("severity","")
+                    print(f"    [{sev:8}] {al.get('condition','?')}")
+                    print(f"             {al.get('trigger','')}")
+            else:
+                print(f"  Disease Alerts: None detected (strong chart)")
+
+            # 22nd Drekkana
+            d22 = med.get("drekkana_22", {})
+            if d22:
+                print(f"  22nd Drekkana : {d22.get('khara_sign','?')} (lord: {d22.get('lord','?')}) {d22.get('zodiac_span','')}")
+
+            # Balarishta
+            bal = med.get("balarishta", {})
+            if bal and bal.get("balarishta"):
+                print(f"  ⚠ Balarishta  : {bal.get('verdict','')}")
+
+            # Longevity
+            lon = med.get("longevity", {})
+            if lon:
+                if lon.get("final_estimate_years"):
+                    print(f"  Longevity Est.: ~{lon.get('final_estimate_years','?')} years ({lon.get('method_used','?')})")
+                    print(f"    Pindayu: {med['pindayu']['total_years']}yr | Nisargayu: {med['nisargayu']['total_years']}yr | Amsayu: {med['amsayu']['total_years']}yr")
+                else:
+                    print(f"  Longevity     : {lon.get('note','Balarishta override')}")
+
+        # ─ Conditional Dashas ──────────────────────────────────────────────
+        cond_elig = f5.get("conditional_eligibility", {})
+        cond_dashas = f5.get("conditional_dashas", {})
+        if cond_elig:
+            print(f"\n  ── CONDITIONAL DASHA ELIGIBILITY ──")
+            for sys_name, elig_data in cond_elig.items():
+                mark = "✓" if elig_data.get("eligible") else "✗"
+                print(f"    {mark} {sys_name:20} {elig_data.get('reason','')}")
+
+        if cond_dashas:
+            print(f"\n  Active Conditional Dasha Systems:")
+            _COND_DISPLAY = [
+                ("shodashottari","Shodashottari (116yr)"),
+                ("dwadasottari",  "Dwadasottari  (112yr)"),
+                ("panchottari",   "Panchottari   (105yr)"),
+                ("shatabdika",    "Shatabdika    (100yr)"),
+                ("chaturaashiti", "Chaturaashiti ( 84yr)"),
+                ("dwisaptati",    "Dwisaptati    ( 72yr)"),
+                ("shat_trimsa",   "Shat Trimsa   ( 36yr)"),
+                ("moola_dasha",   "Moola Dasha   (var yr)"),
+                ("tara_dasha",    "Tara Dasha    (120yr)"),
+            ]
+            for ckey, clabel in _COND_DISPLAY:
+                cd = cond_dashas.get(ckey)
+                if cd:
+                    cperiods = cd.get("periods", [])
+                    start_planet = (cd.get("starting_planet")
+                                    or (cperiods[0].get("planet") if cperiods else "?")
+                                    or "?")
+                    if cperiods:
+                        fp = cperiods[0]
+                        first_info = f"{fp.get('planet',fp.get('maha_sign','?'))} {fp.get('years','?')}yr"
+                    else:
+                        first_info = "?"
+                    tara_q = ""
+                    if ckey == "tara_dasha" and cperiods:
+                        tara_q = f" [{cperiods[0].get('tara_quality','?')}]"
+                    print(f"    {clabel}: starts {start_planet} → {first_info}{tara_q}")
+
+
+
 
 
 # ─── AI Reading (GPT) ─────────────────────────────────────────────────────────
@@ -888,7 +1223,7 @@ def print_domain_report(domain_report: dict):
 
 def _ai_section(title: str) -> str:
     line = "═" * 70
-    return f"\n{line}\n  🤖 GPT-4o — {title}\n{line}"
+    return f"\n{line}\n  GPT-4o — {title}\n{line}"
 
 
 def print_ai_reading(
@@ -1004,8 +1339,15 @@ def main():
     domain_reports_list = []
     for domain in domains_to_show:
         report = engine.predict(chart, domain, on_date, static)
-        print_domain_report(report)
         domain_reports_list.append(report)
+
+    # Chart-level sections printed once (same data regardless of domain)
+    if domain_reports_list:
+        print_chart_sections(domain_reports_list[0])
+
+    # Per-domain prediction reports
+    for report in domain_reports_list:
+        print_domain_report(report)
 
     # ── GPT AI narrative (only when --ai flag is passed)
     if use_ai:

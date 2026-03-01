@@ -1,27 +1,44 @@
 """
 Lunation Engine — Moon Phase & Eclipse Alert System.
 
-Uses PyEphem for accurate new/full moon dates, then classifies each
-lunation by Vedic criteria:
-  - Nakshatra of Moon at lunation
-  - Tithi number
-  - Proximity to natal planets (triggers Grahana Yoga / activation)
-  - Solar/Lunar eclipse detection (within ±1° of node — Rahu/Ketu)
-  - Significance score for prediction weighting
+Tier-1: Swiss Ephemeris (pyswisseph) — sub-arcsecond accuracy, SWE ayanamsa.
+Tier-2: PyEphem fallback — accurate to <0.01° if SWE unavailable.
 
 Classical Vedic teaching:
   - New Moon (Amavasya) in 12th/8th/6th from natal Moon → extra caution
   - Full Moon (Purnima) on natal Moon nakshatra → heightened emotional/health sensitivity
   - Eclipse near natal planet → that planet's domains activated/disrupted for 6 months
   - Eclipse near natal Rahu/Ketu axis → major life turning point
-
-Requires: ephem (PyEphem), already in venv.
 """
 from __future__ import annotations
-import ephem
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import math
+
+# ─── Swiss Ephemeris tier-1 ───────────────────────────────────────────────────
+
+_SWE_LUNATION_AVAILABLE = False
+try:
+    from vedic_engine.core.swisseph_bridge import (
+        compute_next_new_moon_jd,
+        compute_next_full_moon_jd,
+        get_sidereal_longitude_at,
+        datetime_to_jd_utc,
+        jd_to_datetime,
+        get_ayanamsa,
+    )
+    import swisseph as _swe
+    _SWE_LUNATION_AVAILABLE = True
+except ImportError:
+    pass
+
+# PyEphem tier-2 fallback
+_EPHEM_AVAILABLE = False
+try:
+    import ephem
+    _EPHEM_AVAILABLE = True
+except ImportError:
+    pass
 
 # ─── Nakshatra lookup ─────────────────────────────────────────────────────────
 _NAKSHATRA_SPAN = 360.0 / 27  # 13.333°
@@ -47,17 +64,18 @@ _NAKSHATRA_LORDS = [
 # ─── Lahiri ayanamsa ──────────────────────────────────────────────────────────
 
 def _lahiri_ayanamsa(dt: datetime) -> float:
+    """Tier-2 fallback: linear Lahiri approximation (used only if SWE unavailable)."""
     days = (dt - datetime(2000, 1, 1, 12)).total_seconds() / 86400.0
     return 23.85 + days * (50.288 / (3600.0 * 365.25))
 
 
 def _ephem_to_sidereal(tropical_deg: float, dt: datetime) -> float:
-    """Convert tropical ecliptic longitude to Lahiri sidereal."""
+    """Convert tropical ecliptic longitude to Lahiri sidereal (tier-2 only)."""
     return (tropical_deg - _lahiri_ayanamsa(dt)) % 360.0
 
 
-def _ephem_date_to_dt(ephem_date: ephem.Date) -> datetime:
-    """Convert ephem.Date to Python datetime (UTC)."""
+def _ephem_date_to_dt(ephem_date) -> datetime:
+    """Convert ephem.Date to Python datetime (UTC). Tier-2 only."""
     tup = ephem_date.tuple()
     yr, mo, d = int(tup[0]), int(tup[1]), int(tup[2])
     frac_days = tup[2] - d
@@ -68,17 +86,27 @@ def _ephem_date_to_dt(ephem_date: ephem.Date) -> datetime:
 
 
 def _moon_longitude_at(dt: datetime) -> float:
-    """Sidereal Moon longitude via ephem (accurate to <0.01°)."""
-    m = ephem.Moon(dt)
-    ecl_lon = math.degrees(float(m.hlong))
-    return _ephem_to_sidereal(ecl_lon, dt)
+    """Sidereal Moon longitude — SWE tier-1, PyEphem tier-2."""
+    if _SWE_LUNATION_AVAILABLE:
+        jd = datetime_to_jd_utc(dt)
+        return get_sidereal_longitude_at(jd, _swe.MOON)
+    if _EPHEM_AVAILABLE:
+        m = ephem.Moon(dt)
+        ecl_lon = math.degrees(float(m.hlong))
+        return _ephem_to_sidereal(ecl_lon, dt)
+    return 0.0
 
 
 def _sun_longitude_at(dt: datetime) -> float:
-    """Sidereal Sun longitude via ephem."""
-    s = ephem.Sun(dt)
-    ecl_lon = math.degrees(float(s.hlong))
-    return _ephem_to_sidereal(ecl_lon, dt)
+    """Sidereal Sun longitude — SWE tier-1, PyEphem tier-2."""
+    if _SWE_LUNATION_AVAILABLE:
+        jd = datetime_to_jd_utc(dt)
+        return get_sidereal_longitude_at(jd, _swe.SUN)
+    if _EPHEM_AVAILABLE:
+        s = ephem.Sun(dt)
+        ecl_lon = math.degrees(float(s.hlong))
+        return _ephem_to_sidereal(ecl_lon, dt)
+    return 0.0
 
 
 def _nakshatra_of(lon: float) -> int:
@@ -229,67 +257,97 @@ def compute_upcoming_lunations(
     results: List[Dict] = []
     cutoff = on_date + timedelta(days=months_ahead * 30.44)
 
-    # Walk through new and full moons
-    cur = ephem.Date(on_date)
+    # ── Walk through new and full moons using tiered backend ──
+    if _SWE_LUNATION_AVAILABLE:
+        # Tier-1: Swiss Ephemeris Newton-Raphson lunation search
+        jd_cur = datetime_to_jd_utc(on_date)
+        jd_end = datetime_to_jd_utc(cutoff)
+        while jd_cur < jd_end:
+            jd_nm = compute_next_new_moon_jd(jd_cur)
+            jd_fm = compute_next_full_moon_jd(jd_cur)
+            for jd_ev, is_full in [(jd_nm, False), (jd_fm, True)]:
+                if jd_ev > jd_end:
+                    continue
+                dt = jd_to_datetime(jd_ev)
+                if dt < on_date:
+                    continue
+                moon_lon = _moon_longitude_at(dt)
+                sun_lon = _sun_longitude_at(dt)
+                tithi = _tithi_of(moon_lon, sun_lon)
+                nak_idx = _nakshatra_of(moon_lon)
+                moon_sign = int(moon_lon / 30.0)
+                from_moon = ((moon_sign - natal_moon_sign) % 12) + 1
+                eclipse = _check_eclipse(moon_lon, sun_lon, is_full, rahu_lon)
+                near_natal = _near_natal_planets(moon_lon, natal_lons)
+                sig = _lunation_significance(
+                    is_full, eclipse, nak_idx == natal_moon_nak,
+                    nak_idx == natal_lagna_nak, near_natal, from_moon, tithi,
+                )
+                impact = _HOUSE_FROM_MOON_IMPACT.get(from_moon, "")
+                if eclipse and near_natal:
+                    eclipse_impacts = [_ECLIPSE_PLANET_IMPACT.get(p, "") for p in near_natal]
+                    impact = f"ECLIPSE near natal {', '.join(near_natal)} — " + "; ".join(e for e in eclipse_impacts if e)
+                elif eclipse:
+                    impact = "ECLIPSE — general disruption/reset in all domains"
+                results.append({
+                    "date": dt.strftime("%Y-%m-%d"),
+                    "type": "Full Moon" if is_full else "New Moon",
+                    "phase": "Purnima" if is_full else "Amavasya",
+                    "moon_lon": round(moon_lon, 3),
+                    "nakshatra": _NAKSHATRA_NAMES[nak_idx],
+                    "nakshatra_lord": _NAKSHATRA_LORDS[nak_idx],
+                    "tithi": tithi,
+                    "from_natal_moon_house": from_moon,
+                    "eclipse": eclipse,
+                    "near_natal_planets": near_natal,
+                    "significance": round(sig, 3),
+                    "impact": impact,
+                })
+            jd_cur = min(jd_nm, jd_fm) + 1.0  # advance ~1 day past event
 
-    for _ in range(months_ahead * 2 + 4):  # ~2 lunations/month
-        nm_date = ephem.next_new_moon(cur)
-        fm_date = ephem.next_full_moon(cur)
-
-        for (ephem_dt, is_full) in [(nm_date, False), (fm_date, True)]:
-            dt = _ephem_date_to_dt(ephem_dt)
-            if dt > cutoff:
-                continue
-            if dt < on_date:
-                continue
-
-            moon_lon = _moon_longitude_at(dt)
-            sun_lon  = _sun_longitude_at(dt)
-            tithi    = _tithi_of(moon_lon, sun_lon)
-            nak_idx  = _nakshatra_of(moon_lon)
-
-            # House from natal Moon (Vedic counting)
-            moon_sign = int(moon_lon / 30.0)
-            from_moon = ((moon_sign - natal_moon_sign) % 12) + 1
-
-            eclipse = _check_eclipse(moon_lon, sun_lon, is_full, rahu_lon)
-            near_natal = _near_natal_planets(moon_lon, natal_lons)
-
-            sig = _lunation_significance(
-                is_full,
-                eclipse,
-                nak_idx == natal_moon_nak,
-                nak_idx == natal_lagna_nak,
-                near_natal,
-                from_moon,
-                tithi,
-            )
-
-            # Impact text
-            impact = _HOUSE_FROM_MOON_IMPACT.get(from_moon, "")
-            if eclipse and near_natal:
-                eclipse_impacts = [_ECLIPSE_PLANET_IMPACT.get(p, "") for p in near_natal]
-                impact = f"ECLIPSE near natal {', '.join(near_natal)} — " + "; ".join(e for e in eclipse_impacts if e)
-            elif eclipse:
-                impact = f"ECLIPSE — general disruption/reset in all domains"
-
-            results.append({
-                "date": dt.strftime("%Y-%m-%d"),
-                "type": "Full Moon" if is_full else "New Moon",
-                "phase": "Purnima" if is_full else "Amavasya",
-                "moon_lon": round(moon_lon, 3),
-                "nakshatra": _NAKSHATRA_NAMES[nak_idx],
-                "nakshatra_lord": _NAKSHATRA_LORDS[nak_idx],
-                "tithi": tithi,
-                "from_natal_moon_house": from_moon,
-                "eclipse": eclipse,
-                "near_natal_planets": near_natal,
-                "significance": round(sig, 3),
-                "impact": impact,
-            })
-
-        # Advance by ~29 days to next lunation cycle
-        cur = min(nm_date, fm_date) + ephem.Date(1)  # type: ignore[operator]
+    elif _EPHEM_AVAILABLE:
+        # Tier-2: PyEphem
+        cur = ephem.Date(on_date)
+        for _ in range(months_ahead * 2 + 4):
+            nm_date = ephem.next_new_moon(cur)
+            fm_date = ephem.next_full_moon(cur)
+            for (ephem_dt, is_full) in [(nm_date, False), (fm_date, True)]:
+                dt = _ephem_date_to_dt(ephem_dt)
+                if dt > cutoff or dt < on_date:
+                    continue
+                moon_lon = _moon_longitude_at(dt)
+                sun_lon = _sun_longitude_at(dt)
+                tithi = _tithi_of(moon_lon, sun_lon)
+                nak_idx = _nakshatra_of(moon_lon)
+                moon_sign = int(moon_lon / 30.0)
+                from_moon = ((moon_sign - natal_moon_sign) % 12) + 1
+                eclipse = _check_eclipse(moon_lon, sun_lon, is_full, rahu_lon)
+                near_natal = _near_natal_planets(moon_lon, natal_lons)
+                sig = _lunation_significance(
+                    is_full, eclipse, nak_idx == natal_moon_nak,
+                    nak_idx == natal_lagna_nak, near_natal, from_moon, tithi,
+                )
+                impact = _HOUSE_FROM_MOON_IMPACT.get(from_moon, "")
+                if eclipse and near_natal:
+                    eclipse_impacts = [_ECLIPSE_PLANET_IMPACT.get(p, "") for p in near_natal]
+                    impact = f"ECLIPSE near natal {', '.join(near_natal)} — " + "; ".join(e for e in eclipse_impacts if e)
+                elif eclipse:
+                    impact = "ECLIPSE — general disruption/reset in all domains"
+                results.append({
+                    "date": dt.strftime("%Y-%m-%d"),
+                    "type": "Full Moon" if is_full else "New Moon",
+                    "phase": "Purnima" if is_full else "Amavasya",
+                    "moon_lon": round(moon_lon, 3),
+                    "nakshatra": _NAKSHATRA_NAMES[nak_idx],
+                    "nakshatra_lord": _NAKSHATRA_LORDS[nak_idx],
+                    "tithi": tithi,
+                    "from_natal_moon_house": from_moon,
+                    "eclipse": eclipse,
+                    "near_natal_planets": near_natal,
+                    "significance": round(sig, 3),
+                    "impact": impact,
+                })
+            cur = min(nm_date, fm_date) + ephem.Date(1)
 
     # Sort by date and deduplicate
     results.sort(key=lambda x: x["date"])

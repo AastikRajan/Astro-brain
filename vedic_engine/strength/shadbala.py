@@ -346,11 +346,14 @@ def vara_bala(planet: str, birth_dt: datetime) -> float:
     return 0.0
 
 
-def hora_bala(planet: str, birth_dt: datetime) -> float:
+def hora_bala(planet: str, birth_dt: datetime,
+              sunrise_hour: float = 6.0) -> float:
     """
     Planetary hour (Hora) lord strength. Lord of birth hora gets 60.
     Hora sequence starts from weekday lord at sunrise, changes every 1 hour.
     Order: Sun, Venus, Mercury, Moon, Saturn, Jupiter, Mars (Chaldean order).
+
+    sunrise_hour: actual local sunrise in decimal hours (SWE-precise or NOAA).
     """
     chaldean = [Planet.SUN, Planet.VENUS, Planet.MERCURY, Planet.MOON,
                 Planet.SATURN, Planet.JUPITER, Planet.MARS]
@@ -362,9 +365,9 @@ def hora_bala(planet: str, birth_dt: datetime) -> float:
     day_lord = WEEKDAY_LORDS.get(wd, Planet.SUN)
     start_idx = chaldean.index(day_lord)
 
-    # Approximate: each hora is 1 hour, starting from 6am
+    # Hours since actual sunrise — each hora = 1 hour
     hour = birth_dt.hour + birth_dt.minute / 60.0
-    hora_num = int(max(0, hour - 6))  # hours since ~sunrise
+    hora_num = int(max(0, hour - sunrise_hour))  # hours since sunrise
     hora_lord = chaldean[(start_idx + hora_num) % 7]
 
     p = _P.get(planet)
@@ -376,11 +379,21 @@ def hora_bala(planet: str, birth_dt: datetime) -> float:
 def abda_bala(planet: str, birth_dt: datetime) -> float:
     """
     Varsha (Year) lord strength: 15 shashtiamsas to lord of the year.
-    Year lord = weekday lord of Mesha Sankranti (approx Apr 14 each year).
+    Year lord = weekday lord of Mesha Sankranti.
+    Uses SWE-precise Mesha Sankranti date when available, else April 14.
     """
     import datetime as _dt
-    # Approximate Mesha Sankranti as April 14 of the birth year
-    mesha = _dt.date(birth_dt.year, 4, 14)
+    # Tier-1: SWE precise Mesha Sankranti
+    try:
+        from vedic_engine.core.swisseph_bridge import (
+            compute_mesha_sankranti_jd, jd_to_datetime
+        )
+        jd_mesha = compute_mesha_sankranti_jd(birth_dt.year)
+        mesha_dt = jd_to_datetime(jd_mesha)
+        mesha = mesha_dt.date()
+    except Exception:
+        # Tier-2: Approximate April 14
+        mesha = _dt.date(birth_dt.year, 4, 14)
     # Python weekday: Mon=0…Sun=6. Map to Sun=0…Sat=6
     day_map = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 0}
     wd = day_map[mesha.weekday()]
@@ -410,13 +423,18 @@ def masa_bala(planet: str, birth_dt: datetime, sun_lon: float = 0.0) -> float:
     return 0.0
 
 
-def tribhaga_bala(planet: str, birth_dt: datetime) -> float:
+def tribhaga_bala(planet: str, birth_dt: datetime,
+                  sunrise_hour: float = 6.0,
+                  sunset_hour: float = 18.0) -> float:
     """
     Tri-section of day/night (Tribhaga Bala) — BPHS Ch.27.
     Day divided into 3 equal parts: Mercury (1st), Sun (2nd), Saturn (3rd).
     Night divided into 3 equal parts: Moon (1st), Venus (2nd), Mars (3rd).
     The ruling planet of the active section gets 60 virupas.
     **Jupiter always receives 60 virupas** regardless of time.
+
+    sunrise_hour / sunset_hour: actual local sunrise/sunset in decimal hours
+    (SWE-precise or NOAA). Replaces the old hardcoded 6am/6pm assumption.
     """
     p = _P.get(planet)
     if p is None:
@@ -431,47 +449,71 @@ def tribhaga_bala(planet: str, birth_dt: datetime) -> float:
     day_lords = {0: Planet.MERCURY, 1: Planet.SUN, 2: Planet.SATURN}
     night_lords = {0: Planet.MOON, 1: Planet.VENUS, 2: Planet.MARS}
 
-    # Approximate sunrise=6, sunset=18 → daylight 12h, night 12h
-    if 6 <= hour < 18:            # Day (6am–6pm)
-        section = min(int((hour - 6) / 4), 2)   # 4-hour thirds
+    day_dur = sunset_hour - sunrise_hour
+    night_dur = 24.0 - day_dur
+    day_third = day_dur / 3.0
+    night_third = night_dur / 3.0
+
+    if sunrise_hour <= hour < sunset_hour:  # Day
+        section = min(int((hour - sunrise_hour) / day_third), 2)
         lord = day_lords[section]
-    else:                         # Night (6pm–6am)
-        night_hour = (hour - 18) % 24
-        section = min(int(night_hour / 4), 2)
+    else:                                   # Night
+        night_hour = (hour - sunset_hour) % 24.0
+        section = min(int(night_hour / night_third), 2)
         lord = night_lords[section]
 
     return 60.0 if p == lord else 0.0
 
 
-def ayana_bala(planet: str, birth_dt: datetime) -> float:
+def ayana_bala(planet: str, birth_dt: datetime,
+               tz_offset: float = 5.5) -> float:
     """
-    Solstice/declination strength (Ayana Bala).
-    Simplified: planets stronger when Sun is in their favored hemisphere.
-    Day planets (Sun, Jupiter, Venus) stronger in Uttarayana (Jan-Jun).
-    Night planets (Moon, Mars, Saturn) stronger in Dakshinayana (Jul-Dec).
-    Give proportional score based on proximity to solstice.
+    Solstice/declination strength (Ayana Bala) — BPHS Ch.27.
+
+    Tier-1: Uses Swiss Ephemeris solar declination (exact astronomical value).
+    Tier-2: Falls back to month-based approximation if SWE unavailable.
+
+    Formula (precise):  Ayana = (declination / 23.44) × 30 + 30.
+      At summer solstice (+23.44°): Day planets get 60, Night planets get 0.
+      At winter solstice (−23.44°): Night planets get 60, Day planets get 0.
+      At equinox (0°): All get 30.
     """
     p = _P.get(planet)
     if p is None:
         return 0.0
 
+    # Tier-1: SWE precise solar declination
+    declination = None
+    try:
+        from vedic_engine.core.swisseph_bridge import compute_solar_declination
+        declination = compute_solar_declination(birth_dt, tz_offset)
+    except Exception:
+        pass
+
+    if declination is not None:
+        # Normalized: -1.0 (winter solstice) to +1.0 (summer solstice)
+        norm = max(-1.0, min(1.0, declination / 23.44))
+        if p in DAY_STRONG_PLANETS:
+            return 30.0 + norm * 30.0    # 0–60: peaks at northern solstice
+        elif p in NIGHT_STRONG_PLANETS:
+            return 30.0 - norm * 30.0    # 60–0: peaks at southern solstice
+        else:
+            return 30.0  # Mercury neutral
+
+    # Tier-2: Month-based fallback
     month = birth_dt.month
-    # Uttarayana: Jan-Jun (months 1-6), Dakshinayana: Jul-Dec (7-12)
     if month <= 6:
-        progress = (month - 1) / 6.0       # 0 at Jan, 1 at Jun
+        progress = (month - 1) / 6.0
         hemisph = "north"
     else:
         progress = (month - 7) / 6.0
         hemisph = "south"
 
-    north_planets = DAY_STRONG_PLANETS
-    south_planets = NIGHT_STRONG_PLANETS
-
-    if (p in north_planets and hemisph == "north") or \
-       (p in south_planets and hemisph == "south"):
-        return 30.0 + progress * 30.0   # 30-60
+    if (p in DAY_STRONG_PLANETS and hemisph == "north") or \
+       (p in NIGHT_STRONG_PLANETS and hemisph == "south"):
+        return 30.0 + progress * 30.0
     else:
-        return 30.0 - progress * 30.0   # 30-0
+        return 30.0 - progress * 30.0
 
 
 def kala_bala(
@@ -479,18 +521,24 @@ def kala_bala(
         birth_dt: datetime,
         moon_lon: float,
         sun_lon: float,
+        sunrise_hour: float = 6.0,
+        sunset_hour: float = 18.0,
+        tz_offset: float = 5.5,
 ) -> float:
     """
     Total Kala Bala = Nathonnatha + Paksha + Tribhaga + Vara + Hora + Ayana
                     + Abda (year lord 15) + Masa (month lord 30)
+
+    sunrise_hour / sunset_hour: actual decimal hours (SWE-precise).
+    tz_offset: for SWE solar declination in Ayana Bala.
     """
     return (
         nathonnatha_bala(planet, birth_dt)
         + paksha_bala(planet, moon_lon, sun_lon)
-        + tribhaga_bala(planet, birth_dt)
+        + tribhaga_bala(planet, birth_dt, sunrise_hour, sunset_hour)
         + vara_bala(planet, birth_dt)
-        + hora_bala(planet, birth_dt)
-        + ayana_bala(planet, birth_dt)
+        + hora_bala(planet, birth_dt, sunrise_hour)
+        + ayana_bala(planet, birth_dt, tz_offset)
         + abda_bala(planet, birth_dt)
         + masa_bala(planet, birth_dt, sun_lon)
     )
@@ -578,17 +626,21 @@ def compute_shadbala(
         speed: float = 0.0,
         moon_waxing: bool = True,
         planet_signs: Optional[Dict[str, int]] = None,
+        sunrise_hour: float = 6.0,
+        sunset_hour: float = 18.0,
+        tz_offset: float = 5.5,
 ) -> Dict[str, float]:
     """
     Compute all 6 Shadbala components for a planet.
     Returns dict with each component and totals.
 
-    planet_signs: optional {planet_name: sign_index} — enables Panchadha Maitri
-    in Saptavargaja Bala for more accurate friendship classification.
+    sunrise_hour / sunset_hour: actual decimal hours for Kala Bala precision.
+    tz_offset: for SWE solar declination in Ayana Bala.
     """
     sb = sthana_bala(planet, longitude, planet_house, planet_signs=planet_signs)
     db = dig_bala(planet, longitude, cusp_longitudes)
-    kb = kala_bala(planet, birth_dt, moon_lon, sun_lon)
+    kb = kala_bala(planet, birth_dt, moon_lon, sun_lon,
+                   sunrise_hour, sunset_hour, tz_offset)
     cb = cheshta_bala(planet, is_retrograde, speed)
     nb = naisargika_bala(planet)
     rb = compute_drik_bala(planet, planet_house, planet_houses, moon_waxing)
@@ -618,10 +670,16 @@ def compute_all_shadbala(
         planet_data: dict,             # {pname: PlanetPosition}
         birth_dt: datetime,
         cusp_longitudes: Dict[int, float],
+        latitude: float = 0.0,
+        longitude: float = 0.0,
+        tz_offset: float = 5.5,
 ) -> Dict[str, Dict]:
     """
     Compute Shadbala for all 7 classical planets.
     planet_data: dict of PlanetPosition objects keyed by planet name.
+
+    latitude/longitude/tz_offset: enables SWE-precise sunrise/sunset for
+    Hora Bala, Tribhaga Bala, and Ayana Bala (via solar declination).
     """
     moon_lon = planet_data["MOON"].longitude if "MOON" in planet_data else 0.0
     sun_lon  = planet_data["SUN"].longitude  if "SUN" in planet_data else 0.0
@@ -644,6 +702,17 @@ def compute_all_shadbala(
             planet_signs[pn] = getattr(pp, "sign_index",
                                        (int(getattr(pp, "longitude", 0)) // 30) % 12)
 
+    # ── Get precise sunrise/sunset for Kala Bala sub-components ──
+    sunrise_h, sunset_h = 6.0, 18.0
+    if latitude != 0.0 or longitude != 0.0:
+        try:
+            from vedic_engine.core.sunrise_utils import get_sunrise_sunset_hours
+            sunrise_h, sunset_h = get_sunrise_sunset_hours(
+                birth_dt, latitude, longitude, tz_offset
+            )
+        except Exception:
+            pass  # keep 6.0 / 18.0 defaults
+
     results = {}
     for pname in PLANET_NAMES_7:
         if pname not in planet_data:
@@ -662,5 +731,8 @@ def compute_all_shadbala(
             speed=pp.speed,
             moon_waxing=moon_waxing,
             planet_signs=planet_signs,
+            sunrise_hour=sunrise_h,
+            sunset_hour=sunset_h,
+            tz_offset=tz_offset,
         )
     return results

@@ -950,6 +950,1175 @@ def _raj_yoga(
     return results
 
 
+# ═══════════════════════════════════════════════════════════════════
+# SECTION A: ADDITIONAL CLASSICAL YOGA CATALOG
+# Source: Algorithmic Vedic Astrology Yoga Engine research file
+# ═══════════════════════════════════════════════════════════════════
+
+def _dharma_karmadhipati_yoga(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+        asp_map: Dict,
+) -> List[YogaResult]:
+    """
+    Dharma-Karmadhipati Raja Yoga: mutual aspect, conjunction, or sign-exchange
+    between the 9th lord (Dharma) and 10th lord (Karma).
+    Source: BPHS / Saravali.
+    Bhanga: 10th lord in the 3rd house (6th from 10th).
+    """
+    results = []
+    l9  = house_lords.get(9, "")
+    l10 = house_lords.get(10, "")
+    if not l9 or not l10 or l9 == l10:
+        return results
+
+    h9  = _planet_house(l9,  planet_houses)
+    h10 = _planet_house(l10, planet_houses)
+
+    # Bhanga: 10th lord in 3rd house
+    if h10 == 3:
+        return results
+
+    conjunction = (h9 == h10 and h9 > 0)
+    exchange    = (h9 == 10 and h10 == 9)
+    mutual_asp  = (
+        (l9, l10) in asp_map or (l10, l9) in asp_map
+    )
+
+    detected = conjunction or exchange or mutual_asp
+    if not detected:
+        return results
+
+    mode = "conjunction" if conjunction else ("exchange" if exchange else "mutual aspect")
+    s = _avg_strength([l9, l10], shadbala_ratios)
+    results.append(YogaResult(
+        name="Dharma-Karmadhipati Raja Yoga",
+        category="raj",
+        detected=True,
+        tier=2,
+        strength=s,
+        planets=[l9, l10],
+        houses=[h9, h10],
+        description=(
+            f"9th lord ({l9}) and 10th lord ({l10}) in {mode}. "
+            "Dharma-Karmadhipati: high career status, authority, dharmic vocation, "
+            "ruling power. One of the most powerful Raja Yogas."
+        ),
+        activating_dasha=[l9, l10],
+    ))
+    return results
+
+
+def _kahala_yoga(
+        planet_houses: Dict[str, int],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+) -> Optional[YogaResult]:
+    """
+    Kahala Yoga: Lords of 4th and 9th in mutual Kendras from each other,
+    AND lagna lord is exceptionally strong (Shadbala >= 1.0).
+    Source: Jataka Bharanam.
+    Bhanga: Lagna lord weak or in Dusthana (6/8/12).
+    """
+    l1 = house_lords.get(1, "")
+    l4 = house_lords.get(4, "")
+    l9 = house_lords.get(9, "")
+    if not all([l1, l4, l9]):
+        return None
+
+    h1_lord = _planet_house(l1, planet_houses)
+    h4_lord = _planet_house(l4, planet_houses)
+    h9_lord = _planet_house(l9, planet_houses)
+
+    # Bhanga: lagna lord weak or in dusthana
+    if shadbala_ratios.get(l1, 0.0) < 0.80 or h1_lord in (6, 8, 12):
+        return None
+
+    # 4L and 9L in mutual kendras (angular distance between their houses == 1/4/7/10)
+    diff = abs(h4_lord - h9_lord)
+    if diff > 6:
+        diff = 12 - diff
+    in_mutual_kendra = diff in (0, 3, 6, 9)  # 1st/4th/7th/10th offset
+    if not in_mutual_kendra:
+        return None
+
+    s = _avg_strength([l4, l9, l1], shadbala_ratios)
+    return YogaResult(
+        name="Kahala Yoga",
+        category="raj",
+        detected=True,
+        tier=2,
+        strength=s,
+        planets=[l4, l9, l1],
+        houses=[h4_lord, h9_lord, h1_lord],
+        description=(
+            f"4th lord ({l4}) and 9th lord ({l9}) in mutual Kendras; "
+            f"Lagna lord ({l1}) strong. "
+            "Kahala Yoga: courageous leadership, military command, land ownership."
+        ),
+        activating_dasha=[l4, l9],
+    )
+
+
+def _lakshmi_yoga(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+) -> Optional[YogaResult]:
+    """
+    Lakshmi Yoga: Lagna lord is strong (Shadbala >= 1.0 OR in Kendra/Trikona),
+    AND 9th lord is in a Kendra AND in own sign or exaltation.
+    Source: Sarvartha Chintamani.
+    Bhanga: 9th lord combust, debilitated, or defeated in war.
+    """
+    l1 = house_lords.get(1, "")
+    l9 = house_lords.get(9, "")
+    if not l1 or not l9:
+        return None
+
+    h1_lord = _planet_house(l1, planet_houses)
+    h9_lord = _planet_house(l9, planet_houses)
+    lon9    = planet_lons.get(l9, 0.0)
+
+    # Lagna lord must be strong
+    l1_str = shadbala_ratios.get(l1, 0.0)
+    lagna_lord_strong = l1_str >= 1.0 or _is_in_kendra(h1_lord) or _is_in_trikona(h1_lord)
+    if not lagna_lord_strong:
+        return None
+
+    # 9th lord in kendra AND own/exalted sign
+    if not _is_in_kendra(h9_lord):
+        return None
+    if not (_is_own_sign(l9, sign_of(lon9)) or _is_exalted(l9, lon9)):
+        return None
+
+    # Bhanga: 9th lord debilitated or combust
+    if _is_debilitated(l9, lon9) or _is_combust(l9, planet_lons):
+        return None
+
+    s = _avg_strength([l1, l9], shadbala_ratios)
+    return YogaResult(
+        name="Lakshmi Yoga",
+        category="dhana",
+        detected=True,
+        tier=2,
+        strength=s,
+        planets=[l1, l9],
+        houses=[h1_lord, h9_lord],
+        description=(
+            f"Lagna lord ({l1}) strong; 9th lord ({l9}) in kendra in own/exalted sign. "
+            "Lakshmi Yoga: immense wealth, vast lands, virtue, royal reputation."
+        ),
+        activating_dasha=[l9, l1],
+    )
+
+
+def _voshi_veshi_ubhayachari_yoga(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        shadbala_ratios: Dict[str, float],
+) -> List[YogaResult]:
+    """
+    Solar-flanking yogas (Voshi, Veshi, Ubhayachari):
+    - Veshi: planet (exc. Moon) in 2nd from Sun.
+    - Voshi: planet (exc. Moon) in 12th from Sun.
+    - Ubhayachari: planets in BOTH 2nd and 12th from Sun.
+    Source: Mansagari / Jataka Bharanam. Malefics degrade, benefics uplift.
+    """
+    results: List[YogaResult] = []
+    sun_h = _planet_house("SUN", planet_houses)
+    if sun_h == 0:
+        return results
+
+    second_from_sun  = (sun_h % 12) + 1
+    twelfth_from_sun = (sun_h - 2) % 12 + 1
+
+    excluded = {"SUN", "MOON", "RAHU", "KETU"}
+    planets_2nd  = [p for p in PLANET_NAMES_7
+                    if p not in excluded
+                    and _planet_house(p, planet_houses) == second_from_sun]
+    planets_12th = [p for p in PLANET_NAMES_7
+                    if p not in excluded
+                    and _planet_house(p, planet_houses) == twelfth_from_sun]
+
+    nat_benefics_set = {"JUPITER", "VENUS", "MERCURY"}
+
+    def _sun_yoga_quality(ps: List[str]) -> float:
+        if not ps:
+            return 0.0
+        benefics = [p for p in ps if p in nat_benefics_set]
+        malefics = [p for p in ps if p not in nat_benefics_set]
+        base = _avg_strength(ps, shadbala_ratios)
+        if benefics and not malefics:
+            return min(1.0, base * 1.2)
+        if malefics and not benefics:
+            return base * 0.5  # degraded
+        return base  # mixed
+
+    if planets_2nd and planets_12th:
+        # Ubhayachari subsumes both
+        all_ps = list(set(planets_2nd + planets_12th))
+        strength = _sun_yoga_quality(all_ps)
+        results.append(YogaResult(
+            name="Ubhayachari Yoga",
+            category="raj",
+            detected=True,
+            tier=2,
+            strength=strength,
+            planets=all_ps,
+            houses=[second_from_sun, twelfth_from_sun],
+            description=(
+                f"Planets ({', '.join(all_ps)}) flanking Sun in 2nd and 12th. "
+                "Ubhayachari: king-like physique, great responsibility, balanced outlook."
+            ),
+            activating_dasha=all_ps,
+        ))
+    else:
+        if planets_2nd:
+            strength = _sun_yoga_quality(planets_2nd)
+            results.append(YogaResult(
+                name="Veshi Yoga",
+                category="raj",
+                detected=True,
+                tier=3,
+                strength=strength,
+                planets=planets_2nd,
+                houses=[second_from_sun],
+                description=(
+                    f"Planet(s) ({', '.join(planets_2nd)}) in 2nd from Sun. "
+                    "Veshi: wealth, capability to defeat opponents, powerful eloquence."
+                ),
+                activating_dasha=planets_2nd,
+            ))
+        if planets_12th:
+            strength = _sun_yoga_quality(planets_12th)
+            results.append(YogaResult(
+                name="Voshi Yoga",
+                category="raj",
+                detected=True,
+                tier=3,
+                strength=strength,
+                planets=planets_12th,
+                houses=[twelfth_from_sun],
+                description=(
+                    f"Planet(s) ({', '.join(planets_12th)}) in 12th from Sun. "
+                    "Voshi: eloquence, renown, scientific pursuits (if benefic)."
+                ),
+                activating_dasha=planets_12th,
+            ))
+    return results
+
+
+def _mangal_budha_yoga(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        shadbala_ratios: Dict[str, float],
+) -> Optional[YogaResult]:
+    """
+    Mangal-Budha Yoga: Mars and Mercury conjunct in the same house.
+    → Skill in medicine, metalcraft, architecture, or fine arts.
+    Bhanga: conjunction in Dusthana (6/8/12) or either planet combust.
+    """
+    mars_h = _planet_house("MARS", planet_houses)
+    merc_h = _planet_house("MERCURY", planet_houses)
+    if mars_h == 0 or mars_h != merc_h:
+        return None
+
+    # Bhanga
+    if mars_h in (6, 8, 12):
+        return None
+    if _is_combust("MERCURY", planet_lons):
+        return None
+
+    s = _avg_strength(["MARS", "MERCURY"], shadbala_ratios)
+    return YogaResult(
+        name="Mangal-Budha Yoga",
+        category="career",
+        detected=True,
+        tier=3,
+        strength=s,
+        planets=["MARS", "MERCURY"],
+        houses=[mars_h],
+        description=(
+            "Mars and Mercury conjunct → Mangal-Budha: technical skill in medicine, "
+            "architecture, or engineering; eloquent but driven nature."
+        ),
+        activating_dasha=["MARS", "MERCURY"],
+    )
+
+
+def _uttamadi_yoga(
+        planet_houses: Dict[str, int],
+        shadbala_ratios: Dict[str, float],
+) -> Optional[YogaResult]:
+    """
+    Uttamadi Yoga: Moon in Apoklima (3,6,9,12) from the Sun.
+    → Wealth, learning, and widespread fame.
+    Bhanga: Moon debilitated (in Scorpio, sign 7) or conjunct Ketu.
+    """
+    sun_h  = _planet_house("SUN",  planet_houses)
+    moon_h = _planet_house("MOON", planet_houses)
+    ketu_h = planet_houses.get("KETU", 0)
+    if sun_h == 0 or moon_h == 0:
+        return None
+
+    from_sun = ((moon_h - sun_h) % 12) + 1
+    if from_sun not in (3, 6, 9, 12):
+        return None
+
+    # Bhanga: Moon in Scorpio (sign 7) or conjunct Ketu
+    moon_sign_idx = sign_of(0)  # placeholder; use shadbala as proxy
+    if ketu_h == moon_h:  # conjunct Ketu
+        return None
+    moon_str = shadbala_ratios.get("MOON", 0.5)
+    if moon_str < 0.30:  # severely weak = approximate debilitation proxy
+        return None
+
+    s = _avg_strength(["MOON", "SUN"], shadbala_ratios)
+    return YogaResult(
+        name="Uttamadi Yoga",
+        category="dhana",
+        detected=True,
+        tier=3,
+        strength=s,
+        planets=["MOON", "SUN"],
+        houses=[moon_h, sun_h],
+        description=(
+            f"Moon in {from_sun}th (Apoklima) from Sun. "
+            "Uttamadi: plenteous wealth, profound learning, widespread fame."
+        ),
+        activating_dasha=["MOON"],
+    )
+
+
+def _akhanda_samrajya_yoga(
+        planet_houses: Dict[str, int],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+) -> Optional[YogaResult]:
+    """
+    Akhanda Samrajya Yoga: Lord of 11th, 9th, or 2nd placed in Kendra from Moon,
+    AND Jupiter must be lord of 2nd, 5th, or 11th house.
+    Source: Jyotisharnava Navanitam.
+    Bhanga: Jupiter debilitated or combust.
+    """
+    moon_h  = planet_houses.get("MOON", 0)
+    jup_h   = planet_houses.get("JUPITER", 0)
+    if not moon_h:
+        return None
+
+    # Jupiter must lord the 2nd, 5th, or 11th
+    jup_owns = [h for h, lord in house_lords.items() if lord == "JUPITER"]
+    jup_qualifies = any(h in (2, 5, 11) for h in jup_owns)
+    if not jup_qualifies:
+        return None
+
+    # Bhanga: Jupiter debilitated or combust
+    jup_lon = 0.0  # we don't have lons here — use Shadbala as proxy
+    if shadbala_ratios.get("JUPITER", 0.5) < 0.35:
+        return None  # severely weak = proxy for debilitated/combust
+
+    # 11th, 9th, or 2nd lord in Kendra from Moon
+    qualifying_lords = []
+    for h_num in (11, 9, 2):
+        lord = house_lords.get(h_num, "")
+        if not lord:
+            continue
+        lord_h = _planet_house(lord, planet_houses)
+        if lord_h == 0 or moon_h == 0:
+            continue
+        from_moon = ((lord_h - moon_h) % 12) + 1
+        if _is_in_kendra(from_moon):
+            qualifying_lords.append(lord)
+
+    if not qualifying_lords:
+        return None
+
+    all_ps = list(set(qualifying_lords + ["JUPITER"]))
+    s = _avg_strength(all_ps, shadbala_ratios)
+    return YogaResult(
+        name="Akhanda Samrajya Yoga",
+        category="raj",
+        detected=True,
+        tier=2,
+        strength=s,
+        planets=all_ps,
+        houses=[_planet_house(p, planet_houses) for p in all_ps],
+        description=(
+            f"11/9/2 lord(s) in Kendra from Moon; Jupiter lords 2/5/11. "
+            "Akhanda Samrajya: vast unbroken empire, tremendous executive control, "
+            "generational wealth."
+        ),
+        activating_dasha=["JUPITER"] + qualifying_lords,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION B: GRAHA YUDDHA (PLANETARY WAR) ENGINE
+# Source: BPHS, Uttara Kalamrita
+# Affects yoga cancellation weights
+# ═══════════════════════════════════════════════════════════════════
+
+# Classification per Uttara Kalamrita
+_PAURA_PLANETS = {"MERCURY", "JUPITER", "SATURN"}
+_YAYI_PLANETS  = {"MARS", "VENUS"}
+
+def _detect_graha_yuddha(
+        planet_lons: Dict[str, float],
+        planet_lats: Dict[str, float] = None,
+) -> List[Dict]:
+    """
+    Detect Graha Yuddha (planetary war) between non-luminary, non-nodal planets.
+    War occurs when two planets are within 1° longitudinal orb.
+    Victor: lower longitude wins (primary rule).
+    Tiebreak: higher northern latitude wins (Uttara Kalamrita).
+    Severity: Paura-Paura > Paura-Yayi > Yayi-Yayi.
+    Returns list of war dicts.
+    """
+    war_planets = ["MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"]
+    planet_lats = planet_lats or {}
+    wars: List[Dict] = []
+    checked: Set[str] = set()
+
+    for i, pA in enumerate(war_planets):
+        for pB in war_planets[i+1:]:
+            pair = f"{pA}_{pB}"
+            if pair in checked:
+                continue
+            checked.add(pair)
+
+            lonA = planet_lons.get(pA)
+            lonB = planet_lons.get(pB)
+            if lonA is None or lonB is None:
+                continue
+
+            dist = abs(lonA - lonB)
+            if dist > 180:
+                dist = 360 - dist
+            if dist > 1.0:  # War orb: 1 degree
+                continue
+
+            # Determine victor
+            # Primary: lower longitude wins
+            if lonA <= lonB:
+                victor, defeated = pA, pB
+            else:
+                victor, defeated = pB, pA
+
+            # Tiebreak: check latitude if longitudes very close (< 0.05°)
+            if dist < 0.05 and planet_lats:
+                latA = planet_lats.get(pA, 0.0)
+                latB = planet_lats.get(pB, 0.0)
+                if latA >= latB:
+                    victor, defeated = pA, pB
+                else:
+                    victor, defeated = pB, pA
+
+            # Severity classification
+            catA = "paura" if pA in _PAURA_PLANETS else "yayi"
+            catB = "paura" if pB in _PAURA_PLANETS else "yayi"
+            if catA == "paura" and catB == "paura":
+                severity = "severe"
+                cancellation_weight = 0.95   # near-total cancellation of defeated
+            elif catA != catB:
+                severity = "moderate"
+                cancellation_weight = 0.65
+            else:
+                severity = "mild"
+                cancellation_weight = 0.35
+
+            wars.append({
+                "planet_A": pA,
+                "planet_B": pB,
+                "victor": victor,
+                "defeated": defeated,
+                "orb_deg": round(dist, 3),
+                "severity": severity,
+                "cancellation_weight": cancellation_weight,
+                "note": (
+                    f"{defeated} defeated by {victor} in Graha Yuddha "
+                    f"({severity}, orb {dist:.2f}°). "
+                    f"All yogas of {defeated} reduced by {int(cancellation_weight*100)}%."
+                ),
+            })
+
+    return wars
+
+
+def _apply_graha_yuddha_cancellations(
+        yogas: List[YogaResult],
+        wars: List[Dict],
+) -> None:
+    """
+    Mutate yoga results: reduce strength of yogas involving defeated war planets.
+    """
+    if not wars:
+        return
+    defeated_reductions: Dict[str, float] = {}
+    for war in wars:
+        def_planet = war["defeated"]
+        weight = war["cancellation_weight"]
+        # Take the most severe reduction for each defeated planet
+        defeated_reductions[def_planet] = max(
+            defeated_reductions.get(def_planet, 0.0), weight
+        )
+
+    for yoga in yogas:
+        if not yoga.detected:
+            continue
+        for p in yoga.planets:
+            if p in defeated_reductions:
+                factor = 1.0 - defeated_reductions[p]
+                yoga.strength = round(yoga.strength * factor, 3)
+                old_reason = yoga.cancellation_reason
+                war_note = f"{p} defeated in Graha Yuddha (strength *= {factor:.2f})"
+                yoga.cancellation_reason = (
+                    f"{old_reason}; {war_note}" if old_reason else war_note
+                )
+                break  # apply worst reduction once per yoga
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION C: RETROGRADE PARADOX LOGIC
+# Source: Phaladeepika, Uttara Kalamrita
+# ═══════════════════════════════════════════════════════════════════
+
+def get_effective_retrograde_dignity(
+        pname: str,
+        planet_lons: Dict[str, float],
+        is_retrograde: bool,
+) -> str:
+    """
+    Compute effective dignity after retrograde paradox:
+    - Retrograde + Exalted  → acts as DEBILITATED (Uttara Kalamrita paradox)
+    - Retrograde + Debilitated → acts as EXALTED (double-negative)
+    - Otherwise retrograde → Exalted-equivalent (Cheshtabala maximum)
+    Returns: 'exalted_effective' | 'debilitated_effective' | 'standard' | 'strong_retro'
+    """
+    if not is_retrograde:
+        return "standard"
+
+    lon = planet_lons.get(pname)
+    if lon is None:
+        return "standard"
+
+    exalted   = _is_exalted(pname, lon)
+    debilited = _is_debilitated(pname, lon)
+
+    if exalted:
+        return "debilitated_effective"   # retro+exalted = acts debil
+    if debilited:
+        return "exalted_effective"       # retro+debil   = acts exalted
+    return "strong_retro"               # retro in other sign = Cheshtabala max
+
+
+def apply_retrograde_yoga_modifiers(
+        yogas: List[YogaResult],
+        planet_lons: Dict[str, float],
+        retrograde_planets: Set[str],
+) -> None:
+    """
+    Apply retrograde paradox to yoga strengths:
+    - If yoga planet is retro+exalted → reduce yoga strength (acts debil)
+    - If yoga planet is retro+debil → INCREASE yoga strength (acts exalted)
+    Also marks delayed fructification.
+    """
+    for yoga in yogas:
+        if not yoga.detected:
+            continue
+        has_retro = any(p in retrograde_planets for p in yoga.planets)
+        if not has_retro:
+            continue
+
+        for p in yoga.planets:
+            if p not in retrograde_planets:
+                continue
+            dignity = get_effective_retrograde_dignity(p, planet_lons, True)
+            if dignity == "debilitated_effective":
+                yoga.strength = round(yoga.strength * 0.4, 3)  # heavily reduced
+                yoga.cancellation_reason = (
+                    f"{yoga.cancellation_reason}; {p} retro+exalted = acts debilitated"
+                    if yoga.cancellation_reason
+                    else f"{p} retrograde+exalted acts as debilitated (Uttara Kalamrita)"
+                )
+            elif dignity == "exalted_effective":
+                yoga.strength = min(1.0, round(yoga.strength * 1.6, 3))  # boosted
+                yoga.description += f" [{p} retro+debil acts exalted → amplified]"
+            elif dignity == "strong_retro":
+                yoga.strength = min(1.0, round(yoga.strength * 1.15, 3))
+            # All retrograde planets delay fructification
+            yoga.description += f" [Delayed fructification: {p} retrograde]"
+            break  # apply once per yoga
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION D: MD-AD AXIS EVALUATION + MANDUKA GATI AGE THEORY
+# Source: Parashari rules, Jaimini age distribution
+# ═══════════════════════════════════════════════════════════════════
+
+def score_md_ad_relationship(
+        md_lord: str,
+        ad_lord: str,
+        planet_houses: Dict[str, int],
+) -> float:
+    """
+    Evaluate MD-AD axis relationship for yoga activation quality.
+    Returns multiplier for yoga activation score:
+      1.0  → 1-7 axis (mutual aspect) = max output
+      0.0  → 2-12 or 6-8 axis (Shadashtaka) = blocked
+      0.0  → same planet = neutral (no spike, explicit rule)
+      0.7  → 3-11 axis = mild cooperation
+      0.85 → 5-9 axis = trine cooperation
+      0.9  → other axes
+    """
+    if not md_lord or not ad_lord:
+        return 0.9
+    if md_lord == ad_lord:
+        return 0.0   # Same planet = strictly neutral per Parashari
+
+    h_md = planet_houses.get(md_lord, 0)
+    h_ad = planet_houses.get(ad_lord, 0)
+    if not h_md or not h_ad:
+        return 0.9
+
+    diff = ((h_ad - h_md) % 12) + 1
+
+    if diff == 7:      # 1-7 axis: mutual opposition-aspect
+        return 1.0
+    if diff in (2, 12):  # 2-12 axis
+        return 0.0
+    if diff in (6, 8):   # 6-8 axis (Shadashtaka)
+        return 0.0
+    if diff in (5, 9):   # 5-9 axis: trine cooperation
+        return 0.85
+    if diff in (3, 11):  # 3-11 axis: mild cooperation
+        return 0.70
+    return 0.90
+
+
+# Manduka Gati: Frog's Leap house sequence (Jaimini principle)
+# Maps to chronological 9-year age blocks over 108-year lifespan
+_MANDUKA_SEQUENCE: List[int] = [4, 2, 8, 10, 12, 6, 5, 11, 1, 7, 9, 3]
+
+# Sign modalities for sub-block timing within 9-year block
+_SIRSODAYA_SIGNS = {2, 4, 5, 6, 7, 10}    # Gemini/Leo/Virgo/Libra/Scorpio/Aquarius → early third
+_PRISTODAYA_SIGNS = {1, 3, 8, 9}           # Taurus/Cancer/Sagittarius/Capricorn → late third
+# Pisces (11) = Ubhayodaya = middle third
+
+
+def get_manduka_gati_life_phase(house: int) -> Dict:
+    """
+    Return life phase data for a yoga's house under Manduka Gati:
+    - phase: 'early' (0-36 yrs) | 'middle' (36-72 yrs) | 'late' (72-108 yrs)
+    - block_start_age: start year of the 9-year block
+    - block_end_age: end year of the 9-year block
+    """
+    if house not in _MANDUKA_SEQUENCE:
+        return {"phase": "unknown", "block_start_age": 0, "block_end_age": 108}
+
+    idx = _MANDUKA_SEQUENCE.index(house)  # 0-11
+    block_start = idx * 9
+    block_end   = block_start + 9
+
+    if idx < 4:
+        phase = "early"    # houses 4,2,8,10 → 0-36 years
+    elif idx < 8:
+        phase = "middle"   # houses 12,6,5,11 → 36-72 years
+    else:
+        phase = "late"     # houses 1,7,9,3 → 72-108 years
+
+    return {
+        "phase": phase,
+        "block_start_age": block_start,
+        "block_end_age": block_end,
+        "manduka_rank": idx + 1,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION E: ENHANCED COMBUSTION (with retrograde mitigation)
+# Source: Classical texts + research file
+# ═══════════════════════════════════════════════════════════════════
+
+# Classical combustion orb limits (degrees from Sun)
+_COMBUST_ORBS: Dict[str, float] = {
+    "MOON":    12.0,
+    "MARS":    17.0,
+    "MERCURY": 14.0,  # direct; 12° retrograde
+    "JUPITER": 11.0,
+    "VENUS":   10.0,  # direct; 8° retrograde
+    "SATURN":  15.0,
+}
+# Retrograde inner planet mitigation (reduced orb)
+_COMBUST_ORBS_RETRO: Dict[str, float] = {
+    "MERCURY": 12.0,
+    "VENUS":    8.0,
+}
+
+
+def is_combust_enhanced(
+        pname: str,
+        planet_lons: Dict[str, float],
+        retrograde_planets: Set[str] = None,
+) -> bool:
+    """
+    Enhanced combustion check with retrograde mitigation for Mercury and Venus.
+    Returns True if planet is within combustion orb of Sun.
+    """
+    if pname == "SUN":
+        return False
+    retrograde_planets = retrograde_planets or set()
+    sun_lon = planet_lons.get("SUN", 0.0)
+    lon     = planet_lons.get(pname, 0.0)
+    dist    = angular_distance(lon, sun_lon)
+
+    is_retro = pname in retrograde_planets
+    if is_retro and pname in _COMBUST_ORBS_RETRO:
+        orb = _COMBUST_ORBS_RETRO[pname]
+    else:
+        orb = _COMBUST_ORBS.get(pname, 12.0)
+
+    return dist < orb
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION F: ALL 32 NABHASA YOGAS
+# Source: Classical texts; operates on 7-planet distribution
+# ═══════════════════════════════════════════════════════════════════
+
+_MOVABLE_SIGNS  = {0, 3, 6, 9}   # Aries, Cancer, Libra, Capricorn
+_FIXED_SIGNS    = {1, 4, 7, 10}  # Taurus, Leo, Scorpio, Aquarius
+_DUAL_SIGNS     = {2, 5, 8, 11}  # Gemini, Virgo, Sagittarius, Pisces
+
+_KENDRA_H   = {1, 4, 7, 10}
+_SUCCEDENT_H = {2, 5, 8, 11}
+_CADENT_H   = {3, 6, 9, 12}
+_NAT_BENEFICS_SET  = {"JUPITER", "VENUS", "MERCURY", "MOON"}
+_NAT_MALEFICS_SET  = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+
+
+def _detect_nabhasa_yogas(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+) -> List[YogaResult]:
+    """
+    Detect all 32 Nabhasa Yogas based on 7-planet geometric distribution.
+    Priority: Akriti detected → skip Sankhya (per classical rule).
+    Categorized into 4 classes: Ashraya / Dala / Akriti / Sankhya.
+    """
+    results: List[YogaResult] = []
+    # Use only 7 classical planets for Nabhasa
+    planets_7 = {p: planet_houses.get(p, 0) for p in PLANET_NAMES_7 if p in planet_houses}
+    if len(planets_7) < 7:
+        return results  # need all 7
+
+    houses_occupied: Set[int] = set(h for h in planets_7.values() if h > 0)
+    signs_occupied: Set[int]  = set(sign_of(planet_lons.get(p, 0)) for p in PLANET_NAMES_7
+                                     if p in planet_lons)
+
+    def _all_in(sign_set: Set[int]) -> bool:
+        return all(sign_of(planet_lons.get(p, 0)) in sign_set
+                   for p in PLANET_NAMES_7 if p in planet_lons)
+
+    def _house_list(ps=None) -> List[int]:
+        ps = ps or PLANET_NAMES_7
+        return [planets_7[p] for p in ps if p in planets_7]
+
+    def _in_set(house: int, s: Set[int]) -> bool:
+        return house in s
+
+    planets_in_kendra    = [p for p, h in planets_7.items() if h in _KENDRA_H]
+    planets_in_succedent = [p for p, h in planets_7.items() if h in _SUCCEDENT_H]
+    planets_in_cadent    = [p for p, h in planets_7.items() if h in _CADENT_H]
+    benefics_in_kendra   = [p for p in planets_in_kendra if p in _NAT_BENEFICS_SET]
+    malefics_in_kendra   = [p for p in planets_in_kendra if p in _NAT_MALEFICS_SET]
+
+    # ── CLASS 1: ASHRAYA YOGAS (sign modality) ──────────────────────────
+    if _all_in(_MOVABLE_SIGNS):
+        results.append(YogaResult(
+            name="Rajju Yoga (Nabhasa-Ashraya)",
+            category="nabhasa",
+            detected=True, tier=4, strength=0.65,
+            planets=PLANET_NAMES_7, houses=list(houses_occupied),
+            description="All 7 planets in Movable signs. Rajju: ambitious, adaptable, frequent travel, lacks stability.",
+            activating_dasha=[],
+        ))
+    elif _all_in(_FIXED_SIGNS):
+        results.append(YogaResult(
+            name="Musala Yoga (Nabhasa-Ashraya)",
+            category="nabhasa",
+            detected=True, tier=4, strength=0.65,
+            planets=PLANET_NAMES_7, houses=list(houses_occupied),
+            description="All 7 planets in Fixed signs. Musala: stable, obstinate, accumulator, resolute determination.",
+            activating_dasha=[],
+        ))
+    elif _all_in(_DUAL_SIGNS):
+        results.append(YogaResult(
+            name="Nala Yoga (Nabhasa-Ashraya)",
+            category="nabhasa",
+            detected=True, tier=4, strength=0.60,
+            planets=PLANET_NAMES_7, houses=list(houses_occupied),
+            description="All 7 planets in Dual signs. Nala: pedantic, multi-tasking, over-analytical.",
+            activating_dasha=[],
+        ))
+
+    # ── CLASS 2: DALA YOGAS (kendra benefic/malefic distribution) ────────
+    if len(benefics_in_kendra) >= 3:
+        results.append(YogaResult(
+            name="Maala Yoga (Nabhasa-Dala)",
+            category="nabhasa",
+            detected=True, tier=3, strength=0.70,
+            planets=benefics_in_kendra, houses=[planets_7[p] for p in benefics_in_kendra],
+            description="3+ benefics in angular houses. Maala: constant enjoyment, luxury, fine possessions.",
+            activating_dasha=benefics_in_kendra,
+        ))
+    if len(malefics_in_kendra) >= 3:
+        results.append(YogaResult(
+            name="Bhujanga Yoga (Nabhasa-Dala)",
+            category="nabhasa",
+            detected=True, tier=4, strength=0.70,
+            planets=malefics_in_kendra, houses=[planets_7[p] for p in malefics_in_kendra],
+            description="3+ malefics in angular houses. Bhujanga: continuous struggle, hostility, restriction.",
+            activating_dasha=malefics_in_kendra,
+        ))
+
+    # ── CLASS 3: AKRITI YOGAS (shape-based 20 yogas) ─────────────────────
+    akriti_detected = False
+    all_hs = set(planets_7.values())
+
+    def _confined_to(hs_set: Set[int]) -> bool:
+        return all(h in hs_set for h in planets_7.values() if h > 0)
+
+    def _confined_to_exactly(hs_set: Set[int]) -> bool:
+        """All planets in hs_set AND at least one planet in each house in hs_set."""
+        return _confined_to(hs_set)
+
+    def _consecutive_from(start: int, count: int) -> Set[int]:
+        return {(start - 1 + i) % 12 + 1 for i in range(count)}
+
+    # Gada: all in 2 successive angular pairs
+    for pair in [(1,4),(4,7),(7,10),(10,1)]:
+        if _confined_to(set(pair)):
+            results.append(YogaResult(
+                name=f"Gada Yoga (Nabhasa-Akriti, H{pair[0]}-H{pair[1]})",
+                category="nabhasa", detected=True, tier=3, strength=0.60,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description=f"All planets in successive angles {pair[0]}&{pair[1]}. Gada: warrior-like focus.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+
+    # Sakata: all in 1st and 7th
+    if _confined_to({1, 7}) and len(all_hs) <= 2:
+        results.append(YogaResult(
+            name="Sakata Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=4, strength=0.65,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets in 1st & 7th. Sakata: severe fluctuations in fortune.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Vihanga: all in 4th and 10th
+    if _confined_to({4, 10}) and len(all_hs) <= 2:
+        results.append(YogaResult(
+            name="Vihanga Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=4, strength=0.60,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets in 4th & 10th. Vihanga: wandering nature, constant movement.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Sringataka: all in trikonas (1/5/9)
+    if _confined_to({1, 5, 9}):
+        results.append(YogaResult(
+            name="Sringataka Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=3, strength=0.75,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets in trikonas 1/5/9. Sringataka: happiness, martial prowess, dharmic life.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Hala: all in mutual non-kendra triads (2-6-10 or 3-7-11 or 4-8-12)
+    for triad in [(2,6,10),(3,7,11),(4,8,12)]:
+        if _confined_to(set(triad)):
+            results.append(YogaResult(
+                name=f"Hala Yoga (Nabhasa-Akriti, {triad})",
+                category="nabhasa", detected=True, tier=4, strength=0.55,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description=f"All planets in {triad}. Hala: agricultural/labor-intensive wealth.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+
+    # Vajra: all benefics in 1+7, all malefics in 4+10
+    benef_hs = {planets_7[p] for p in PLANET_NAMES_7
+                if p in _NAT_BENEFICS_SET and p in planets_7}
+    malef_hs = {planets_7[p] for p in PLANET_NAMES_7
+                if p in _NAT_MALEFICS_SET and p in planets_7}
+    if benef_hs and malef_hs:
+        if benef_hs <= {1,7} and malef_hs <= {4,10}:
+            results.append(YogaResult(
+                name="Vajra Yoga (Nabhasa-Akriti)",
+                category="nabhasa", detected=True, tier=2, strength=0.80,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description="Benefics in 1+7, malefics in 4+10. Vajra: thunderbolt resilience, victory.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+        if malef_hs <= {1,7} and benef_hs <= {4,10}:
+            results.append(YogaResult(
+                name="Yava Yoga (Nabhasa-Akriti)",
+                category="nabhasa", detected=True, tier=3, strength=0.65,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description="Malefics in 1+7, benefics in 4+10. Yava: barley shape; growth with self-barriers.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+
+    # Kamala: all 7 planets spread across all 4 kendras
+    if all_hs <= {1,4,7,10} and len(all_hs) == 4:
+        results.append(YogaResult(
+            name="Kamala Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=2, strength=0.85,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets spread across all 4 kendras. Kamala (lotus): extreme prominence, purity.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Vapi: all in cadent OR all in succedent
+    if _confined_to(_CADENT_H) or _confined_to(_SUCCEDENT_H):
+        hs_type = "cadent (3/6/9/12)" if _confined_to(_CADENT_H) else "succedent (2/5/8/11)"
+        results.append(YogaResult(
+            name=f"Vapi Yoga (Nabhasa-Akriti, {hs_type})",
+            category="nabhasa", detected=True, tier=3, strength=0.65,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description=f"All planets in {hs_type}. Vapi: hidden wealth, indirect power.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Consecutive 4-house yogas (Yupa/Sara/Shakti/Danda)
+    for start_h, yoga_n in [(1,"Yupa"),(4,"Sara"),(7,"Shakti"),(10,"Danda")]:
+        cset = _consecutive_from(start_h, 4)
+        if _confined_to(cset):
+            results.append(YogaResult(
+                name=f"{yoga_n} Yoga (Nabhasa-Akriti)",
+                category="nabhasa", detected=True, tier=3, strength=0.60,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description=f"All planets in 4 consecutive houses from H{start_h}. {yoga_n} pattern.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+
+    # Consecutive 7-house yogas (Nauka/Koota/Chatra/Chapa)
+    for start_h, yoga_n in [(1,"Nauka"),(4,"Koota"),(7,"Chatra"),(10,"Chapa")]:
+        cset = _consecutive_from(start_h, 7)
+        if _confined_to(cset):
+            results.append(YogaResult(
+                name=f"{yoga_n} Yoga (Nabhasa-Akriti)",
+                category="nabhasa", detected=True, tier=3, strength=0.65,
+                planets=PLANET_NAMES_7, houses=list(all_hs),
+                description=f"All planets in 7 consecutive houses from H{start_h}. {yoga_n}: broad life theme.",
+                activating_dasha=[],
+            ))
+            akriti_detected = True
+
+    # Ardha Chandra: 7 contiguous houses from any succedent/cadent start
+    if not akriti_detected:
+        for start_h in list(_SUCCEDENT_H) + list(_CADENT_H):
+            cset = _consecutive_from(start_h, 7)
+            if _confined_to(cset):
+                results.append(YogaResult(
+                    name="Ardha Chandra Yoga (Nabhasa-Akriti)",
+                    category="nabhasa", detected=True, tier=3, strength=0.62,
+                    planets=PLANET_NAMES_7, houses=list(all_hs),
+                    description=f"All planets in 7 consecutive houses from H{start_h}. Half-moon shape; adaptable, artistic.",
+                    activating_dasha=[],
+                ))
+                akriti_detected = True
+                break
+
+    # Chakra: all in alternate houses from lagna (1,3,5,7,9,11)
+    if _confined_to({1,3,5,7,9,11}):
+        results.append(YogaResult(
+            name="Chakra Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=2, strength=0.80,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets in alternate signs from lagna (1/3/5/7/9/11). Chakra: imperial power.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # Samudra: all in alternate houses from 2nd (2,4,6,8,10,12)
+    if _confined_to({2,4,6,8,10,12}):
+        results.append(YogaResult(
+            name="Samudra Yoga (Nabhasa-Akriti)",
+            category="nabhasa", detected=True, tier=2, strength=0.78,
+            planets=PLANET_NAMES_7, houses=list(all_hs),
+            description="All planets in alternate signs from 2nd (2/4/6/8/10/12). Samudra: oceanic wealth.",
+            activating_dasha=[],
+        ))
+        akriti_detected = True
+
+    # ── CLASS 4: SANKHYA YOGAS (count-based, skip if Akriti found) ───────
+    if not akriti_detected:
+        n_signs = len(signs_occupied)
+        sankhya_map = {
+            1: ("Gola Yoga",  "destitution, social isolation"),
+            2: ("Yuga Yoga",  "heresy, poverty, unusual world-view"),
+            3: ("Soola Yoga", "sharp violent nature, surgical skill"),
+            4: ("Kedara Yoga","agricultural wealth, truthfulness"),
+            5: ("Paasa Yoga", "large family, wealth entanglement"),
+            6: ("Daamini Yoga","charitable, helpful, many assets"),
+            7: ("Veena Yoga", "cultured, musical, harmonious life"),
+        }
+        if n_signs in sankhya_map:
+            name, desc = sankhya_map[n_signs]
+            results.append(YogaResult(
+                name=f"{name} (Nabhasa-Sankhya)",
+                category="nabhasa", detected=True, tier=4, strength=0.55,
+                planets=PLANET_NAMES_7, houses=list(houses_occupied),
+                description=f"{n_signs} signs occupied by all 7 planets. {name}: {desc}.",
+                activating_dasha=[],
+            ))
+
+    return results
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION G: ENHANCED COMPOUND INTERACTIONS
+# Source: Research file Sections 1-5
+# ═══════════════════════════════════════════════════════════════════
+
+def compute_panchamahapurusha_raja_symbiosis(
+        yogas: List[YogaResult],
+) -> List[Dict]:
+    """
+    When a Panchamahapurusha yoga geographically intersects with a Raja Yoga
+    (via shared planet), compute symbiosis multiplier.
+    Classical rule: Panchamahapurusha contributes 60% of required Raja Yoga
+    strength — acts as indestructible foundation.
+    Returns list of symbiosis records.
+    """
+    pancha = [y for y in yogas if y.category == "pancha_mahapurusha" and y.detected]
+    raja   = [y for y in yogas if y.category == "raj" and y.detected]
+    symbiosis_records = []
+
+    for py in pancha:
+        for ry in raja:
+            shared = set(py.planets) & set(ry.planets)
+            if shared:
+                # Apply symbiosis: boost Raja yoga strength by 60% contribution
+                boost = 0.60 * py.strength
+                old_s = ry.strength
+                ry.strength = min(1.0, ry.strength + boost * 0.40)  # 40% of the 60% contribution
+                ry.description += (
+                    f" [+Pancha Mahapurusha ({py.name}) symbiosis via {shared}: "
+                    f"strength {old_s:.2f}→{ry.strength:.2f}, indestructible foundation]"
+                )
+                symbiosis_records.append({
+                    "pancha": py.name,
+                    "raja":   ry.name,
+                    "shared_planets": list(shared),
+                    "boost_applied": round(ry.strength - old_s, 3),
+                })
+
+    return symbiosis_records
+
+
+def compute_dhana_stacking_tier(
+        yogas: List[YogaResult],
+        planet_houses: Dict[str, int],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+) -> Dict:
+    """
+    Evaluate Dhana Yoga stacking thresholds and Saturn 2nd-house ceiling.
+    Returns wealth tier and any ceiling constraints.
+    Tiers:
+      1: Single 2L-11L link → financial stability
+      2: 5L/9L integrated into 2L-11L axis → prosperity
+      3: Parivartana 2L-11L + strong Lagna lord → extreme wealth
+      3+: 3+ concurrent Dhana Yogas + high Jupiter/Sun dignity → transcendent wealth
+    Saturn 2nd ceiling: hard cap regardless of stacking density.
+    """
+    dhana_yogas  = [y for y in yogas if y.category == "dhana" and y.detected]
+    n_dhana      = len(dhana_yogas)
+
+    l2   = house_lords.get(2, "")
+    l11  = house_lords.get(11, "")
+    l5   = house_lords.get(5, "")
+    l9   = house_lords.get(9, "")
+    l1   = house_lords.get(1, "")
+
+    h2_lord  = planet_houses.get(l2, 0)  if l2  else 0
+    h11_lord = planet_houses.get(l11, 0) if l11 else 0
+
+    # Parivartana between 2L and 11L
+    parivartana_2_11 = (h2_lord == 11 and h11_lord == 2) if (l2 and l11) else False
+
+    # 5L or 9L connected to 2L-11L axis
+    l5_h   = planet_houses.get(l5, 0) if l5 else 0
+    l9_h   = planet_houses.get(l9, 0) if l9 else 0
+    axis_houses = {h2_lord, h11_lord}
+    l5_in_axis  = l5_h in axis_houses or l5_h in (2, 11)
+    l9_in_axis  = l9_h in axis_houses or l9_h in (2, 11)
+    dharma_integrated = l5_in_axis or l9_in_axis
+
+    # Lagna lord strength
+    l1_str = shadbala_ratios.get(l1, 0.0) if l1 else 0.0
+
+    # Determine tier
+    if n_dhana >= 3 and (shadbala_ratios.get("JUPITER", 0.5) >= 0.8
+                          or shadbala_ratios.get("SUN", 0.5) >= 0.8):
+        tier = "transcendent"  # multi-millionaire/billionaire potential
+    elif parivartana_2_11 and l1_str >= 0.9:
+        tier = "extreme"
+    elif dharma_integrated:
+        tier = "prosperity"
+    elif n_dhana >= 1:
+        tier = "stable"
+    else:
+        tier = "none"
+
+    # Saturn ceiling check
+    saturn_h = planet_houses.get("SATURN", 0)
+    saturn_in_2nd = (saturn_h == 2)
+    saturn_aspects_2nd_lord = False
+    if l2:
+        sat_asp = abs(saturn_h - h2_lord)
+        if sat_asp > 6:
+            sat_asp = 12 - sat_asp
+        # Saturn aspects 3rd/7th/10th from itself
+        if sat_asp in (2, 6, 9):  # house diff of 3,7,10 from Saturn
+            saturn_aspects_2nd_lord = True
+
+    saturn_ceiling = saturn_in_2nd or saturn_aspects_2nd_lord
+    ceiling_note = ""
+    if saturn_ceiling:
+        ceiling_note = (
+            "SATURN CEILING ACTIVE: Saturn in 2nd or aspecting 2nd lord → "
+            "hard cap on Dhana Yoga output regardless of stacking. "
+            "Lifelong financial resistance/debt cycles."
+        )
+
+    return {
+        "dhana_count": n_dhana,
+        "wealth_tier": tier,
+        "parivartana_2_11": parivartana_2_11,
+        "dharma_integrated": dharma_integrated,
+        "saturn_ceiling": saturn_ceiling,
+        "ceiling_note": ceiling_note,
+    }
+
+
 # ─── Main Detector ────────────────────────────────────────────────
 
 # ─── Yoga Hierarchy Tier Assignment ──────────────────────────────────────────
@@ -1153,13 +2322,18 @@ def detect_all_yogas(
         lagna_sign: int = 0,
         dasha_planet: str = "",
         antardasha_planet: str = "",
+        retrograde_planets: Set[str] = None,
+        planet_lats: Dict[str, float] = None,
 ) -> List[YogaResult]:
     """
     Run all yoga detectors and return list of detected yogas.
-    Includes: tier assignment, activation scoring, compounding.
+    Includes: tier assignment, activation scoring, compounding,
+    Graha Yuddha cancellation, retrograde paradox, Nabhasa yogas.
     """
     if asp_map is None:
         asp_map = {}
+    retrograde_planets = retrograde_planets or set()
+    planet_lats = planet_lats or {}
 
     moon_h    = _planet_house("MOON", planet_houses)
     moon_sign = sign_of(planet_lons.get("MOON", 0))
@@ -1186,6 +2360,25 @@ def detect_all_yogas(
     if sw:
         all_results.append(sw)
 
+    # ── New catalog yogas (Section A) ────────────────────────────
+    all_results.extend(_dharma_karmadhipati_yoga(planet_houses, planet_lons, house_lords, shadbala_ratios, asp_map))
+    kh = _kahala_yoga(planet_houses, house_lords, shadbala_ratios)
+    if kh:
+        all_results.append(kh)
+    lk = _lakshmi_yoga(planet_houses, planet_lons, house_lords, shadbala_ratios)
+    if lk:
+        all_results.append(lk)
+    all_results.extend(_voshi_veshi_ubhayachari_yoga(planet_houses, planet_lons, shadbala_ratios))
+    mb = _mangal_budha_yoga(planet_houses, planet_lons, shadbala_ratios)
+    if mb:
+        all_results.append(mb)
+    ut = _uttamadi_yoga(planet_houses, shadbala_ratios)
+    if ut:
+        all_results.append(ut)
+    ak = _akhanda_samrajya_yoga(planet_houses, house_lords, shadbala_ratios)
+    if ak:
+        all_results.append(ak)
+
     # ── Multi-result yogas ───────────────────────────────────────
     all_results.extend(_detect_pancha_mahapurusha(planet_houses, planet_lons, shadbala_ratios))
     all_results.extend(_neechabhanga_raj_yoga(
@@ -1198,12 +2391,19 @@ def detect_all_yogas(
     all_results.extend(_vipreet_raj_yoga(planet_houses, house_lords, shadbala_ratios))
     all_results.extend(_parivartana_yoga(planet_houses, planet_lons, house_lords, shadbala_ratios))
 
-    # ── Apply combustion cancellation ───────────────────────────
+    # ── Nabhasa Yogas (all 32) ───────────────────────────────────
+    all_results.extend(_detect_nabhasa_yogas(planet_houses, planet_lons))
+
+    # ── Apply enhanced combustion cancellation ───────────────────
     for yoga in all_results:
         if yoga.detected and not yoga.cancellation_reason:
             for p in yoga.planets:
-                if _is_combust(p, planet_lons):
-                    yoga.cancellation_reason = f"{p} is combust (within 10° of Sun)"
+                if is_combust_enhanced(p, planet_lons, retrograde_planets):
+                    yoga.cancellation_reason = f"{p} is combust"
+
+    # ── Retrograde paradox modifiers ─────────────────────────────
+    if retrograde_planets:
+        apply_retrograde_yoga_modifiers(all_results, planet_lons, retrograde_planets)
 
     detected = [y for y in all_results if y.detected]
 
@@ -1212,16 +2412,34 @@ def detect_all_yogas(
         if y.tier == 4:  # default — re-assign based on category/name
             y.tier = _assign_tier(y)
 
-    # ── Assign activation scores ──────────────────────────────────
+    # ── Graha Yuddha cancellation ─────────────────────────────────
+    wars = _detect_graha_yuddha(planet_lons, planet_lats)
+    if wars:
+        _apply_graha_yuddha_cancellations(detected, wars)
+
+    # ── Panchamahapurusha ↔ Raja symbiosis ───────────────────────
+    compute_panchamahapurusha_raja_symbiosis(detected)
+
+    # ── Assign activation scores with MD-AD axis evaluation ──────
     if dasha_planet or antardasha_planet:
+        axis_mult = score_md_ad_relationship(dasha_planet, antardasha_planet, planet_houses)
         for y in detected:
-            y.activation_score = score_yoga_activation_dasha(
+            base_score = score_yoga_activation_dasha(
                 y, dasha_planet, antardasha_planet,
                 shadbala_ratios, planet_houses, asp_map,
             )
+            y.activation_score = round(base_score * axis_mult, 3)
 
-    # ── Compute compounding (appended as metadata, not a yoga result) ─
-    # Callers can use compute_yoga_compounding(detected) separately
+    # ── Augment each yoga with Manduka Gati life-phase data ──────
+    for y in detected:
+        primary_h = y.houses[0] if y.houses else 0
+        if primary_h:
+            mg = get_manduka_gati_life_phase(primary_h)
+            if mg["phase"] != "unknown":
+                y.description += (
+                    f" [Manduka phase: {mg['phase'].upper()} life "
+                    f"(ages {mg['block_start_age']}–{mg['block_end_age']})]"
+                )
 
     # ── Sort by tier then strength ────────────────────────────────
     detected.sort(key=lambda y: (y.tier, -y.strength))

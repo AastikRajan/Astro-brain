@@ -270,3 +270,137 @@ def get_kaksha_lord(sign: int, degree_in_sign: float) -> str:
     kaksha_span = 30.0 / 8  # 3.75°
     kaksha_idx = int(degree_in_sign / kaksha_span)
     return kaksha_lords[min(kaksha_idx, 7)]
+
+
+# ─── Domain-Specific BAV Mapping (ad.md §3.1) ────────────────────────────────
+#
+# For each life domain, identifies which planets' Bhinna Ashtakvarga (BAV)
+# scores in which houses are most relevant for domain strength assessment.
+#
+# Structure: {domain: {
+#     "primary":   [(planet, house), ...],  # 70% weight
+#     "secondary": [(planet, house), ...],  # 30% weight
+# }}
+#
+# Sources: BPHS Ch. 66-68 (domain-specific Ashtakvarga interpretations),
+#          Phaladeepika Ch. 26, Saravali Ashtakvarga section.
+DOMAIN_BAV_MAPPING: Dict[str, Dict] = {
+    "CAREER": {
+        "primary":   [("SUN",     10), ("SATURN",   10), ("MERCURY",  10)],
+        "secondary": [("JUPITER",  9), ("MARS",      3)],
+    },
+    "FINANCE": {
+        "primary":   [("JUPITER",  2), ("JUPITER",  11)],
+        "secondary": [("VENUS",    2), ("SATURN",   11)],
+    },
+    "MARRIAGE": {
+        "primary":   [("VENUS",    7), ("JUPITER",   7)],
+        "secondary": [("MOON",     7), ("VENUS",     4)],
+    },
+    "HEALTH": {
+        "primary":   [("SUN",      1), ("MOON",      1)],
+        "secondary": [("MARS",     8), ("SATURN",    8)],
+    },
+    "CHILDREN": {
+        "primary":   [("JUPITER",  5), ("MOON",      5)],
+        "secondary": [("VENUS",    5), ("MERCURY",   5)],
+    },
+    "PROPERTY": {
+        "primary":   [("MOON",     4), ("MARS",      4)],
+        "secondary": [("VENUS",    4), ("SATURN",    4)],
+    },
+    "SPIRITUAL": {
+        "primary":   [("JUPITER",  9), ("SATURN",   12)],
+        "secondary": [("KETU",    12), ("MOON",     12)],
+    },
+}
+
+# Alias for case-insensitive lookups
+_DOMAIN_ALIAS = {d.lower(): d for d in DOMAIN_BAV_MAPPING}
+
+
+def domain_specific_bav_score(
+    domain: str,
+    bhinna_av: Dict[str, List[int]],
+    house_sign_map: Dict[int, int],
+) -> Dict:
+    """
+    Compute a domain-specific Ashtakvarga quality score using the classical
+    planet-house pairings for each life domain (DOMAIN_BAV_MAPPING above).
+
+    Formula (ad.md §3.1):
+        primary_avg   = mean(BAV[planet][sign] for each (planet, house) in primary)
+        secondary_avg = mean(BAV[planet][sign] for each (planet, house) in secondary)
+        domain_bav    = (0.70 × primary_avg + 0.30 × secondary_avg) / 8.0
+
+    Normalised to [0, 1] where 0 = 0 bindus, 1 = 8 bindus (maximum per planet).
+
+    Args:
+        domain        : Life domain string (e.g. "career", "FINANCE")
+        bhinna_av     : {planet_name: [12 BAV bindus per sign]} from compute_all_bhinna()
+        house_sign_map: {house_number: sign_index (0-11)} — natal house-to-sign mapping
+
+    Returns:
+        Dict with domain_bav_score, primary_avg, secondary_avg, detail, domain
+    """
+    domain_key = _DOMAIN_ALIAS.get(domain.lower())
+    if domain_key is None:
+        return {
+            "domain":           domain,
+            "domain_bav_score": 0.30,  # neutral fallback
+            "primary_avg":      None,
+            "secondary_avg":    None,
+            "detail":           [],
+            "note":             f"Domain '{domain}' not in DOMAIN_BAV_MAPPING — using neutral score.",
+        }
+
+    mapping = DOMAIN_BAV_MAPPING[domain_key]
+    detail = []
+
+    def _lookup_bav(planet: str, house: int) -> Optional[float]:
+        """Get BAV bindus for planet in the sign that contains the given natal house."""
+        p = planet.upper()
+        bav_list = bhinna_av.get(p)
+        if not bav_list or len(bav_list) < 12:
+            return None
+        sign_idx = house_sign_map.get(house)
+        if sign_idx is None:
+            return None
+        return float(bav_list[sign_idx])
+
+    # ── Primary planets (70% weight) ──────────────────────────────────────────
+    primary_vals = []
+    for planet, house in mapping["primary"]:
+        val = _lookup_bav(planet, house)
+        entry = {"planet": planet, "house": house, "bav_bindus": val, "tier": "primary"}
+        detail.append(entry)
+        if val is not None:
+            primary_vals.append(val)
+
+    # ── Secondary planets (30% weight) ────────────────────────────────────────
+    secondary_vals = []
+    for planet, house in mapping["secondary"]:
+        val = _lookup_bav(planet, house)
+        entry = {"planet": planet, "house": house, "bav_bindus": val, "tier": "secondary"}
+        detail.append(entry)
+        if val is not None:
+            secondary_vals.append(val)
+
+    primary_avg   = sum(primary_vals)   / len(primary_vals)   if primary_vals   else 4.0
+    secondary_avg = sum(secondary_vals) / len(secondary_vals) if secondary_vals else 4.0
+
+    # Weighted composite; divide by 8.0 to normalise to [0,1]
+    composite = (0.70 * primary_avg + 0.30 * secondary_avg) / 8.0
+    composite  = max(0.0, min(1.0, round(composite, 3)))
+
+    return {
+        "domain":           domain_key,
+        "domain_bav_score": composite,
+        "primary_avg":      round(primary_avg, 2),
+        "secondary_avg":    round(secondary_avg, 2),
+        "detail":           detail,
+        "note": (
+            f"Domain BAV for {domain_key}: primary={primary_avg:.2f}/8, "
+            f"secondary={secondary_avg:.2f}/8 → score={composite:.3f}"
+        ),
+    }

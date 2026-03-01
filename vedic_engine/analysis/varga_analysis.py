@@ -388,6 +388,167 @@ def _sign_lord(sign_idx: int) -> str:
     return lords[sign_idx]
 
 
+import math as _math_varga
+
+# ─── D1/D9 Fructification Synthesis (Logic Integration Manifest §3.1) ────────
+#
+# When a planet makes promises in D1, the D9 acts as a final arbiter of
+# whether those promises will actually manifest in real life.
+#
+# Formula:
+#   FCS(p) = P_D1(p) × log(1 + M_D9(p))
+#
+# Where:
+#   P_D1(p) = planet's D1 promise score (passed in, 0.0 – 1.0 range)
+#   M_D9(p) = D9 dignity multiplier:
+#               Debilitated  → 0.2   (strong D9 veto: barely any fructification)
+#               Enemy sign   → 0.6   (weakened delivery)
+#               Neutral      → 1.0   (neutral: log(2) ≈ 0.693 of D1 promise)
+#               Own sign     → 1.4   (strong delivery)
+#               Exaltation   → 1.8   (full + bonus delivery)
+#               Vargottama   → 2.0   (maximum — D1 and D9 in exact same sign)
+#
+# Maximum FCS when M_D9=2.0: P_D1 × log(3) ≈ 1.099 × P_D1 (log can exceed 1)
+# So results are NOT capped at 1.0; they can signal "over-delivery".
+
+_D9_MULTIPLIER: Dict[str, float] = {
+    "debilitated":  0.2,
+    "enemy":        0.6,
+    "neutral":      1.0,
+    "own":          1.4,
+    "exalted":      1.8,
+    "vargottama":   2.0,
+}
+
+# Enemy signs: the sign 7 away from own sign (BPHS natural enmity)
+_ENEMY_SIGNS: Dict[str, List[int]] = {
+    "SUN":     [6, 10],    # Libra (7th), Aquarius (great enemy Saturn owns)
+    "MOON":    [9, 10],    # Capricorn, Aquarius
+    "MARS":    [3, 9],     # Cancer (debil), Capricorn (partial)
+    "MERCURY": [8, 11],    # Sagittarius (Jupiter=enemy), Pisces
+    "JUPITER": [2, 5],     # Gemini, Virgo (Mercury owns; Mercury=enemy)
+    "VENUS":   [0, 7],     # Aries (enemy Sun), Scorpio (enemy Mars)
+    "SATURN":  [0, 3, 4],  # Aries (enemy Mars), Cancer (Moon), Leo (Sun)
+}
+
+
+def d9_dignity_multiplier(planet: str, d9_sign: int, d1_sign: int) -> Tuple[str, float]:
+    """
+    Determine the D9 dignity category and its M_D9 fructification multiplier.
+
+    Args:
+        planet    : Planet name (uppercase)
+        d9_sign   : Planet's sign in D9 chart (0-indexed)
+        d1_sign   : Planet's sign in D1 chart (0-indexed) — for vargottama check
+
+    Returns:
+        (dignity_label, M_D9_float)
+    """
+    # Vargottama (highest) — check first
+    if d1_sign == d9_sign:
+        return ("vargottama", _D9_MULTIPLIER["vargottama"])
+
+    # Exaltation
+    if EXALT_SIGNS.get(planet) == d9_sign:
+        return ("exalted", _D9_MULTIPLIER["exalted"])
+
+    # Debilitation
+    if DEBI_SIGNS.get(planet) == d9_sign:
+        return ("debilitated", _D9_MULTIPLIER["debilitated"])
+
+    # Own sign
+    if d9_sign in PLANET_OWN_SIGNS.get(planet, []):
+        return ("own", _D9_MULTIPLIER["own"])
+
+    # Enemy sign
+    if d9_sign in _ENEMY_SIGNS.get(planet, []):
+        return ("enemy", _D9_MULTIPLIER["enemy"])
+
+    # Default: neutral
+    return ("neutral", _D9_MULTIPLIER["neutral"])
+
+
+def d1_d9_fructification_score(
+    planet: str,
+    d1_promise: float,
+    d9_sign: int,
+    d1_sign: int,
+) -> Dict:
+    """
+    Compute the D1/D9 Fructification Composite Score (FCS) for one planet.
+
+    FCS(p) = P_D1(p) × log(1 + M_D9(p))
+
+    The log smoothing prevents an exalted D9 from simply doubling the D1 result.
+    Instead it provides a bounded but generous boost: exalted → log(2.8) ≈ 1.03,
+    vargottama → log(3) ≈ 1.099 multiplier on the D1 promise.
+
+    A debilitated D9 planet has M_D9=0.2: FCS = P_D1 × log(1.2) ≈ 0.18 × P_D1
+    → only ~18% of the D1 promise fructifies. Harsh veto.
+
+    Args:
+        planet     : Planet name (uppercase)
+        d1_promise : Natal D1 strength/promise score (typically 0.0 – 1.0)
+        d9_sign    : D9 sign index (0–11)
+        d1_sign    : D1 sign index (0–11) for vargottama detection
+
+    Returns:
+        Dict with fcs, d9_dignity, m_d9, commentary
+    """
+    d9_dignity, m_d9 = d9_dignity_multiplier(planet, d9_sign, d1_sign)
+    fcs = d1_promise * _math_varga.log(1.0 + m_d9)
+
+    # Interpretation tier
+    if fcs >= d1_promise * 0.90:
+        tier = "excellent"
+        note = "D9 strongly validates D1 promise — high probability of manifestation."
+    elif fcs >= d1_promise * 0.60:
+        tier = "good"
+        note = "D9 reasonably supports D1 promise — moderate to good manifestation expected."
+    elif fcs >= d1_promise * 0.30:
+        tier = "weak"
+        note = "D9 only partially supports D1 promise — delayed or diluted manifestation."
+    else:
+        tier = "suppressed"
+        note = "D9 heavily debilitates D1 promise — results largely withheld or denied."
+
+    return {
+        "planet":       planet,
+        "d1_promise":   round(d1_promise, 4),
+        "d9_dignity":   d9_dignity,
+        "m_d9":         m_d9,
+        "fcs":          round(fcs, 4),
+        "fcs_tier":     tier,
+        "commentary":   note,
+    }
+
+
+def compute_all_fcs(
+    planet_d1_lons:   Dict[str, float],
+    planet_d9_signs:  Dict[str, int],
+    planet_d1_strengths: Optional[Dict[str, float]] = None,
+) -> Dict[str, Dict]:
+    """
+    Compute D1/D9 Fructification Scores for all planets.
+
+    If planet_d1_strengths is not provided, uses a uniform promise of 0.5
+    (equal-weight baseline).  Pass actual Shadbala ratios or yoga scores
+    as d1_strengths for precise results.
+
+    Returns a dict: {planet: fcs_result_dict}
+    """
+    from vedic_engine.core.coordinates import sign_of
+    results = {}
+    for planet, lon in planet_d1_lons.items():
+        d1_sign = sign_of(lon)
+        d9_sign = planet_d9_signs.get(planet)
+        if d9_sign is None:
+            continue
+        d1_promise = (planet_d1_strengths or {}).get(planet, 0.5)
+        results[planet] = d1_d9_fructification_score(planet, d1_promise, d9_sign, d1_sign)
+    return results
+
+
 def compute_varga_report(
     planet_d1_lons:  Dict[str, float],   # absolute sidereal longitudes
     planet_d9_signs: Dict[str, int],
@@ -398,15 +559,24 @@ def compute_varga_report(
     d10_lagna: int,
     d7_lagna:  int,
     d4_lagna:  int,
+    planet_d1_strengths: Optional[Dict[str, float]] = None,
 ) -> Dict:
     """
-    Full divisional chart report combining D9/D10/D7/D4/D60 analyses.
+    Full divisional chart report combining D9/D10/D7/D4/D60 analyses,
+    plus D1/D9 Fructification Composite Scores (FCS) for all planets.
+
+    Args:
+        planet_d1_strengths: Optional Shadbala ratios / yoga scores (0-1) per planet.
+                             If omitted, uniform 0.5 baseline is used for FCS.
     """
     d9  = analyze_d9(planet_d1_lons, planet_d9_signs,  d9_lagna)
     d10 = analyze_d10(planet_d10_signs, d10_lagna, planet_d1_lons)
     d7  = analyze_d7(planet_d7_signs, d7_lagna)
     d4  = analyze_d4(planet_d4_signs, d4_lagna)
     d60 = analyze_d60(planet_d1_lons)
+
+    # D1/D9 Fructification Composite Scores
+    fcs = compute_all_fcs(planet_d1_lons, planet_d9_signs, planet_d1_strengths)
 
     # D60 shubha/krura count
     shubha_count = sum(1 for v in d60.values() if v["status"] == "shubha")
@@ -421,4 +591,5 @@ def compute_varga_report(
         "d60_summary": f"{shubha_count} planets in shubha D60, {krura_count} in krura D60",
         "vargottama":  d9["vargottama"],
         "pushkara":    d9["pushkara"],
+        "fcs":         fcs,   # D1/D9 fructification synthesis per planet
     }

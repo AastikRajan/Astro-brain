@@ -74,14 +74,24 @@ REFERENCE_DATE = datetime(2026, 2, 27)
 def get_transit_positions(on_date: datetime) -> Dict[str, float]:
     """
     Get accurate sidereal planetary positions for any date.
-    Priority:
-      1) pyswisseph  (Swiss Ephemeris — most accurate, needs MSVC on Windows)
-      2) astropy     (ERFA/SOFA, sub-arcminute, pure Python) ← installed
-      3) ephem       (PyEphem, ~0.1° accuracy)
-      4) linear approximation
+
+    Priority / accuracy tier:
+      1) pyswisseph  — Swiss Ephemeris, industry gold standard; needs MSVC on Windows
+      2) skyfield    — Skyfield + JPL DE440s/DE421 BSP; pure Python, NASA reference;
+                       agrees with Swiss Ephemeris to <0.001° for classical planets
+      3) astropy     — ERFA/SOFA, sub-arcminute, pure Python; currently installed
+      4) ephem       — PyEphem, ~0.1° accuracy
+      5) approximate — Linear extrapolation from 2026-02-27 snapshot; last resort
+
+    For audit purposes, run_ephemeris_audit() uses Skyfield as the reference
+    standard to cross-check all other tiers — see ephemeris_audit.py.
     """
     try:
         return _get_positions_swisseph(on_date)
+    except (ImportError, Exception):
+        pass
+    try:
+        return _get_positions_skyfield(on_date)
     except (ImportError, Exception):
         pass
     try:
@@ -96,12 +106,26 @@ def get_transit_positions(on_date: datetime) -> Dict[str, float]:
 
 def _get_positions_astropy(on_date: datetime) -> Dict[str, float]:
     """
-    Tier-2 (fast pure-Python): Use astropy + ERFA for geocentric ecliptic positions.
+    Tier-3 (fast pure-Python): Use astropy + ERFA for geocentric ecliptic positions.
     Accuracy: sub-arcminute for classical planets, comparable to Swiss Ephemeris
     for sign-level analysis. Rahu/Ketu via Meeus formula (~0.05° accuracy).
     """
     from vedic_engine.prediction.astropy_positions import get_positions_astropy
     return get_positions_astropy(on_date)
+
+
+def _get_positions_skyfield(on_date: datetime) -> Dict[str, float]:
+    """
+    Tier-2: Skyfield + JPL DE440s/DE421 ephemeris — research-grade pure Python.
+
+    Accuracy vs Swiss Ephemeris: < 0.001° for classical planets (both derive
+    from JPL integrations). Used as audit reference in ephemeris_audit.py.
+
+    First call triggers a one-time BSP file download (~32 MB for de440s).
+    Subsequent calls load from local cache in vedic_engine/data/ephemeris/.
+    """
+    from vedic_engine.prediction.skyfield_positions import get_positions_skyfield
+    return get_positions_skyfield(on_date)
 
 
 def _get_positions_ephem(on_date: datetime) -> Dict[str, float]:
@@ -150,33 +174,13 @@ def _get_positions_ephem(on_date: datetime) -> Dict[str, float]:
 
 
 def _get_positions_swisseph(on_date: datetime) -> Dict[str, float]:
-    """Use pyswisseph for precise sidereal positions with Lahiri ayanamsa."""
-    import swisseph as swe
-    swe.set_ephe_path(".")
-    swe.set_sid_mode(swe.SIDM_LAHIRI)
-
-    jd = swe.julday(on_date.year, on_date.month, on_date.day,
-                    on_date.hour + on_date.minute / 60.0)
-    ayanamsa = swe.get_ayanamsa(jd)
-
-    planet_map = {
-        "SUN": swe.SUN, "MOON": swe.MOON, "MARS": swe.MARS,
-        "MERCURY": swe.MERCURY, "JUPITER": swe.JUPITER,
-        "VENUS": swe.VENUS, "SATURN": swe.SATURN,
-        "RAHU": swe.MEAN_NODE,
-    }
-
-    positions = {}
-    for name, body in planet_map.items():
-        result, _ = swe.calc_ut(jd, body)
-        tropical_lon = result[0]
-        sidereal_lon = (tropical_lon - ayanamsa) % 360
-        positions[name] = sidereal_lon
-
-    if "RAHU" in positions:
-        positions["KETU"] = (positions["RAHU"] + 180) % 360
-
-    return positions
+    """
+    Tier-1 (gold standard): Use Swiss Ephemeris via swisseph_bridge.
+    Accuracy: < 0.001° for all classical planets.
+    Lahiri ayanamsa from official Swiss Ephemeris computation.
+    """
+    from vedic_engine.core.swisseph_bridge import get_transit_positions_swe
+    return get_transit_positions_swe(on_date)
 
 
 def _get_positions_approximate(on_date: datetime) -> Dict[str, float]:
@@ -188,6 +192,41 @@ def _get_positions_approximate(on_date: datetime) -> Dict[str, float]:
         lon = (base_lon + speed * delta_days) % 360
         positions[pname] = lon
     return positions
+
+
+# ─── Ephemeris Audit (research-grade cross-validation) ───────────────────────
+
+def run_ephemeris_audit(n: int = 20, verbose: bool = True) -> Dict:
+    """
+    Run a research-grade audit comparing all backends against Skyfield + JPL.
+
+    Skyfield + DE440s is used as the independent reference (NASA source).
+    Compares astropy, pyswisseph (if installed), and PyEphem (if installed)
+    against Skyfield across n randomly sampled dates.
+
+    Notes the mean error, max error, systematic bias, sign agreement %, and
+    nakshatra agreement % per planet.  Prints human-readable report if verbose.
+
+    Requires Skyfield to be installed (pip install skyfield) and internet
+    access on first run to download the ~32 MB de440s.bsp JPL kernel.
+
+    Parameters
+    ----------
+    n       : number of random dates to sample (default 20, increase to 100+
+              for publication-quality accuracy statistics)
+    verbose : if True, prints the formatted report to stdout
+
+    Returns
+    -------
+    {'spot': spot_check_result, 'random': random_audit_result}
+
+    Example
+    -------
+    >>> from vedic_engine.prediction.transits import run_ephemeris_audit
+    >>> results = run_ephemeris_audit(n=50)
+    """
+    from vedic_engine.prediction.ephemeris_audit import full_report
+    return full_report(n=n, verbose=verbose)
 
 
 # ─── Relationship Helpers ─────────────────────────────────────────
@@ -394,6 +433,9 @@ def evaluate_transit(
     combust_strength_retained = 1.0
     karakatwa_burned = False
     lordship_survives = False
+    karmic_amplified = False
+    karmic_boost = 0.0
+    karmic_domains: list[str] = []
     combust_note = ""
     planet_upper = planet.upper()
     p_enum = _P.get(planet_upper)
@@ -416,15 +458,61 @@ def evaluate_transit(
                 # Lordship (house rules/Yogas) = survives but with Sun-flavored stress
                 karakatwa_burned = True
                 lordship_survives = True
+
+                # ── Combustion Retention Filter (Logic Integration Manifest §3.6) ─
+                # Material traits: dampened ×0.3 (already absorbed in strength_retained)
+                # Karmic / Spiritual traits: AMPLIFIED ×1.5 (Agni burns externals,
+                # but refines inner light). Planets with strong spiritual natural
+                # significations gain extra karmic potency when combust.
+                _KARMIC_PLANETS = {
+                    "JUPITER": 0.30,  # wisdom, dharma, inner guru
+                    "SATURN":  0.25,  # discipline, karma, renunciation
+                    "MOON":    0.20,  # inner mind, spiritual sensitivity
+                    "KETU":    0.35,  # moksha, past-life karma (though Ketu can't combust, listed for docs)
+                    "VENUS":   0.10,  # devotion, Bhakti when spiritualized
+                    "MERCURY": 0.08,  # mantra, scriptural pursuit
+                }
+                karmic_boost = 0.0
+                karmic_amplified = False
+                karmic_domains: list[str] = []
+                base_karmic_weight = _KARMIC_PLANETS.get(planet_upper, 0.0)
+                if base_karmic_weight > 0.0:
+                    # Amplification scales with combustion depth: deeper = more inner burn
+                    # Factor: (1 - combust_strength_retained) = degree of combustion
+                    # Net karmic boost = base_weight × (1 - retained) × 1.5 amplifier
+                    karmic_amplifier = 1.5
+                    karmic_boost = round(
+                        base_karmic_weight * (1.0 - combust_strength_retained) * karmic_amplifier,
+                        4,
+                    )
+                    if karmic_boost > 0.005:
+                        karmic_amplified = True
+                        # Tag the specific karmic domains awakened
+                        _KARMIC_DOMAIN_MAP = {
+                            "JUPITER": ["dharma", "inner_wisdom", "guru_awakening"],
+                            "SATURN":  ["karma_clearing", "renunciation", "tapas"],
+                            "MOON":    ["inner_mind_sensitivity", "spiritual_emotions"],
+                            "VENUS":   ["bhakti", "devotional_arts"],
+                            "MERCURY": ["mantra_power", "scriptural_insight"],
+                        }
+                        karmic_domains = _KARMIC_DOMAIN_MAP.get(planet_upper, [])
+
                 combust_note = (
                     f"{planet_upper} is {combust_pct}% combust ({combust_orb_actual}\u00b0 from Sun). "
                     "Living significations (Karakatwa) are heavily suppressed. "
                     "Lordship events WILL manifest but with authority clashes, "
                     "ego friction, lack of recognition, and internal anxiety."
                 )
+                if karmic_amplified:
+                    combust_note += (
+                        f" KARMIC AMPLIFICATION ACTIVE: {planet_upper}'s spiritual domains "
+                        f"{karmic_domains} are intensified (×{karmic_amplifier}) — "
+                        f"karmic boost +{karmic_boost:.3f}."
+                    )
 
     score = gochar_score + bav_score_component + sav_score_component + lagna_score
     score += kakshya["precision_boost"]   # Kakshya sub-precision ±0.05/0.02
+    score += karmic_boost                 # Combustion karmic amplification (can add positive)
     score = max(0.0, min(1.0, score))
 
     return {
@@ -448,6 +536,9 @@ def evaluate_transit(
         "combust_strength_retained": round(combust_strength_retained, 3),
         "karakatwa_burned": karakatwa_burned,
         "lordship_survives": lordship_survives,
+        "karmic_amplified": karmic_amplified,
+        "karmic_boost": karmic_boost,
+        "karmic_domains": karmic_domains,
         "combust_note": combust_note,
         "net_score": round(score, 3),
         "interpretation": _gochar_interpretation(planet, house_from_moon),

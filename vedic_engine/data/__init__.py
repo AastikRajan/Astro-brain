@@ -4,11 +4,11 @@ from vedic_engine.data.models import (
     ShadbalaPlanet, BhavaStrength, AshtakavargaData,
     DashaPeriod, Yoga, JaiminiKaraka, KPSignification, TransitScore,
 )
-from vedic_engine.data.loader import load_from_dict, load_sample_chart
+from vedic_engine.data.loader import load_from_dict, load_sample_chart, build_chart_swe
 
 __all__ = [
     "BirthInfo", "PlanetPosition", "HouseCusp", "VedicChart",
     "ShadbalaPlanet", "BhavaStrength", "AshtakavargaData",
     "DashaPeriod", "Yoga", "JaiminiKaraka", "KPSignification", "TransitScore",
-    "load_from_dict", "load_sample_chart",
+    "load_from_dict", "load_sample_chart", "build_chart_swe",
 ]

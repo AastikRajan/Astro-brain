@@ -34,7 +34,11 @@ from vedic_engine.timing.kp          import (
 )
 
 # ── Analysis ────────────────────────────────────────────────────
-from vedic_engine.analysis.yogas         import detect_all_yogas
+from vedic_engine.analysis.yogas         import (
+    detect_all_yogas, compute_yoga_compounding,
+    compute_dhana_stacking_tier,
+    score_md_ad_relationship, get_manduka_gati_life_phase,
+)
 from vedic_engine.analysis.karakas       import compute_chara_karakas, analyze_karaka_relationships
 from vedic_engine.analysis.functional    import compute_functional_analysis
 from vedic_engine.analysis.graha_yuddha  import detect_planetary_wars, apply_war_penalties
@@ -65,6 +69,16 @@ from vedic_engine.timing.progressions import (
 
 from vedic_engine.core.coordinates import sign_of
 from vedic_engine.data.models import VedicChart
+
+# ── Module-level sign name / lord lookup tables ─────────────────
+SIGN_NAMES_LIST = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+]
+SIGN_LORDS_MAP: Dict[int, str] = {
+    0: "MARS", 1: "VENUS", 2: "MERCURY", 3: "MOON", 4: "SUN", 5: "MERCURY",
+    6: "VENUS", 7: "MARS", 8: "JUPITER", 9: "SATURN", 10: "SATURN", 11: "JUPITER",
+}
 
 # ── Jaimini / new modules ───────────────────────────────────────
 from vedic_engine.analysis.arudha_padas import arudha_summary
@@ -133,6 +147,63 @@ try:
     _YOGA_COMPOUND_AVAILABLE = True
 except ImportError:
     _YOGA_COMPOUND_AVAILABLE = False
+
+# ── Nakshatra Analysis (File 2) ───────────────────────────────────
+try:
+    from vedic_engine.analysis.nakshatra_analysis import (
+        compute_full_nakshatra_analysis,
+        check_dwisaptati_eligibility,
+        get_pada_syllable,
+    )
+    _NAKSHATRA_ANALYSIS_AVAILABLE = True
+except ImportError:
+    _NAKSHATRA_ANALYSIS_AVAILABLE = False
+
+# ── Tajika Varshaphala (File 3) ───────────────────────────────────
+try:
+    from vedic_engine.timing.varshaphala import compute_varsha_analysis
+    _VARSHAPHALA_AVAILABLE = True
+except ImportError:
+    _VARSHAPHALA_AVAILABLE = False
+
+# ── Jaimini Extended (File 4) ─────────────────────────────────────
+try:
+    from vedic_engine.analysis.sthira_karakas import compute_sthira_karakas
+    from vedic_engine.analysis.karakamsha import (
+        compute_svamsha, compute_karakamsha_lagna, analyze_karakamsha,
+        compute_jaimini_yogas, check_marriage_timing,
+        check_career_timing, analyze_al_ul_relationship,
+    )
+    from vedic_engine.timing.jaimini_dashas import (
+        compute_shoola_dasha, compute_niryana_shoola_dasha,
+        compute_brahma_dasha, compute_navamsha_dasha,
+        compute_sudasa, compute_drig_dasha, compute_trikona_dasha,
+        compute_sree_lagna, get_active_period,
+    )
+    from vedic_engine.analysis.arudha_padas import compute_arudha_extended_analysis
+    _JAIMINI_EXTENDED_AVAILABLE = True
+except ImportError as _je:
+    _JAIMINI_EXTENDED_AVAILABLE = False
+
+# ── File 5: Prashna, Kalachakra, Medical, Conditional Dashas ─────
+try:
+    from vedic_engine.timing.kalachakra import (
+        compute_kalachakra_dasha, analyze_deha_jeeva_transits,
+    )
+    from vedic_engine.analysis.medical_astrology import compute_medical_analysis
+    from vedic_engine.timing.conditional_dashas import (
+        check_all_conditional_eligibility,
+        compute_shodashottari, compute_dwadasottari, compute_panchottari,
+        compute_shatabdika, compute_chaturaashiti, compute_dwisaptati,
+        compute_shat_trimsa, compute_moola_dasha, compute_tara_dasha,
+    )
+    from vedic_engine.timing.kp import (
+        compute_prashna_panchaka, analyze_ithasala_yoga,
+        resolve_prashna_query,
+    )
+    _FILE5_AVAILABLE = True
+except ImportError as _f5e:
+    _FILE5_AVAILABLE = False
 
 # ── GPT accuracy layer (graceful fallback if openai not installed) ──
 try:
@@ -231,7 +302,12 @@ class PredictionEngine:
 
         # ── Shadbala
         try:
-            shadbala = compute_all_shadbala(chart.planets, birth_dt, cusp_lons)
+            shadbala = compute_all_shadbala(
+                chart.planets, birth_dt, cusp_lons,
+                latitude=chart.birth_info.latitude,
+                longitude=chart.birth_info.longitude,
+                tz_offset=chart.birth_info.timezone,
+            )
         except Exception as e:
             shadbala = {"error": str(e)}
 
@@ -270,8 +346,21 @@ class PredictionEngine:
             if lord:
                 house_lords[house_num] = lord.name
 
-        yogas = detect_all_yogas(planet_houses, planet_lons, shadbala_ratios,
-                                 house_lords, asp_map)
+        retro_set = {name for name, val in retrogrades.items() if val}
+        yogas = detect_all_yogas(
+            planet_houses, planet_lons, shadbala_ratios,
+            house_lords, asp_map,
+            lagna_sign=lagna_sign,
+            retrograde_planets=retro_set,
+        )
+
+        # ── Dhana stacking tier
+        try:
+            dhana_stacking = compute_dhana_stacking_tier(
+                yogas, planet_houses, house_lords, shadbala_ratios
+            )
+        except Exception:
+            dhana_stacking = {}
 
         # ── Yoga Compounding (graph-based cluster boosting)
         yoga_compounding = {}
@@ -323,7 +412,10 @@ class PredictionEngine:
             lagna_lon_val = chart.lagna_degree
             special_pts = compute_all_special_points(
                 birth_dt, lagna_lon_val, moon_lon, house_lords,
-                sun_lon=sun_lon, rahu_lon=rahu_lon
+                sun_lon=sun_lon, rahu_lon=rahu_lon,
+                latitude=chart.birth_info.latitude,
+                longitude=chart.birth_info.longitude,
+                tz_offset=chart.birth_info.timezone,
             )
         except Exception as e:
             special_pts = {"error": str(e)}
@@ -405,6 +497,263 @@ class PredictionEngine:
             except Exception:
                 bhavabala_domain_modifiers = {}
 
+        # ── Nakshatra Analysis (File 2) ───────────────────────────
+        nakshatra_analysis = {}
+        if _NAKSHATRA_ANALYSIS_AVAILABLE:
+            try:
+                _transit_moon_lon = planet_lons.get("MOON", moon_lon)  # natal = transit here
+                nakshatra_analysis = compute_full_nakshatra_analysis(
+                    planet_lons=planet_lons,
+                    natal_moon_lon=moon_lon,
+                    transit_moon_lon=_transit_moon_lon,
+                    planet_houses=planet_houses,
+                    house_lords=house_lords,
+                )
+            except Exception:
+                nakshatra_analysis = {}
+
+        # ── Tajika Varshaphala (File 3) ───────────────────────────
+        varshaphala = {}
+        if _VARSHAPHALA_AVAILABLE:
+            try:
+                _birth_dt = birth_dt
+                _completed_years = max(0, _birth_dt.year - _birth_dt.year) if not hasattr(chart, "age") else getattr(chart, "age", 0)
+                # Derive completed_years from birth datetime vs. now
+                _now = datetime.now()
+                _cy = (_now.year - _birth_dt.year
+                       - ((_now.month, _now.day) < (_birth_dt.month, _birth_dt.day)))
+                _cy = max(0, _cy)
+                _is_day = 6 <= _birth_dt.hour < 18
+                varshaphala = compute_varsha_analysis(
+                    planet_lons      = planet_lons,
+                    planet_speeds    = {p: 0.0 for p in planet_lons},
+                    lagna_lon        = chart.lagna_degree,
+                    natal_lagna_sign = lagna_sign,
+                    natal_moon_lon   = moon_lon,
+                    completed_years  = _cy,
+                    is_day_chart     = _is_day,
+                    return_date      = _now,
+                )
+            except Exception:
+                varshaphala = {}
+
+        # ── Jaimini Extended (File 4) ─────────────────────────────
+        jaimini_extended: Dict[str, Any] = {}
+        if _JAIMINI_EXTENDED_AVAILABLE:
+            try:
+                # D9 signs for all planets
+                try:
+                    from vedic_engine.core.divisional import D9 as _d9f
+                    _planet_d9_signs = {p: _d9f(lon) for p, lon in planet_lons.items()}
+                    _d9_lagna        = _d9f(chart.lagna_degree)
+                except Exception:
+                    _planet_d9_signs = {p: int(lon % 360 / 30) % 12 for p, lon in planet_lons.items()}
+                    _d9_lagna        = int(chart.lagna_degree % 360 / 30) % 12
+
+                _ak_d9_sign = _planet_d9_signs.get(ak_planet, lagna_sign) if ak_planet else lagna_sign
+                _ak_d1_sign = planet_signs.get(ak_planet, lagna_sign) if ak_planet else lagna_sign
+                _seventh_sign = (lagna_sign + 6) % 12
+
+                # Sthira Karakas
+                _sthira_k = compute_sthira_karakas(shadbala_ratios, planet_lons)
+
+                # Karakamsha + Svamsha
+                _karakamsha = analyze_karakamsha(
+                    ak_d9_sign=_ak_d9_sign, planet_signs=planet_signs,
+                    lagna_sign=lagna_sign, planet_lons=planet_lons,
+                    shadbala_ratios=shadbala_ratios,
+                )
+                _svamsha = compute_svamsha(_ak_d9_sign)
+
+                # Jaimini Yogas
+                _j_yogas = compute_jaimini_yogas(
+                    karakas_list=karakas_list or [],
+                    planet_signs=planet_signs,
+                    ak_d9_sign=_ak_d9_sign,
+                    planet_d9_signs=_planet_d9_signs,
+                    planet_lons=planet_lons,
+                )
+
+                # Arudha Extended Analysis
+                _arudha_ext = compute_arudha_extended_analysis(lagna_sign, planet_signs)
+
+                def _trim(d: dict) -> dict:
+                    return {k: (v[:5] if k == "periods" else v) for k, v in d.items()}
+
+                # Additional Jaimini Dasha systems
+                _shoola  = _trim(compute_shoola_dasha(
+                    lagna_sign, _seventh_sign, planet_lons, birth_dt, shadbala_ratios))
+                _niryana = _trim(compute_niryana_shoola_dasha(
+                    lagna_sign, _seventh_sign, planet_lons, birth_dt, shadbala_ratios))
+                _brahma  = _trim(compute_brahma_dasha(
+                    lagna_sign, _seventh_sign, _ak_d1_sign, planet_lons, birth_dt, shadbala_ratios))
+                _navm    = _trim(compute_navamsha_dasha(
+                    _d9_lagna, _planet_d9_signs, planet_lons, birth_dt))
+                _sudasa  = _trim(compute_sudasa(
+                    planet_lons.get("MOON", 90.0), chart.lagna_degree,
+                    planet_lons, birth_dt, shadbala_ratios))
+                _drig    = _trim(compute_drig_dasha(lagna_sign, birth_dt))
+                _trikona = _trim(compute_trikona_dasha(
+                    lagna_sign, planet_lons, birth_dt, planet_houses, shadbala_ratios))
+
+                jaimini_extended = {
+                    "sthira_karakas":   _sthira_k,
+                    "karakamsha":       _karakamsha,
+                    "svamsha":          _svamsha,
+                    "jaimini_yogas":    _j_yogas,
+                    "arudha_extended":  _arudha_ext,
+                    "shoola_dasha":     _shoola,
+                    "niryana_shoola":   _niryana,
+                    "brahma_dasha":     _brahma,
+                    "navamsha_dasha":   _navm,
+                    "sudasa":           _sudasa,
+                    "drig_dasha":       _drig,
+                    "trikona_dasha":    _trikona,
+                }
+            except Exception:
+                jaimini_extended = {}
+
+        # ── File 5: Kalachakra + Medical + Conditional Dashas ────
+        file5_analysis: Dict[str, Any] = {}
+        if _FILE5_AVAILABLE:
+            try:
+                # Kalachakra Dasha
+                _kalach = compute_kalachakra_dasha(
+                    moon_longitude=planet_lons.get("MOON", 0.0),
+                    birth_year=birth_dt.year,
+                    max_periods=9,
+                )
+
+                # Deha/Jeeva transit analysis (Saturn and Rahu current signs)
+                _sat_sign = SIGN_NAMES_LIST[planet_signs.get("SATURN", 0)] if isinstance(planet_signs.get("SATURN"), int) else planet_signs.get("SATURN", "Aries")
+                _rahu_sign = SIGN_NAMES_LIST[planet_signs.get("RAHU", 0)] if isinstance(planet_signs.get("RAHU"), int) else planet_signs.get("RAHU", "Aries")
+                _djt = analyze_deha_jeeva_transits(
+                    _kalach.get("deha_sign", "Aries"),
+                    _kalach.get("jeeva_sign", "Aries"),
+                    _sat_sign, _rahu_sign,
+                )
+
+                # Medical Analysis
+                _combust = [p for p in retrogrades if p != "RAHU" and p != "KETU"]  # placeholder
+                _vargottama_ps: List[str] = []
+                try:
+                    from vedic_engine.core.divisional import D9 as _d9fv
+                    for _pname, _plon in planet_lons.items():
+                        if _pname in ("RAHU", "KETU"):
+                            continue
+                        _d1s = int(_plon % 360 / 30) % 12
+                        _d9s = _d9fv(_plon)
+                        if _d1s == _d9s:
+                            _vargottama_ps.append(_pname)
+                except Exception:
+                    pass
+
+                # Determine strongest entity for longevity
+                _sun_sb = shadbala_ratios.get("SUN", 0)
+                _moon_sb = shadbala_ratios.get("MOON", 0)
+                _lagna_sb = max(shadbala_ratios.values()) if shadbala_ratios else 1.0
+                if _sun_sb >= _moon_sb and _sun_sb >= _lagna_sb * 0.6:
+                    _strongest = "SUN"
+                elif _moon_sb >= _sun_sb and _moon_sb >= _lagna_sb * 0.6:
+                    _strongest = "MOON"
+                else:
+                    _strongest = "LAGNA"
+
+                _planet_signs_str: Dict[str, str] = {}
+                for _pp, _ps in planet_signs.items():
+                    if isinstance(_ps, int):
+                        _planet_signs_str[_pp] = SIGN_NAMES_LIST[_ps % 12]
+                    else:
+                        _planet_signs_str[_pp] = str(_ps)
+
+                _medical = compute_medical_analysis(
+                    planet_lons=planet_lons,
+                    planet_signs=_planet_signs_str,
+                    planet_houses=planet_houses,
+                    lagna_sign=lagna_sign,
+                    lagna_longitude=chart.lagna_degree,
+                    combust_planets=_combust,
+                    retrograde_planets=retrogrades,
+                    vargottama_planets=_vargottama_ps,
+                    strongest_entity=_strongest,
+                )
+
+                # Conditional Dashas — check eligibility
+                _d9_lagna_name = SIGN_NAMES_LIST[_d9_lagna % 12] if "_d9_lagna" in dir() else "Aries"
+                _lagna_name = SIGN_NAMES_LIST[lagna_sign % 12]
+                _lagna_hora = "sun" if lagna_sign % 2 == 0 else "moon"
+
+                # ── Daytime / Paksha — computed from actual astronomy ──────
+                try:
+                    from vedic_engine.core.sunrise_utils import (
+                        compute_is_daytime as _calc_daytime,
+                        compute_paksha as _calc_paksha,
+                    )
+                    _is_daytime = _calc_daytime(
+                        latitude=chart.birth_info.latitude,
+                        longitude=chart.birth_info.longitude,
+                        birth_dt_local=birth_dt,
+                        tz_offset_hours=chart.birth_info.timezone,
+                    )
+                    _paksha = _calc_paksha(sun_lon, moon_lon)
+                except Exception:
+                    _is_daytime = True    # safe fallback
+                    _paksha = "shukla"   # safe fallback
+
+                _lagna_lord = SIGN_LORDS_MAP.get(lagna_sign, "MARS")
+                _seventh_lord = SIGN_LORDS_MAP.get((lagna_sign + 6) % 12, "VENUS")
+                _tenth_lord = SIGN_LORDS_MAP.get((lagna_sign + 9) % 12, "SATURN")
+
+                _cond_eligibility = check_all_conditional_eligibility(
+                    is_daytime=_is_daytime,
+                    paksha=_paksha,
+                    lagna_hora=_lagna_hora,
+                    d1_lagna_sign=_lagna_name,
+                    d9_lagna_sign=_d9_lagna_name,
+                    d12_lagna_sign=_lagna_name,  # simplified
+                    lagna_lord=_lagna_lord,
+                    seventh_lord=_seventh_lord,
+                    tenth_lord=_tenth_lord,
+                    planet_houses=planet_houses,
+                )
+
+                # Compute ELIGIBLE conditional dashas
+                _moon_lon_val = planet_lons.get("MOON", 0.0)
+                _cond_dashas: Dict[str, Any] = {}
+
+                if _cond_eligibility.get("Shodashottari", {}).get("eligible"):
+                    _cond_dashas["shodashottari"] = compute_shodashottari(_moon_lon_val)
+                if _cond_eligibility.get("Dwadasottari", {}).get("eligible"):
+                    _cond_dashas["dwadasottari"] = compute_dwadasottari(_moon_lon_val)
+                if _cond_eligibility.get("Panchottari", {}).get("eligible"):
+                    _cond_dashas["panchottari"] = compute_panchottari(_moon_lon_val)
+                if _cond_eligibility.get("Shatabdika", {}).get("eligible"):
+                    _cond_dashas["shatabdika"] = compute_shatabdika(_moon_lon_val)
+                if _cond_eligibility.get("Chaturaashiti", {}).get("eligible"):
+                    _cond_dashas["chaturaashiti"] = compute_chaturaashiti(_moon_lon_val)
+                if _cond_eligibility.get("Dwisaptati", {}).get("eligible"):
+                    _cond_dashas["dwisaptati"] = compute_dwisaptati(_moon_lon_val)
+                if _cond_eligibility.get("Shat_Trimsa", {}).get("eligible"):
+                    _cond_dashas["shat_trimsa"] = compute_shat_trimsa(_moon_lon_val)
+
+                # Always compute Moola and Tara (universal)
+                _cond_dashas["moola_dasha"] = compute_moola_dasha(
+                    planet_houses=planet_houses,
+                    strongest_initiator=_strongest,
+                    planet_signs=_planet_signs_str,
+                )
+                _cond_dashas["tara_dasha"] = compute_tara_dasha(_moon_lon_val)
+
+                file5_analysis = {
+                    "kalachakra": _kalach,
+                    "deha_jeeva_transits": _djt,
+                    "medical": _medical,
+                    "conditional_eligibility": _cond_eligibility,
+                    "conditional_dashas": _cond_dashas,
+                }
+            except Exception as _f5err:
+                file5_analysis = {"error": str(_f5err)}
+
         return {
             "meta": {
                 "lagna_sign": lagna_sign,
@@ -445,11 +794,16 @@ class PredictionEngine:
             "arudha_padas":     arudha,
             "rashi_drishti":    rashi_drishti,
             "yoga_compounding": yoga_compounding,
+            "dhana_stacking":   dhana_stacking,
             "ul_sign":          ul_sign,
             "ak_planet":        ak_planet,
             "dk_planet":        dk_planet,
             "karakas_dict":     karakas_dict,
             "badhaka":          badhaka_info,
+            "nakshatra_analysis": nakshatra_analysis,
+            "varshaphala":      varshaphala,
+            "jaimini_extended": jaimini_extended,
+            "file5_analysis":   file5_analysis,
         }
 
     # ── 2. Dynamic Analysis ─────────────────────────────────────
@@ -1090,6 +1444,16 @@ class PredictionEngine:
             ).get(domain.lower(), {}),
             "shadvarga_vimshopak": static.get("shadvarga_vimshopak", {}),
             "career_checklist": _compute_career_checklist_safe(static, dynamic, domain),
+            # ── Yoga system enhancements ──
+            "graha_yuddha":    static.get("graha_yuddha", []),
+            "dhana_stacking":  static.get("dhana_stacking", {}),
+            # ── Nakshatra Analysis (File 2) ──
+            "nakshatra_analysis": static.get("nakshatra_analysis", {}),
+            "varshaphala": static.get("varshaphala", {}),
+            # ── Jaimini Extended (File 4) ──
+            "jaimini_extended": static.get("jaimini_extended", {}),
+            # ── File 5: Prashna, Kalachakra, Medical, Conditional Dashas ──
+            "file5_analysis":   static.get("file5_analysis", {}),
         }
 
     def full_report(self,
