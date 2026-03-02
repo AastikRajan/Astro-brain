@@ -12,14 +12,14 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 
-# ─── Weight constants (must sum to 1.0) ──────────────────────────
+# ─── Weight constants (module-level reference; actual weights are adaptive per gate) ──
 W_DASHA        = 0.25   # Vimshottari dasha lord alignment
 W_TRANSIT      = 0.20   # Transit support (Gochar + BAV bindus)
 W_ASHTAKVARGA  = 0.15   # Natal SAV/BAV strength of domain signs
 W_YOGA         = 0.13   # Active yoga relevance
 W_KP           = 0.12   # KP sub-lord confirmation
 W_FUNCTIONAL   = 0.08   # Functional benefic/malefic role of dasha lord
-W_HOUSE_LORD   = 0.07   # Primary house lord strength for domain
+W_HOUSE_LORD   = 0.00   # REMOVED (§9.3): already in Promise gate → zero weight
 
 
 def _clamp(v: float) -> float:
@@ -72,59 +72,103 @@ def score_transit_support(
     return _clamp(sum(relevant) / len(relevant))
 
 
+# ── Karaka-BAV mappings per domain (classical Sthira Karakas) ──────────────
+# Each entry: list of (planet_name, sign_offset_from_planet)
+# sign_offset_from_planet: 0 = planet's own sign, N = Nth sign from planet
+# Special: ("HOUSE_LORD", house_number) → use the lord of that house's BAV at that sign
+DOMAIN_KARAKA_BAV_MAP: Dict[str, list] = {
+    "career":  [("SATURN", 10), ("SUN", 10)],         # Saturn BAV@10th-from-Saturn, Sun BAV@10th-from-Sun
+    "finance": [("JUPITER", 0), ("HOUSE_LORD", 2)],    # Jupiter BAV@self, 2nd-lord BAV@self
+    "marriage":[("VENUS", 7)],                          # Venus BAV@7th-from-Venus
+    "health":  [("SUN", 1), ("SATURN", 8)],             # Sun BAV@Lagna, Saturn BAV@8th-from-Saturn
+}
+
+
+def _tiered_bav(values: list, signs: list) -> float:
+    """Tiered BAV scoring — shared by SAV and individual planet BAVs."""
+    picked = [values[s] for s in signs if 0 <= s < len(values)]
+    if not picked:
+        return 0.3
+    avg = sum(picked) / len(picked)
+    if avg <= 2.0:
+        return 0.0
+    elif avg <= 3.0:
+        return 0.05 + (avg - 2.0) * 0.10
+    elif avg <= 4.0:
+        return 0.15 + (avg - 3.0) * 0.25
+    elif avg <= 5.0:
+        return 0.40 + (avg - 4.0) * 0.20
+    else:
+        return min(1.0, 0.60 + (avg - 5.0) / 3.0 * 0.40)
+
+
 def score_ashtakvarga(
     sarva_av: Optional[List[int]],
     relevant_signs: List[int],
     dasha_planet_bav: Optional[List[int]] = None,
+    karaka_bav_data: Optional[Dict] = None,
+    domain: str = "career",
 ) -> float:
     """
-    Strength of relevant houses/signs in Sarvashtakvarga.
+    Three-signal Ashtakavarga blend (classical karaka-specific BAV).
+
+    Architecture:
+      40% SAV — collective strength of relevant signs
+      35% Karaka BAV — domain-specific sthira karaka's own BAV
+      25% Dasha BAV — current dasha lord's own BAV in those signs
+
     Uses TIERED thresholds per research (not linear):
       0-3 bindus  → malefic / disastrous zone      → 0.0–0.15
       4 bindus    → neutral equilibrium              → 0.40
       5-8 bindus  → exponentially positive           → 0.55–1.0
-    BAV score supersedes natal dignity for transit-sign evaluation.
     """
     if not sarva_av or not relevant_signs:
         return 0.3
-    values = [sarva_av[s] for s in relevant_signs if 0 <= s < 12]
-    if not values:
-        return 0.3
-    avg = sum(values) / len(values)
 
-    # Tiered scoring
-    if avg <= 2.0:
-        normalized = 0.0
-    elif avg <= 3.0:
-        normalized = 0.05 + (avg - 2.0) * 0.10   # 0.05 – 0.15
-    elif avg <= 4.0:
-        # Transition zone 3→4: ramp from 0.15 → 0.40
-        normalized = 0.15 + (avg - 3.0) * 0.25
-    elif avg <= 5.0:
-        # Transition 4→5: ramp from 0.40 → 0.60
-        normalized = 0.40 + (avg - 4.0) * 0.20
-    else:
-        # 5-8: exponential positive; cap at 1.0
-        normalized = 0.60 + (avg - 5.0) / 3.0 * 0.40  # 0.60 → 1.0 over [5,8]
-        normalized = min(1.0, normalized)
+    # ── Signal 1: SAV (40%) ──
+    sav_score = _tiered_bav(sarva_av, relevant_signs)
 
-    # Bonus if dasha planet's own BAV is high in those signs
+    # ── Signal 2: Karaka BAV (35%) ──
+    karaka_score = 0.3   # neutral fallback
+    if karaka_bav_data and isinstance(karaka_bav_data, dict):
+        bhinna = karaka_bav_data.get("bhinna", {})
+        planet_signs_map = karaka_bav_data.get("planet_signs", {})
+        house_lords_map  = karaka_bav_data.get("house_lords", {})
+        mappings = DOMAIN_KARAKA_BAV_MAP.get(domain.lower(), [])
+        karaka_scores = []
+        for planet_key, offset in mappings:
+            if planet_key == "HOUSE_LORD":
+                # offset here is the house number; get its lord
+                lord = house_lords_map.get(offset, house_lords_map.get(str(offset)))
+                if not lord:
+                    continue
+                bav_row = bhinna.get(lord)
+                if bav_row and isinstance(bav_row, (list, tuple)) and len(bav_row) >= 12:
+                    # Evaluate at lord's own sign
+                    lord_sign = planet_signs_map.get(lord, 0)
+                    target_sign = lord_sign  # BAV at the lord's own position
+                    karaka_scores.append(_tiered_bav(bav_row, [target_sign]))
+            else:
+                bav_row = bhinna.get(planet_key)
+                if bav_row and isinstance(bav_row, (list, tuple)) and len(bav_row) >= 12:
+                    # Target sign = planet's natal sign + offset (1-indexed → 0-indexed)
+                    planet_sign = planet_signs_map.get(planet_key, 0)
+                    if offset == 0:
+                        target_sign = planet_sign
+                    else:
+                        target_sign = (planet_sign + offset - 1) % 12
+                    karaka_scores.append(_tiered_bav(bav_row, [target_sign]))
+        if karaka_scores:
+            karaka_score = sum(karaka_scores) / len(karaka_scores)
+
+    # ── Signal 3: Dasha BAV (25%) ──
+    dasha_score = 0.3    # neutral fallback
     if dasha_planet_bav:
-        bav_avg = sum(dasha_planet_bav[s] for s in relevant_signs) / len(relevant_signs)
-        # Tiered bonus for planet's own BAV
-        if bav_avg >= 6:
-            bav_norm = 0.9
-        elif bav_avg >= 5:
-            bav_norm = 0.7
-        elif bav_avg == 4:
-            bav_norm = 0.5
-        elif bav_avg >= 3:
-            bav_norm = 0.25
-        else:
-            bav_norm = 0.0
-        normalized = 0.7 * normalized + 0.3 * bav_norm
+        dasha_score = _tiered_bav(dasha_planet_bav, relevant_signs)
 
-    return _clamp(normalized)
+    # ── Three-signal blend ──
+    blended = 0.40 * sav_score + 0.35 * karaka_score + 0.25 * dasha_score
+    return _clamp(blended)
 
 
 def score_yoga_activation(
@@ -403,6 +447,7 @@ def compute_confidence(
     negator_houses: Optional[List[int]] = None,
     gpt_adjustments: Optional[Dict] = None,
     jaimini_data: Optional[Dict] = None,     # Jaimini sub-score inputs (ad.md §4.1)
+    karaka_bav_data: Optional[Dict] = None,  # bhinna + planet_signs + house_lords for karaka BAV
     # ── Promise Gate 0 (Three Pillar Rule result) ───────────
     promise_result: Optional[Dict] = None,
     # ── MD/AD Geometric check ─────────────────────────
@@ -459,7 +504,8 @@ def compute_confidence(
     c_dasha    = score_dasha_alignment(dasha_planet, antardasha_planet, domain,
                                        planet_domain_map, shadbala_ratios)
     c_transit  = score_transit_support(transit_scores, domain_planets)
-    c_av       = score_ashtakvarga(sarva_av, relevant_signs, dasha_planet_bav)
+    c_av       = score_ashtakvarga(sarva_av, relevant_signs, dasha_planet_bav,
+                                    karaka_bav_data=karaka_bav_data, domain=domain)
     c_yoga     = score_yoga_activation(active_yogas, domain)
     c_kp       = score_kp_sublord(kp_significations, domain_houses,
                                   dasha_planet, antardasha_planet,
@@ -529,19 +575,24 @@ def compute_confidence(
     # Jaimini sub-score (8th component — ad.md §4.1)
     c_jaimini = score_jaimini_sub(jaimini_data, domain)
 
+    # NOTE: w_hlord set to 0.00 in ALL states — house lord strength is already
+    # fully evaluated inside the Promise gate (Gate 0: Three Pillar Rule) via
+    # _score_bhavesha() + _score_bhava().  Including it again in the weighted
+    # sum was architectural double-counting (audit §9.3).  Former w_hlord
+    # weight redistributed: +50% → transit, +50% → AV.
     if promise_failed:
         # Gate 1 failed: use minimal weights, promise not in chart
         w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
-            0.20, 0.15, 0.10, 0.08, 0.30, 0.10, 0.02, 0.05
+            0.20, 0.16, 0.11, 0.08, 0.30, 0.10, 0.00, 0.05
         )
     elif not dasha_confirmed:
         # Gate 1 passed but dasha not confirming: standard weights
         w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
-            0.30, 0.18, 0.13, 0.12, 0.14, 0.07, 0.01, 0.05
+            0.30, 0.185, 0.135, 0.12, 0.14, 0.07, 0.00, 0.05
         )
     else:
         # Both gates passed: transit becomes dominant for precise timing
-        # This is the "activation" state — transit weight escalates to 0.50
+        # This is the "activation" state — transit weight escalates
         w_dasha, w_transit, w_av, w_yoga, w_kp, w_func, w_hlord, w_jaimini = (
             0.20, 0.35, 0.15, 0.12, 0.10, 0.05, 0.00, 0.03
         )

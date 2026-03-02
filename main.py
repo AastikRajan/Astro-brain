@@ -23,7 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # ── Engine imports ──────────────────────────────────────────────
-from vedic_engine.data.loader import load_sample_chart, load_from_dict
+from vedic_engine.data.loader import load_sample_chart, load_from_dict, build_chart_swe
 from vedic_engine.prediction.engine import PredictionEngine
 
 # ── AI interpreter (optional — requires OPENAI_API_KEY) ─────────
@@ -225,6 +225,14 @@ def print_static_summary(static: dict):
             print(f"  {'Lagna Drekkana':<16} {ld.get('drekkana','?')}/3  "
                   f"{ld.get('sign','?')}  [{ld.get('nature','?')}]{sarpa_flag}{pakshi_flag}")
 
+    # ── Special Degrees (Mrityu Bhaga, Gandanta, Pushkara Bhaga) ────
+    sd = static.get("special_degrees", {})
+    sd_summary = sd.get("summary", []) if isinstance(sd, dict) else []
+    if sd_summary:
+        print(section("SPECIAL DEGREES (Mrityu Bhaga / Gandanta / Pushkara)"))
+        for note in sd_summary:
+            print(f"  ⚠ {note}")
+
     # ── Varga (Divisional Chart) Report
     vr = static.get("varga_report", {})
     if isinstance(vr, dict) and "error" not in vr:
@@ -407,6 +415,20 @@ def print_dynamic_summary(dynamic: dict):
                 ad_end   = str(antar.get("end",   ""))[:10]
                 print(f"  Antar-dasha  : {ad_sign:<15} {ad_start} → {ad_end}")
 
+    # Dasha Quality (Ishta/Kashta Phala)
+    dq = dynamic.get("dasha_quality", {})
+    if dq and dq.get("quality_label"):
+        print(section("DASHA QUALITY (Ishta/Kashta Phala)"))
+        print(f"  Maha-dasha lord: {dq.get('planet', '?')}")
+        print(f"  Quality        : {dq['quality_label']}  ({dq.get('dasha_quality', 0):.0%})")
+        print(f"  Maturity stage : {dq.get('maturity_tier', '?')}  (×{dq.get('maturity_modifier', 1.0):.2f})")
+        comps = dq.get("component_scores", {})
+        if comps:
+            print(f"    Ishta/Kashta: {comps.get('ishta_kashta',0):.2f}  "
+                  f"Shadbala: {comps.get('shadbala',0):.2f}  "
+                  f"Functional: {comps.get('functional',0):.2f}  "
+                  f"D9 dignity: {comps.get('d9_dignity',0):.2f}")
+
     # Sade Sati
     ss = dynamic.get("sade_sati", {})
     if ss:
@@ -533,6 +555,16 @@ def print_dynamic_summary(dynamic: dict):
                 nat = asp.get("nature", "?")
                 bar = "█" * int(st * 10)
                 print(f"  {tp:<10} {an:<12} {np:<10} [{nat:<8}] orb={orb:.1f}° str={st:.2f} {bar} ({app})")
+
+    # Bhrigu Bindu Transit (karmic activation check)
+    bb_tr = dynamic.get("bhrigu_bindu_transit", {})
+    if bb_tr and (bb_tr.get("triggered") or bb_tr.get("approaching")):
+        print(section("BHRIGU BINDU TRANSIT (Karmic Activation)"))
+        print(f"  Bhrigu Bindu     : {bb_tr.get('bb_degree', 0):.2f}°")
+        for bp in bb_tr.get("activating_planets", []):
+            icon = "🔴" if bp.get("zone") == "EXACT" else "🟡"
+            print(f"  {icon} {bp['planet']:<10} {bp['zone']:<10} orb={bp['arc_degrees']:.1f}°  strength={bp['strength']:.2f}")
+        print(f"  {bb_tr.get('transit_summary', '')}")
 
     # Secondary Progressions + Solar Arc
     prog = dynamic.get("progressions", {})
@@ -1166,12 +1198,21 @@ def print_chart_sections(domain_report: dict):
             if bal and bal.get("balarishta"):
                 print(f"  ⚠ Balarishta  : {bal.get('verdict','')}")
 
-            # Longevity
+            # Longevity — classical bands with ethical disclaimer
             lon = med.get("longevity", {})
             if lon:
                 if lon.get("final_estimate_years"):
-                    print(f"  Longevity Est.: ~{lon.get('final_estimate_years','?')} years ({lon.get('method_used','?')})")
-                    print(f"    Pindayu: {med['pindayu']['total_years']}yr | Nisargayu: {med['nisargayu']['total_years']}yr | Amsayu: {med['amsayu']['total_years']}yr")
+                    _yrs = float(lon.get('final_estimate_years', 0))
+                    # Classical Alpa/Madhya/Purna longevity bands
+                    if _yrs < 32:
+                        _band = "Alpa Ayus (Short)"
+                    elif _yrs < 75:
+                        _band = "Madhya Ayus (Medium)"
+                    else:
+                        _band = "Purna Ayus (Full)"
+                    print(f"  Longevity Band: {_band}  ({lon.get('method_used', '?')})")
+                    print(f"    ⚠ Classical estimate only — NOT a medical prognosis.")
+                    print(f"    Pindayu / Nisargayu / Amsayu median yields this band.")
                 else:
                     print(f"  Longevity     : {lon.get('note','Balarishta override')}")
 
@@ -1308,10 +1349,38 @@ def main():
         chart = load_from_dict(chart_data)
         print(f"[Chart loaded from: {chart_path}]")
     else:
-        chart = load_sample_chart()
-        print("[Using built-in sample chart (Gemini lagna)]")
+        # Default: compute positions via Swiss Ephemeris (gold standard)
+        try:
+            chart = build_chart_swe(
+                name="Chart Subject",
+                date_str="1994-02-27",
+                time_str="06:30:00",
+                place="India",
+                latitude=20.5937,
+                longitude=78.9629,
+                tz_offset=5.5,
+            )
+            if chart.metadata.get("engine") == "pyswisseph":
+                print("[Chart computed via Swiss Ephemeris (SWE-powered)]")
+            else:
+                print("[Using built-in sample chart (Gemini lagna)]")
+        except Exception as exc:
+            chart = load_sample_chart()
+            print(f"[SWE unavailable ({exc}); using hardcoded sample chart]")
 
     print(f"[Analysis date: {on_date.strftime('%d %b %Y')}]")
+
+    # ── Provenance header (what computed the positions)
+    meta = getattr(chart, "metadata", {})
+    if meta:
+        ayan_lbl = meta.get("ayanamsa_model", "?").capitalize()
+        ayan_val = meta.get("ayanamsa_value", "?")
+        ayan_str = f"{ayan_lbl} ({ayan_val:.4f}°)" if isinstance(ayan_val, (int, float)) else ayan_lbl
+        node_lbl = "True" if meta.get("use_true_node") else "Mean"
+        print(f"[Engine: {meta.get('engine', '?')}  |  "
+              f"Ayanamsa: {ayan_str}  |  "
+              f"Houses: {meta.get('house_system', '?').capitalize()}  |  "
+              f"Nodes: {node_lbl}]")
     if use_ai:
         print("[AI mode: GPT-4o narrative interpretation enabled]")
 

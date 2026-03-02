@@ -94,13 +94,13 @@ COMBUSTION_ORBS = {
 
 # House system codes for swe.houses_ex
 HOUSE_SYSTEMS = {
-    "placidus":   ord('P'),
-    "whole_sign": ord('W'),
-    "equal":      ord('E'),
-    "koch":       ord('K'),
-    "sripathi":   ord('P'),  # Sripathi ≈ Placidus in classical Indian usage
-    "campanus":   ord('C'),
-    "porphyry":   ord('O'),
+    "placidus":   b'P',
+    "whole_sign": b'W',
+    "equal":      b'E',
+    "koch":       b'K',
+    "sripathi":   b'P',  # Sripathi ≈ Placidus in classical Indian usage
+    "campanus":   b'C',
+    "porphyry":   b'O',
 }
 
 
@@ -287,7 +287,7 @@ def compute_house_cusps(
     jd = _datetime_to_jd(birth_dt, tz_offset)
     ayanamsa_value = swe.get_ayanamsa(jd)
 
-    hsys = HOUSE_SYSTEMS.get(house_system.lower(), ord('P'))
+    hsys = HOUSE_SYSTEMS.get(house_system.lower(), b'P')
 
     cusps_trop, angles_trop = swe.houses(jd, latitude, longitude, hsys)
     # cusps_trop: tuple of 12 tropical longitudes (house 1-12)

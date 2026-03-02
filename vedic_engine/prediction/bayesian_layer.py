@@ -96,6 +96,9 @@ def compute_bayesian_confidence(
         Keys: dasha_alignment, transit_support, ashtakvarga_support,
               yoga_activation, kp_confirmation, functional_alignment,
               house_lord_strength
+        Optional timing keys (for overlap detection):
+              dasha_planet            : str   — name of active MD lord
+              strong_transit_planets  : list  — planets with net_score ≥ 0.5
     domain : str — used for labelling only
 
     Returns
@@ -121,18 +124,36 @@ def compute_bayesian_confidence(
     fn  = float(components.get("functional_alignment",0.50))
     hl  = float(components.get("house_lord_strength", 0.30))
 
+    # ── Overlap detection: dasha planet also a strong transit planet ──
+    dasha_planet          = components.get("dasha_planet", "")
+    strong_transit_planets = components.get("strong_transit_planets", [])
+    overlap = bool(dasha_planet and dasha_planet in strong_transit_planets)
+
     # ── Prior from natal chart ────────────────────────────────────
     alpha, beta_ = _structural_prior(yo, fn)
     factors = {"prior_natal": round(alpha / (alpha + beta_), 3)}
 
     # ── Likelihood updates ────────────────────────────────────────
-    da_a, da_b = _dasha_evidence(da)
-    alpha += da_a; beta_ += da_b
-    factors["dasha"] = round(da_a / (da_a + da_b + 1e-9), 3)
+    if overlap:
+        # Dasha lord IS also a strong transit planet → merge into ONE update.
+        # Take max(dasha, transit_composite) × 3 pseudo-obs (avoid 3+2=5 inflation).
+        transit_composite = 0.65 * ts + 0.35 * av
+        merged_signal = max(da, transit_composite)
+        merged_strength = 3.0
+        m_a = merged_signal * merged_strength
+        m_b = (1.0 - merged_signal) * merged_strength
+        alpha += m_a; beta_ += m_b
+        factors["dasha_transit_merged"] = round(m_a / (m_a + m_b + 1e-9), 3)
+        factors["overlap_detected"] = True
+    else:
+        # No overlap: apply dasha (3 obs) and transit (2 obs) separately
+        da_a, da_b = _dasha_evidence(da)
+        alpha += da_a; beta_ += da_b
+        factors["dasha"] = round(da_a / (da_a + da_b + 1e-9), 3)
 
-    tr_a, tr_b = _transit_evidence(ts, av)
-    alpha += tr_a; beta_ += tr_b
-    factors["transit"] = round(tr_a / (tr_a + tr_b + 1e-9), 3)
+        tr_a, tr_b = _transit_evidence(ts, av)
+        alpha += tr_a; beta_ += tr_b
+        factors["transit"] = round(tr_a / (tr_a + tr_b + 1e-9), 3)
 
     kp_a, kp_b = _kp_evidence(kp)
     alpha += kp_a; beta_ += kp_b

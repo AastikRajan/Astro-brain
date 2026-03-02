@@ -1,6 +1,5 @@
 ﻿[Chart computed via Swiss Ephemeris (SWE-powered)]
 [Analysis date: 02 Mar 2026]
-[Engine: pyswisseph  |  Ayanamsa: Lahiri (23.7755┬░)  |  Houses: Placidus  |  Nodes: Mean]
 
 Computing static analysis ΓÇª done.
 Computing dynamic analysis ΓÇª done.
@@ -48,7 +47,7 @@ Computing dynamic analysis ΓÇª done.
       11/9/2 lord(s) in Kendra from Moon; Jupiter lords
       2/5/11. Akhanda Samrajya: vast unbroken empire,
       tremendous executive control, generational wealth.
-      [Manduka phase: LATE life (ages 72ΓÇô81)]
+      [Manduka phase: LATE life (ages 90ΓÇô99)]
   * Adhi Yoga
       Multiple benefics in 6/7/8 from Moon ΓåÆ
       political/administrative success. [Delayed
@@ -212,14 +211,6 @@ Computing dynamic analysis ΓÇª done.
   Maha-dasha   : Gemini           ΓåÆ 
 
 ------------------------------------------------------------
-  DASHA QUALITY (Ishta/Kashta Phala)
-------------------------------------------------------------
-  Maha-dasha lord: RAHU
-  Quality        : DIFFICULT DASHA  (27%)
-  Maturity stage : IMMATURE  (├ù0.40)
-    Ishta/Kashta: 1.00  Shadbala: 0.50  Functional: 0.40  D9 dignity: 0.50
-
-------------------------------------------------------------
   SADE SATI / DHAIYA STATUS
 ------------------------------------------------------------
   [!] DHAIYA ACTIVE - Dhaiya (8th): obstacles, delays, introspection required [Iron Paya]
@@ -283,10 +274,10 @@ Computing dynamic analysis ΓÇª done.
 ------------------------------------------------------------
   RAHU       Conjunction  SUN        [malefic ] orb=0.3┬░ str=1.00 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
   KETU       Opposition   SUN        [malefic ] orb=0.3┬░ str=1.00 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
-  MOON       Opposition   MARS       [malefic ] orb=0.1┬░ str=0.98 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Separating)
+  MOON       Opposition   MARS       [malefic ] orb=0.0┬░ str=1.00 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Separating)
   JUPITER    Trine        JUPITER    [benefic ] orb=0.1┬░ str=0.98 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Separating)
   MERCURY    Opposition   MOON       [malefic ] orb=0.9┬░ str=0.98 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
-  MOON       Opposition   MERCURY    [malefic ] orb=1.3┬░ str=0.96 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
+  MOON       Opposition   MERCURY    [malefic ] orb=1.4┬░ str=0.94 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
 
 ------------------------------------------------------------
   SECONDARY PROGRESSIONS (Day-for-Year)
@@ -333,10 +324,9 @@ Computing dynamic analysis ΓÇª done.
   FINANCE:
     + BEST  2026-05-04 ΓÇö 2026-06-03  (peak 2026-05-19)  score=0.64
     + BEST  2027-01-29 ΓÇö 2027-02-28  (peak 2027-02-13)  score=0.51
-    - AVOID 2026-08-28 ΓÇö 2026-09-17  (trough 2026-09-07)  score=0.39
+    - AVOID 2026-11-20 ΓÇö 2026-12-10  (trough 2026-11-30)  score=0.36
   HEALTH:
     + BEST  2026-10-16 ΓÇö 2026-11-15  (peak 2026-10-31)  score=0.51
-    + BEST  2027-02-01 ΓÇö 2027-03-02  (peak 2027-02-16)  score=0.46
     - AVOID 2026-03-10 ΓÇö 2026-03-30  (trough 2026-03-20)  score=0.36
   RELATIONSHIPS:
     + BEST  2026-03-29 ΓÇö 2026-04-28  (peak 2026-04-13)  score=0.59
@@ -419,9 +409,8 @@ Computing dynamic analysis ΓÇª done.
   ΓöÇΓöÇ MEDICAL ANALYSIS ΓöÇΓöÇ
   Disease Alerts: None detected (strong chart)
   22nd Drekkana : Capricorn (lord: SATURN) 90┬░ΓÇô100┬░
-  Longevity Band: Alpa Ayus (Short)  (Pindayu (Sun strongest))
-    ΓÜá Classical estimate only ΓÇö NOT a medical prognosis.
-    Pindayu / Nisargayu / Amsayu median yields this band.
+  Longevity Est.: ~11.3 years (Pindayu (Sun strongest))
+    Pindayu: 11.3yr | Nisargayu: 10.9yr | Amsayu: 52.1yr
 
   ΓöÇΓöÇ CONDITIONAL DASHA ELIGIBILITY ΓöÇΓöÇ
     Γ£ù Shodashottari        Night birth, Krishna Paksha, Sun Hora ΓÇö conditions not met
@@ -449,7 +438,7 @@ Computing dynamic analysis ΓÇª done.
     kp_confirmation                0.06  
     functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
     house_lord_strength            0.60  ΓûêΓûêΓûêΓûêΓûêΓûê
-    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.30  ΓûêΓûêΓûê
 
   Dispositor Chain [STRONG]  (combined strength 72%)
     RAHU chain -> final lord: MARS
@@ -493,9 +482,9 @@ Computing dynamic analysis ΓÇª done.
 
   [COMBUSTION REPORT]
   MERCURY: 29% combust  Retained=71%  Karakatwa=BURNED  Lordship=SURVIVES
-    MERCURY is 29.0% combust (9.94┬░ from Sun). Living significations (Karakatwa) are
+    MERCURY is 28.9% combust (9.954┬░ from Sun). Living significations (Karakatwa) ar
   MARS: 30% combust  Retained=70%  Karakatwa=BURNED  Lordship=SURVIVES
-    MARS is 30.0% combust (11.895┬░ from Sun). Living significations (Karakatwa) are 
+    MARS is 30.0% combust (11.893┬░ from Sun). Living significations (Karakatwa) are 
 
 ------------------------------------------------------------
   CAREER DECISION TREE (5-Step Checklist)
@@ -525,7 +514,7 @@ Computing dynamic analysis ΓÇª done.
     kp_confirmation                0.00  
     functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
     house_lord_strength            0.88  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê
-    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.30  ΓûêΓûêΓûê
 
   Dispositor Chain [STRONG]  (combined strength 72%)
     RAHU chain -> final lord: MARS
@@ -569,14 +558,14 @@ Computing dynamic analysis ΓÇª done.
 
   [COMBUSTION REPORT]
   MERCURY: 29% combust  Retained=71%  Karakatwa=BURNED  Lordship=SURVIVES
-    MERCURY is 29.0% combust (9.94┬░ from Sun). Living significations (Karakatwa) are
+    MERCURY is 28.9% combust (9.954┬░ from Sun). Living significations (Karakatwa) ar
 
   Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
 
 ------------------------------------------------------------
-  MARRIAGE  ΓÇö  VERY LOW  (25.2%)
+  MARRIAGE  ΓÇö  VERY LOW  (25.1%)
 ------------------------------------------------------------
-  Confidence : [ΓûêΓûêΓûêΓûêΓûê               ] 25.2%
+  Confidence : [ΓûêΓûêΓûêΓûêΓûê               ] 25.1%
   Calibrated : 22%  (16%ΓÇô28%)  Reliability: Insufficient
     dasha_alignment                0.00  
     transit_support                0.34  ΓûêΓûêΓûê
@@ -585,7 +574,7 @@ Computing dynamic analysis ΓÇª done.
     kp_confirmation                0.00  
     functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
     house_lord_strength            0.40  ΓûêΓûêΓûêΓûê
-    jaimini_sub                    0.40  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.30  ΓûêΓûêΓûê
 
   Dispositor Chain [STRONG]  (combined strength 72%)
     RAHU chain -> final lord: MARS
@@ -596,7 +585,7 @@ Computing dynamic analysis ΓÇª done.
 
   Bayesian Posterior [VERY WEAK]  (p=22%, 80% CI: 8%-38%, UNCERTAIN)
   Argala Modifier      : +1.7%  [NEUTRAL / BALANCED]
-  Aspect Transit Mod   : -0.7% (drag)  [activation=0.43]
+  Aspect Transit Mod   : -0.8% (drag)  [activation=0.42]
   Progression Boost    : +4.50%  [SA/Secondary activations]
 
   Three-Pillar Promise : 33%  [WEAK]
@@ -629,7 +618,7 @@ Computing dynamic analysis ΓÇª done.
 
   [COMBUSTION REPORT]
   MARS: 30% combust  Retained=70%  Karakatwa=BURNED  Lordship=SURVIVES
-    MARS is 30.0% combust (11.895┬░ from Sun). Living significations (Karakatwa) are 
+    MARS is 30.0% combust (11.893┬░ from Sun). Living significations (Karakatwa) are 
 
   Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
 
@@ -645,7 +634,7 @@ Computing dynamic analysis ΓÇª done.
     kp_confirmation                0.60  ΓûêΓûêΓûêΓûêΓûêΓûê
     functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
     house_lord_strength            1.00  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê
-    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.30  ΓûêΓûêΓûê
 
   Dispositor Chain [STRONG]  (combined strength 72%)
     RAHU chain -> final lord: MARS
@@ -684,7 +673,7 @@ Computing dynamic analysis ΓÇª done.
 
   [COMBUSTION REPORT]
   MARS: 30% combust  Retained=70%  Karakatwa=BURNED  Lordship=SURVIVES
-    MARS is 30.0% combust (11.895┬░ from Sun). Living significations (Karakatwa) are 
+    MARS is 30.0% combust (11.893┬░ from Sun). Living significations (Karakatwa) are 
 
   Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
 

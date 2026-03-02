@@ -487,6 +487,20 @@ class PredictionEngine:
 
         # ── Bhavabala domain modifier map ─────────────────────────────────
         bhavabala_domain_modifiers: Dict = {}
+
+        # ── Special Degrees (Mrityu Bhaga, Gandanta, Pushkara) ────────────
+        special_degrees: Dict = {}
+        try:
+            from vedic_engine.analysis.special_degrees import compute_all_special_degrees
+            # Include Lagna longitude as a checkable point
+            _sd_lons = dict(planet_lons)
+            _sd_lons["LAGNA"] = chart.lagna_degree
+            special_degrees = compute_all_special_degrees(
+                planet_longitudes=_sd_lons,
+            )
+        except Exception:
+            special_degrees = {}
+
         if _BHAVABALA_DOMAIN_AVAILABLE:
             try:
                 _bh_data = bhavabala if isinstance(bhavabala, dict) else {}
@@ -785,6 +799,7 @@ class PredictionEngine:
             "functional":       func_analysis,
             "graha_yuddha":     wars,
             "special_points":   special_pts,
+            "special_degrees":  special_degrees,
             "dispositor_graph": _compute_dispositor_graph_safe(planet_signs, shadbala_ratios),
             "varga_report":     _compute_varga_report_safe(
                                     planet_lons, vargas, chart.lagna_degree),
@@ -1030,12 +1045,14 @@ class PredictionEngine:
             "dasha_transit": dasha_transit_info,
             "ingress_calendar": ingress_calendar,
             "transit_aspects":  transit_aspects,
+            "bhrigu_bindu_transit": _compute_bb_transit_safe(transit_pos, static),
             "progressions":     progressions,
             "solar_terms":      solar_terms,
             "chara_dasha":      chara,
             "lunations":        _compute_lunations_safe(on_date, static, vim_periods, on_date),
             "timing_windows":   _compute_timing_windows_safe(on_date, transit_pos, static),
             "dasha_diagnostic": dasha_diag,
+            "dasha_quality":    _compute_dasha_quality_safe(vim_active, static, on_date),
             "retrograde_dasha": _compute_retrograde_dasha_safe(
                 vim_active, transit_pos, static
             ),
@@ -1092,6 +1109,20 @@ class PredictionEngine:
         sarva_av  = av_data.get("sarva") if isinstance(av_data, dict) else None
         bhinna_av = av_data.get("bhinna", {}) if isinstance(av_data, dict) else {}
         dp_bav    = bhinna_av.get(dasha_planet) if isinstance(bhinna_av, dict) else None
+
+        # ── Karaka-BAV data bundle for 3-signal AV blend (§AV upgrade) ──
+        karaka_bav_data: Optional[Dict] = None
+        if isinstance(bhinna_av, dict) and bhinna_av:
+            _planet_signs_map = static.get("chart_raw", {}).get("planet_signs", {})
+            if not _planet_signs_map and chart:
+                _planet_signs_map = {name: p.sign_index
+                                     for name, p in chart.planets.items()}
+            _house_lords_map  = {int(k): v for k, v in static.get("house_lords", {}).items()}
+            karaka_bav_data = {
+                "bhinna":       bhinna_av,
+                "planet_signs": _planet_signs_map,
+                "house_lords":  _house_lords_map,
+            }
 
         domain_houses  = DOMAIN_HOUSES.get(domain.lower(), [1, 10])
         negator_houses = DOMAIN_NEGATORS.get(domain.lower(), [])
@@ -1166,6 +1197,82 @@ class PredictionEngine:
             except Exception as _pe:
                 promise_result = None
 
+        # ── Build Jaimini sub-score data (wire 4 pre-computed modules → confidence) ──
+        jaimini_data: Optional[Dict] = None
+        try:
+            _j_ext = static.get("jaimini_extended", {}) or {}
+            _arudha_data = static.get("arudha_padas", {}) or {}
+            _rd_data = static.get("rashi_drishti", {}) or {}
+            _chara_diag_pre = dynamic.get("chara_dasha", {}) or {}
+            _chara_enrich = _chara_diag_pre.get("enrichment", {}) or {}
+            _chara_h = _chara_enrich.get("house_from_lagna", 0)
+
+            # 1. Chara alignment: does active Chara Dasha sign fall in a domain house?
+            _c_align = 0.3
+            if _chara_h and _chara_h in domain_houses:
+                _c_align = 0.75
+            elif _chara_h and any(abs(_chara_h - dh) <= 1 or abs(_chara_h - dh) == 11 for dh in domain_houses):
+                _c_align = 0.50
+
+            # 2. Karakamsha score: check if karakamsha analysis shows benefic influences on domain
+            _k_score = 0.3
+            _kk = _j_ext.get("karakamsha", {})
+            if isinstance(_kk, dict):
+                _kk_houses = _kk.get("house_analyses", [])
+                if isinstance(_kk_houses, list):
+                    for _hinfo in _kk_houses:
+                        if isinstance(_hinfo, dict) and _hinfo.get("house") in domain_houses:
+                            _occ = _hinfo.get("occupants", [])
+                            if any(p in {"JUPITER", "VENUS", "MERCURY"} for p in _occ):
+                                _k_score = max(_k_score, 0.7)
+                            elif _occ:
+                                _k_score = max(_k_score, 0.5)
+
+            # 3. Arudha alignment: relevant Arudha Pada well-placed?
+            _a_align = 0.3
+            _domain_arudha_key = {
+                "career": "A10", "finance": "A2", "marriage": "A7", "health": "A1",
+            }.get(domain.lower(), "A1")
+            _a_pad = _arudha_data.get(_domain_arudha_key, {})
+            if isinstance(_a_pad, dict):
+                _a_sign = _a_pad.get("sign", _a_pad.get("sign_index"))
+                if isinstance(_a_sign, int):
+                    _a_from_lagna = ((_a_sign - static.get("meta", {}).get("lagna_sign", 0)) % 12) + 1
+                    if _a_from_lagna in {1, 4, 5, 7, 9, 10}:  # kendra/trikona
+                        _a_align = 0.7
+                    elif _a_from_lagna in {2, 11}:  # dhana houses
+                        _a_align = 0.55
+                    else:
+                        _a_align = 0.35
+
+            # 4. Rashi Drishti score: benefic sign aspects to domain houses
+            _rd_score = 0.3
+            if isinstance(_rd_data, dict) and not _rd_data.get("error"):
+                _benefic_hits = 0
+                _domain_sign_set = set(relevant_signs)
+                for _aspect_info in _rd_data.values():
+                    if isinstance(_aspect_info, dict):
+                        _from_s = _aspect_info.get("from_sign")
+                        _to_s = _aspect_info.get("to_sign")
+                        _planets_there = _aspect_info.get("planets", [])
+                        if _to_s in _domain_sign_set and any(
+                            p in {"JUPITER", "VENUS", "MERCURY"} for p in _planets_there
+                        ):
+                            _benefic_hits += 1
+                if _benefic_hits >= 2:
+                    _rd_score = 0.75
+                elif _benefic_hits == 1:
+                    _rd_score = 0.55
+
+            jaimini_data = {
+                "chara_alignment":     _c_align,
+                "karakamsha_score":    _k_score,
+                "arudha_alignment":    _a_align,
+                "rashi_drishti_score": _rd_score,
+            }
+        except Exception:
+            jaimini_data = None
+
         confidence = compute_confidence(
             dasha_planet=dasha_planet,
             antardasha_planet=antar_planet,
@@ -1191,7 +1298,24 @@ class PredictionEngine:
             antardasha_house=antardasha_house,
             dasha_lord_combust=dasha_lord_combust,
             dasha_lord_retrograde=dasha_lord_retrograde,
+            jaimini_data=jaimini_data,
+            karaka_bav_data=karaka_bav_data,
         )
+
+        # ── Double Transit Gate (§5.1) ──────────────────────────────────
+        # If Jupiter+Saturn are NOT in beneficial houses from natal Moon,
+        # cap the confidence at 0.50 (event unlikely to manifest fully).
+        _dt_info = dynamic.get("dasha_transit", {}) or {}
+        _dbl_tr  = _dt_info.get("double_transit", {}) or {}
+        _double_transit_active = bool(_dbl_tr.get("active"))
+        if not _double_transit_active and isinstance(confidence, dict):
+            _raw = confidence.get("final_score", confidence.get("score", 0.5))
+            if isinstance(_raw, (int, float)) and _raw > 0.50:
+                confidence["final_score"] = 0.50
+                confidence["score"]       = 0.50
+                confidence.setdefault("gates_applied", []).append(
+                    "double_transit_cap: Jupiter+Saturn not in beneficial houses"
+                )
 
         # ── Multi-Dasha AND Consensus (Research Brief Block 3C) ──────────
         chara_diag     = dynamic.get("chara_dasha", {}) or {}
@@ -1270,8 +1394,19 @@ class PredictionEngine:
 
         # ── Bayesian posterior — Beta-conjugate update for domain probability ──
         try:
+            # Inject overlap-detection keys into components for Bayesian layer
+            _bayes_components = dict(confidence["components"])
+            _bayes_components["dasha_planet"] = dasha_planet
+            # Build list of strong transit planets (net_score ≥ 0.5)
+            _strong_tp = []
+            if isinstance(transit_evals, dict):
+                for _tp, _tv in transit_evals.items():
+                    if isinstance(_tv, dict) and _tv.get("net_score", 0) >= 0.5:
+                        _strong_tp.append(_tp)
+            _bayes_components["strong_transit_planets"] = _strong_tp
+
             bayes_result = compute_bayesian_confidence(
-                confidence["components"], domain=domain
+                _bayes_components, domain=domain
             )
             # Triple-blend: 45% linear + 35% fuzzy + 20% Bayesian posterior
             fuzzy_score = confidence.get("fuzzy", {}).get("fuzzy_confidence",
@@ -1649,6 +1784,63 @@ def _generate_prediction_text(
     }
     lines.append(domain_advice.get(domain.lower(), "General period of activity in this area."))
     return "\n".join(lines)
+
+
+def _compute_bb_transit_safe(transit_pos: dict, static: dict) -> dict:
+    """Check if slow-movers transit over Bhrigu Bindu — karmic activation."""
+    try:
+        from vedic_engine.analysis.special_points import check_bhrigu_bindu_transit
+        sp = static.get("special_points", {})
+        bb_info = sp.get("bhrigu_bindu", {}) if isinstance(sp, dict) else {}
+        bb_deg = bb_info.get("longitude") if isinstance(bb_info, dict) else None
+        if bb_deg is None:
+            return {}
+        return check_bhrigu_bindu_transit(
+            bb_degree=float(bb_deg),
+            transit_planet_lons=transit_pos,
+        )
+    except Exception:
+        return {}
+
+
+def _compute_dasha_quality_safe(vim_active, static: dict, on_date) -> dict:
+    """Compute Ishta/Kashta dasha quality score for the active Mahadasha lord."""
+    try:
+        from vedic_engine.timing.dasha_quality import dasha_quality_score
+        _md = ""
+        if isinstance(vim_active, str):
+            _md = vim_active
+        elif isinstance(vim_active, dict):
+            _md = vim_active.get("mahadasha", vim_active.get("planet", ""))
+        elif isinstance(vim_active, list) and vim_active:
+            _md = vim_active[0].get("planet", "")
+        if not _md:
+            return {}
+        # Compute native age
+        _bdate_str = static.get("meta", {}).get("birth_date", "")
+        _age = 30.0  # safe default
+        if _bdate_str and on_date:
+            from datetime import datetime as _dt
+            try:
+                _bdate = _dt.strptime(str(_bdate_str), "%Y-%m-%d")
+                _age = (on_date - _bdate).days / 365.25
+            except Exception:
+                pass
+        _sb = static.get("shadbala_ratios", {}).get(_md, 1.0)
+        _func = static.get("functional", {}) or {}
+        _yk = _func.get("yogakarakas", [])
+        _fb = _func.get("functional_benefics", [])
+        _retro = static.get("chart_raw", {}).get("retrogrades", {}).get(_md, False)
+        return dasha_quality_score(
+            planet=_md,
+            native_age=_age,
+            shadbala_ratio=_sb,
+            is_yogakaraka=(_md in _yk),
+            is_functional_benefic=(_md in _fb),
+            is_retrograde=bool(_retro),
+        )
+    except Exception:
+        return {}
 
 
 def _compute_retrograde_dasha_safe(

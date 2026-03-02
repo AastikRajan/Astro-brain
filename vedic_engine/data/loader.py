@@ -232,6 +232,11 @@ def load_from_dict(raw: Dict[str, Any]) -> VedicChart:
     vd_raw = raw.get("vimshottari", raw.get("dasha", []))
     chart.vimshottari = _parse_dasha_list(vd_raw, level=1)
 
+    # ── Preserve SWE metadata for provenance header ──────────────
+    swe_meta = raw.get("_swe_metadata", {})
+    if swe_meta:
+        chart.metadata = swe_meta
+
     return chart
 
 

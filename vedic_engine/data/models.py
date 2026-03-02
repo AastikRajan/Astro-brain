@@ -3,7 +3,7 @@ Data Models for the Vedic Astrology Engine.
 These dataclasses are the central data carriers between all modules.
 """
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
 
@@ -209,6 +209,9 @@ class VedicChart:
     yogas: List[Yoga] = field(default_factory=list)
     karakas: List[JaiminiKaraka] = field(default_factory=list)
     kp_significations: Dict[str, KPSignification] = field(default_factory=dict)
+
+    # Provenance / computation metadata (e.g. _swe_metadata from SWE bridge)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     # Divisional charts: div_charts[D][planet] = sign_index
     div_charts: Dict[int, Dict[str, int]] = field(default_factory=dict)
