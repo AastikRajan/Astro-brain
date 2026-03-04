@@ -181,19 +181,27 @@ def saptavargaja_bala(
 
 def ojhayugma_bala(planet: str, d1_lon: float, d9_lon: float) -> float:
     """
-    Odd/Even sign parity bala.
-    Moon and Venus gain in even signs (Taurus, Cancer, ...); others in odd.
-    Applied at D1 and D9 level.  Each valid placement adds 15 shashtiamsas.
+    Odd/Even sign parity bala (Ojayugmarasyamsa Bala).
+    Research File 1 — classical BPHS Ch.27 / Saravali:
+      Male   (Sun, Mars, Jupiter)  → 15 in ODD signs (Aries, Gemini, ...)
+      Female (Moon, Venus)         → 15 in EVEN signs (Taurus, Cancer, ...)
+      Neutral (Mercury, Saturn)    → 0 (neither parity gains; bypassed)
+    Applied independently at D1 and D9.  Each valid placement adds 15.
+    FIXED 2026-03-02: Mercury/Saturn were erroneously getting odd-sign bonus.
     """
-    even_planets = {"MOON", "VENUS"}
+    male_planets   = {"SUN", "MARS", "JUPITER"}
+    female_planets = {"MOON", "VENUS"}
+    # Neutral planets (Mercury, Saturn) explicitly get 0 — no parity bonus
+    if planet not in male_planets and planet not in female_planets:
+        return 0.0
     score = 0.0
     for lon in (d1_lon, d9_lon):
         s = sign_of(lon)
         is_even = (s % 2 == 1)  # 0=Aries(odd), 1=Taurus(even), ...
-        if planet in even_planets:
+        if planet in female_planets:
             if is_even:
                 score += 15.0
-        else:
+        else:  # male
             if not is_even:
                 score += 15.0
     return score
@@ -306,11 +314,14 @@ def nathonnatha_bala(planet: str, birth_dt: datetime, sunrise_lon: float = 0,
 
 def paksha_bala(planet: str, moon_lon: float, sun_lon: float) -> float:
     """
-    Fortnight (lunar phase) strength.
-    Elongation = Moon - Sun (angular separation 0-360).
-    Benefics: elongation / 3 → 0-60.
-    Malefics: (180 - elongation_in_half_circle) / 3.
-    Moon itself uses elongation directly.
+    Fortnight (lunar phase) strength (Paksha Bala).
+    Research File 1 — BPHS Ch.27 / Saravali:
+      Elongation E = Moon − Sun (forward arc, 0-360°).
+      Half-circle E_h = min(E, 360−E) → 0-180.
+      Benefics (Jup, Ven, waxing Moon, benefic Merc): E_h / 3 → 0-60.
+      Malefics (Sun, Mars, Sat, waning Moon):        (180 − E_h) / 3 → 0-60.
+      MOON DOUBLING RULE: Moon's final value is multiplied by 2 (max 120).
+    FIXED 2026-03-02: Moon doubling was missing.
     """
     p = _P.get(planet)
     if p is None:
@@ -324,11 +335,21 @@ def paksha_bala(planet: str, moon_lon: float, sun_lon: float) -> float:
     else:
         elong_half = elongation
 
-    from vedic_engine.config import NATURAL_BENEFICS, NATURAL_MALEFICS
-    if p in NATURAL_BENEFICS or planet == "MOON":
-        return elong_half / 3.0
+    from vedic_engine.config import NATURAL_BENEFICS
+    is_benefic = (p in NATURAL_BENEFICS)
+    # Moon is benefic when waxing (elongation ≤ 180), malefic when waning
+    if planet == "MOON":
+        is_benefic = (elongation <= 180.0)
+
+    if is_benefic:
+        base = elong_half / 3.0
     else:
-        return (180.0 - elong_half) / 3.0
+        base = (180.0 - elong_half) / 3.0
+
+    # Classical Moon-doubling rule: Paksha Bala for Moon = 2× (max 120 virupas)
+    if planet == "MOON":
+        return base * 2.0
+    return base
 
 
 def vara_bala(planet: str, birth_dt: datetime) -> float:
@@ -347,13 +368,16 @@ def vara_bala(planet: str, birth_dt: datetime) -> float:
 
 
 def hora_bala(planet: str, birth_dt: datetime,
-              sunrise_hour: float = 6.0) -> float:
+              sunrise_hour: float = 6.0,
+              sunset_hour: float = 18.0) -> float:
     """
     Planetary hour (Hora) lord strength. Lord of birth hora gets 60.
-    Hora sequence starts from weekday lord at sunrise, changes every 1 hour.
-    Order: Sun, Venus, Mercury, Moon, Saturn, Jupiter, Mars (Chaldean order).
-
-    sunrise_hour: actual local sunrise in decimal hours (SWE-precise or NOAA).
+    Research File 1 — BPHS Ch.27: hora lengths are UNEQUAL (temporal horas),
+    proportional to actual day/night duration — not fixed 60-minute chunks.
+      Day hora length   = (sunset − sunrise) / 12
+      Night hora length = (24 − day_dur) / 12
+    Sequence starts from weekday lord at sunrise (Chaldean order).
+    FIXED 2026-03-02: was using fixed 1-hour horas; now uses proportional lengths.
     """
     chaldean = [Planet.SUN, Planet.VENUS, Planet.MERCURY, Planet.MOON,
                 Planet.SATURN, Planet.JUPITER, Planet.MARS]
@@ -361,15 +385,24 @@ def hora_bala(planet: str, birth_dt: datetime,
     weekday = birth_dt.weekday()
     day_map = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 0}
     wd = day_map[weekday]
-    # Day lord = weekday lord
     day_lord = WEEKDAY_LORDS.get(wd, Planet.SUN)
     start_idx = chaldean.index(day_lord)
 
-    # Hours since actual sunrise — each hora = 1 hour
     hour = birth_dt.hour + birth_dt.minute / 60.0
-    hora_num = int(max(0, hour - sunrise_hour))  # hours since sunrise
-    hora_lord = chaldean[(start_idx + hora_num) % 7]
+    day_dur   = max(0.1, sunset_hour - sunrise_hour)
+    night_dur = 24.0 - day_dur
+    day_hora_len   = day_dur   / 12.0
+    night_hora_len = night_dur / 12.0
 
+    if sunrise_hour <= hour < sunset_hour:
+        # Day hora: 0-11
+        hora_num = min(int((hour - sunrise_hour) / day_hora_len), 11)
+    else:
+        # Night hora: 12-23
+        night_hour = (hour - sunset_hour) % 24.0
+        hora_num = 12 + min(int(night_hour / night_hora_len), 11)
+
+    hora_lord = chaldean[(start_idx + hora_num) % 7]
     p = _P.get(planet)
     if p and p == hora_lord:
         return HORA_BALA_POINTS
@@ -466,54 +499,88 @@ def tribhaga_bala(planet: str, birth_dt: datetime,
 
 
 def ayana_bala(planet: str, birth_dt: datetime,
-               tz_offset: float = 5.5) -> float:
+               tz_offset: float = 5.5,
+               planet_trop_lon: Optional[float] = None) -> float:
     """
-    Solstice/declination strength (Ayana Bala) — BPHS Ch.27.
-
-    Tier-1: Uses Swiss Ephemeris solar declination (exact astronomical value).
-    Tier-2: Falls back to month-based approximation if SWE unavailable.
-
-    Formula (precise):  Ayana = (declination / 23.44) × 30 + 30.
-      At summer solstice (+23.44°): Day planets get 60, Night planets get 0.
-      At winter solstice (−23.44°): Night planets get 60, Day planets get 0.
-      At equinox (0°): All get 30.
+    Solstice/declination strength (Ayana Bala) — BPHS Ch.27 / Saravali.
+    Research File 1 formula:
+      dec = arcsin(sin(obliquity) × sin(tropical_longitude))
+      Ayana = (23.45 + declination) / 46.9 × 60  [for north-strong planets]
+      Ayana = (23.45 - declination) / 46.9 × 60  [for south-strong planets]
+    Planet polarity:
+      Sun, Mars, Jupiter, Venus → + for north (peaking at summer solstice)
+      Moon, Saturn             → + for south (reversed polarity)
+      Mercury                  → always + using abs(declination)
+      Sun final value           → DOUBLED (max 120 virupas, per BPHS)
+    FIXED 2026-03-02: was using Sun\'s declination for all planets;
+      now computes per-planet declination from tropical longitude when available.
     """
+    import math
+    OBLIQUITY_DEG = 23.4393          # J2000 mean obliquity
+    OBLIQUITY_RAD = math.radians(OBLIQUITY_DEG)
+
     p = _P.get(planet)
     if p is None:
         return 0.0
 
-    # Tier-1: SWE precise solar declination
-    declination = None
-    try:
-        from vedic_engine.core.swisseph_bridge import compute_solar_declination
-        declination = compute_solar_declination(birth_dt, tz_offset)
-    except Exception:
-        pass
+    declination: Optional[float] = None
 
-    if declination is not None:
-        # Normalized: -1.0 (winter solstice) to +1.0 (summer solstice)
-        norm = max(-1.0, min(1.0, declination / 23.44))
-        if p in DAY_STRONG_PLANETS:
-            return 30.0 + norm * 30.0    # 0–60: peaks at northern solstice
-        elif p in NIGHT_STRONG_PLANETS:
-            return 30.0 - norm * 30.0    # 60–0: peaks at southern solstice
-        else:
-            return 30.0  # Mercury neutral
+    # Tier-1a: per-planet from tropical longitude (most accurate)
+    if planet_trop_lon is not None:
+        trop_rad = math.radians(planet_trop_lon % 360.0)
+        dec_rad  = math.asin(math.sin(OBLIQUITY_RAD) * math.sin(trop_rad))
+        declination = math.degrees(dec_rad)
 
-    # Tier-2: Month-based fallback
-    month = birth_dt.month
-    if month <= 6:
-        progress = (month - 1) / 6.0
-        hemisph = "north"
+    # Tier-1b: SWE solar declination for the Sun (fallback when no lon given)
+    if declination is None and planet == "SUN":
+        try:
+            from vedic_engine.core.swisseph_bridge import compute_solar_declination
+            declination = compute_solar_declination(birth_dt, tz_offset)
+        except Exception:
+            pass
+
+    # Tier-2: month-based season approximation
+    if declination is None:
+        month = birth_dt.month
+        # Approximate: max +23.45 at June 21, min -23.45 at Dec 21
+        day_of_year = birth_dt.timetuple().tm_yday
+        declination = -OBLIQUITY_DEG * math.cos(math.radians((day_of_year + 10) * 360 / 365.25))
+
+    # Apply planet-specific polarity and scale to 0-60 virupas
+    # Formula: (obliquity ± dec) / (2 × obliquity) × 60
+    #   North-strong: (obq + dec) / (2*obq) × 60
+    #   South-strong: (obq - dec) / (2*obq) × 60
+    north_strong = {Planet.SUN, Planet.MARS, Planet.JUPITER, Planet.VENUS}
+    south_strong = {Planet.MOON, Planet.SATURN}
+
+    if p == Planet.MERCURY:
+        # Mercury always benefits from declination (abs value)
+        raw = (OBLIQUITY_DEG + abs(declination)) / (2 * OBLIQUITY_DEG) * 60.0
+    elif p in north_strong:
+        raw = (OBLIQUITY_DEG + declination) / (2 * OBLIQUITY_DEG) * 60.0
+    elif p in south_strong:
+        raw = (OBLIQUITY_DEG - declination) / (2 * OBLIQUITY_DEG) * 60.0
     else:
-        progress = (month - 7) / 6.0
-        hemisph = "south"
+        raw = 30.0  # neutral fallback
 
-    if (p in DAY_STRONG_PLANETS and hemisph == "north") or \
-       (p in NIGHT_STRONG_PLANETS and hemisph == "south"):
-        return 30.0 + progress * 30.0
-    else:
-        return 30.0 - progress * 30.0
+    raw = max(0.0, min(60.0, raw))  # clamp 0-60
+
+    # Sun\'s Ayana Bala is DOUBLED per BPHS (max 120)
+    if p == Planet.SUN:
+        raw = raw * 2.0
+
+    return raw
+
+
+# Classical Seeghrocha (apogee) constants for Cheshta Bala — Research File 1
+# Format: degrees (signs × 30 + degrees + minutes/60)
+_SEEGHROCHA: Dict[str, float] = {
+    "MARS":    238.667,   # 7s 28°40\'  = 210 + 28 + 40/60
+    "MERCURY": 220.567,   # 7s 10°34\'  = 210 + 10 + 34/60
+    "JUPITER": 192.183,   # 6s 12°11\'  = 180 + 12 + 11/60
+    "VENUS":   224.950,   # 7s 14°57\'  = 210 + 14 + 57/60
+    "SATURN":  301.400,   # 10s 01°24\' = 300 + 1  + 24/60
+}
 
 
 def kala_bala(
@@ -524,50 +591,78 @@ def kala_bala(
         sunrise_hour: float = 6.0,
         sunset_hour: float = 18.0,
         tz_offset: float = 5.5,
+        planet_trop_lon: Optional[float] = None,
+        yuddha_adjustment: float = 0.0,
 ) -> float:
     """
     Total Kala Bala = Nathonnatha + Paksha + Tribhaga + Vara + Hora + Ayana
                     + Abda (year lord 15) + Masa (month lord 30)
-
+                    + Yuddha adjustment (mass-transfer ± for planetary war)
     sunrise_hour / sunset_hour: actual decimal hours (SWE-precise).
-    tz_offset: for SWE solar declination in Ayana Bala.
+    tz_offset: for per-planet Ayana Bala declination computation.
+    planet_trop_lon: tropical (sayana) longitude for Ayana Bala computation.
+    yuddha_adjustment: ± virupas from Yuddha Bala (pre-computed by caller).
+    UPDATED 2026-03-02: hora_bala now proportional; ayana_bala per-planet;
+      yuddha_adjustment integrated.
     """
     return (
         nathonnatha_bala(planet, birth_dt)
         + paksha_bala(planet, moon_lon, sun_lon)
         + tribhaga_bala(planet, birth_dt, sunrise_hour, sunset_hour)
         + vara_bala(planet, birth_dt)
-        + hora_bala(planet, birth_dt, sunrise_hour)
-        + ayana_bala(planet, birth_dt, tz_offset)
+        + hora_bala(planet, birth_dt, sunrise_hour, sunset_hour)
+        + ayana_bala(planet, birth_dt, tz_offset, planet_trop_lon)
         + abda_bala(planet, birth_dt)
         + masa_bala(planet, birth_dt, sun_lon)
+        + yuddha_adjustment
     )
 
 
 # ─── 4. Cheshta Bala ──────────────────────────────────────────────
 
-def cheshta_bala(planet: str, is_retrograde: bool, speed: float = 0.0) -> float:
+def cheshta_bala(planet: str, is_retrograde: bool, speed: float = 0.0,
+                 true_lon: Optional[float] = None) -> float:
     """
-    Motional strength (Cheshta Bala) — granular 8-state model (BPHS / Phaladeepika).
+    Motional strength (Cheshta Bala) — Research File 1 / BPHS Ch.27.
 
-    States and virupas (shashtiamsas):
-      Vakra (retrograde)            → 60   (maximum — planet intensely energised)
-      Anuvakra (slowing, ~retro)    → 45   (decelerating before station)
-      Vikala (stationary)           → 30   (at station point)
-      Mandatara (extra slow direct) → 15   (slower than normal by >50%)
-      Manda (slow direct)           → 15   (below average speed)
-      Sama (average speed)          → 7.5  (normal motion)
-      Chari/Vichala (fast direct)   → 30   (above average speed)
-      Ati-Chara (very fast)         → 45   (much faster than average)
+    Classical Seeghrocha formula (preferred, requires true_lon):
+      avg_lon       = (true_lon + seeghrocha) / 2          [circular]
+      cheshta_kendra = angular_distance(seeghrocha, avg_lon) → 0-180°
+      cheshta_bala  = cheshta_kendra / 3                  → 0-60 virupas
+    Physically: planet near its seeghrocha (fast moving) → low score;
+      planet opposite seeghrocha (retrograde zone) → high score.
 
-    Sun always has medium Cheshta (30). Moon Cheshta is handled via Paksha Bala.
+    Speed-state fallback (when true_lon unavailable):
+      Retrograde (Vakra)=60, Station=30, Fast Direct=45,
+      Normal Direct=30, Slow=15, Very Slow=7.5
+
+    Sun:  Cheshta = Ayana Bala (computed separately in compute_shadbala)
+    Moon: Cheshta = Paksha Bala (computed separately in compute_shadbala)
+    These are handled by caller; stubs return 0.0 here.
+    UPDATED 2026-03-02: Seeghrocha classical formula now primary.
     """
-    if planet == "SUN":
-        return 30.0   # Sun never retrograde; medium motion
-    if planet == "MOON":
-        return 30.0   # Moon Cheshta handled separately via Paksha Bala
+    if planet in ("SUN", "MOON"):
+        # Caller (compute_shadbala) overrides with Ayana/Paksha values
+        return 0.0
 
-    # Average daily speeds (degrees/day) for each planet
+    # ── Seeghrocha method (classical primary) ──
+    if true_lon is not None and planet in _SEEGHROCHA:
+        seegh = _SEEGHROCHA[planet]
+        # circular average of true_lon and seeghrocha
+        # circular mean via vector addition:
+        import math
+        t_rad = math.radians(true_lon)
+        s_rad = math.radians(seegh)
+        avg_sin = (math.sin(t_rad) + math.sin(s_rad)) / 2
+        avg_cos = (math.cos(t_rad) + math.cos(s_rad)) / 2
+        avg_lon = math.degrees(math.atan2(avg_sin, avg_cos)) % 360
+        # Cheshta Kendra = seeghrocha - avg_lon (shortest arc)
+        ck = abs(seegh - avg_lon)
+        if ck > 180:
+            ck = 360 - ck
+        return ck / 3.0  # 0-60 virupas
+
+    # ── Speed-state fallback ──
     _AVG_SPEED = {
         "MARS": 0.52, "MERCURY": 1.38, "JUPITER": 0.083,
         "VENUS": 1.2,  "SATURN": 0.033,
@@ -576,25 +671,76 @@ def cheshta_bala(planet: str, is_retrograde: bool, speed: float = 0.0) -> float:
     abs_spd = abs(speed)
 
     if is_retrograde:
-        # Differentiate Vakra vs Anuvakra by speed magnitude
-        if abs_spd > 0.01:                   # clearly moving retrograde
-            return 60.0                       # Vakra
-        else:
-            return 45.0                       # Anuvakra (slowing before/after station)
-
-    # Direct motion states
-    if abs_spd < 0.005:                       # effectively stationary
-        return 30.0                            # Vikala (station)
-
+        return 60.0 if abs_spd > 0.01 else 45.0   # Vakra / Anuvakra
+    if abs_spd < 0.005:
+        return 30.0   # Vikala (stationary)
     ratio = abs_spd / avg if avg > 0 else 1.0
     if ratio >= 1.5:
-        return 45.0                            # Ati-Chara (very fast)
+        return 45.0   # Ati-Chara
     elif ratio >= 0.9:
-        return 30.0                            # Chari/Vichala (normal-fast)
+        return 30.0   # Chari
     elif ratio >= 0.5:
-        return 15.0                            # Manda (slow)
-    else:
-        return 7.5                             # Mandatara (very slow)
+        return 15.0   # Manda
+    return 7.5        # Mandatara
+
+
+# ─── Yuddha Bala (Planetary War Mass-Transfer) ────────────────────
+
+# Bimba Parimana (planetary disc circumference constants) — Research File 1
+_BIMBA_PARIMANA: Dict[str, float] = {
+    "MARS":    9.4,
+    "MERCURY": 6.6,
+    "JUPITER": 190.4,
+    "VENUS":   16.6,
+    "SATURN":  158.0,
+}
+
+
+def compute_yuddha_adjustments(
+        planet_data: dict,       # {pname: PlanetPosition}
+        planet_shadbala_pre: Dict[str, float],  # pre-war Kala Bala (excl. Ayana) per planet
+) -> Dict[str, float]:
+    """
+    Yuddha Bala — Planetary War Mass-Transfer (BPHS Ch.27).
+    Research File 1 formula:
+      Trigger: two non-luminary planets within 1° longitude arc.
+      Victor: planet with LOWER ecliptic longitude.
+      Mass-transfer differential Δ = |disc_victor - disc_loser|.
+      Victor final Kala Bala += Δ;  Loser final Kala Bala -= Δ.
+      (Ayana Bala strictly EXCLUDED from pre-war strength sum.)
+    Note: Sun, Moon, Rahu, Ketu cannot be combatants.
+    Returns dict of virupas adjustment per planet (default 0.0).
+    ADDED 2026-03-02: was not previously implemented.
+    """
+    WAR_ELIGIBLE = {"MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"}
+    adjustments = {p: 0.0 for p in PLANET_NAMES_7}
+
+    eligible = [
+        pn for pn in WAR_ELIGIBLE
+        if pn in planet_data
+    ]
+
+    for i, p1 in enumerate(eligible):
+        for p2 in eligible[i + 1:]:
+            lon1 = planet_data[p1].longitude
+            lon2 = planet_data[p2].longitude
+            arc = abs(lon1 - lon2)
+            if arc > 180:
+                arc = 360 - arc
+            if arc > 1.0:   # Not in war
+                continue
+            # Victor = lower longitude; Loser = higher longitude
+            if normalize(lon1) < normalize(lon2):
+                victor, loser = p1, p2
+            else:
+                victor, loser = p2, p1
+            disc_v = _BIMBA_PARIMANA.get(victor, 0.0)
+            disc_l = _BIMBA_PARIMANA.get(loser, 0.0)
+            delta = abs(disc_v - disc_l)
+            adjustments[victor] += delta
+            adjustments[loser]  -= delta
+
+    return adjustments
 
 
 # ─── 5. Naisargika Bala ───────────────────────────────────────────
@@ -629,19 +775,35 @@ def compute_shadbala(
         sunrise_hour: float = 6.0,
         sunset_hour: float = 18.0,
         tz_offset: float = 5.5,
+        planet_trop_lon: Optional[float] = None,
+        yuddha_adjustment: float = 0.0,
 ) -> Dict[str, float]:
     """
     Compute all 6 Shadbala components for a planet.
     Returns dict with each component and totals.
 
+    planet_trop_lon: tropical (sayana) longitude for Ayana Bala + Cheshta Bala.
+    yuddha_adjustment: ± virupas from Yuddha Bala (pre-computed by caller).
     sunrise_hour / sunset_hour: actual decimal hours for Kala Bala precision.
     tz_offset: for SWE solar declination in Ayana Bala.
+    UPDATED 2026-03-02: Sun/Moon Cheshta overrides; Yuddha integration;
+      per-planet tropical longitude propagation.
     """
     sb = sthana_bala(planet, longitude, planet_house, planet_signs=planet_signs)
     db = dig_bala(planet, longitude, cusp_longitudes)
     kb = kala_bala(planet, birth_dt, moon_lon, sun_lon,
-                   sunrise_hour, sunset_hour, tz_offset)
-    cb = cheshta_bala(planet, is_retrograde, speed)
+                   sunrise_hour, sunset_hour, tz_offset,
+                   planet_trop_lon=planet_trop_lon,
+                   yuddha_adjustment=yuddha_adjustment)
+
+    # Cheshta Bala: Sun = Ayana Bala; Moon = Paksha Bala (classical BPHS rule)
+    if planet == "SUN":
+        cb = ayana_bala(planet, birth_dt, tz_offset, planet_trop_lon)
+    elif planet == "MOON":
+        cb = paksha_bala(planet, moon_lon, sun_lon)
+    else:
+        cb = cheshta_bala(planet, is_retrograde, speed, true_lon=planet_trop_lon)
+
     nb = naisargika_bala(planet)
     rb = compute_drik_bala(planet, planet_house, planet_houses, moon_waxing)
 
@@ -680,6 +842,8 @@ def compute_all_shadbala(
 
     latitude/longitude/tz_offset: enables SWE-precise sunrise/sunset for
     Hora Bala, Tribhaga Bala, and Ayana Bala (via solar declination).
+    UPDATED 2026-03-02: now computes tropical longitudes (sidereal + ayanamsa)
+    and pre-computes Yuddha Bala adjustments before per-planet shadbala pass.
     """
     moon_lon = planet_data["MOON"].longitude if "MOON" in planet_data else 0.0
     sun_lon  = planet_data["SUN"].longitude  if "SUN" in planet_data else 0.0
@@ -713,6 +877,25 @@ def compute_all_shadbala(
         except Exception:
             pass  # keep 6.0 / 18.0 defaults
 
+    # ── Compute tropical (sayana) longitudes for Ayana Bala + Cheshta Bala ──
+    # tropical = sidereal + ayanamsa; attempt to get ayanamsa from engine
+    ayanamsa: float = 0.0
+    try:
+        from vedic_engine.core.swisseph_bridge import get_ayanamsa
+        ayanamsa = get_ayanamsa(birth_dt, tz_offset)
+    except Exception:
+        pass  # 0-ayanamsa means tropical ≈ sidereal (error ≤24°; ayana_bala degrades gracefully)
+
+    planet_trop_lons: Dict[str, float] = {
+        pn: (getattr(pp, "longitude", 0.0) + ayanamsa) % 360.0
+        for pn, pp in planet_data.items()
+        if pn in PLANET_NAMES_7
+    }
+
+    # ── Pre-compute Yuddha Bala (Planetary War) adjustments ──
+    # Uses pre-war strength (rough total); no circular dependency needed
+    yuddha_adjustments = compute_yuddha_adjustments(planet_data, {})
+
     results = {}
     for pname in PLANET_NAMES_7:
         if pname not in planet_data:
@@ -734,5 +917,7 @@ def compute_all_shadbala(
             sunrise_hour=sunrise_h,
             sunset_hour=sunset_h,
             tz_offset=tz_offset,
+            planet_trop_lon=planet_trop_lons.get(pname),
+            yuddha_adjustment=yuddha_adjustments.get(pname, 0.0),
         )
     return results

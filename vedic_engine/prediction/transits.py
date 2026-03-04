@@ -23,6 +23,7 @@ from vedic_engine.config import (
     MANIFESTATION_ZONES, MANIFESTATION_OUTSIDE_MULTIPLIER,
     NAISARGIKA_FRIENDS, NAISARGIKA_ENEMIES,
     Planet, Sign, SIGN_LORDS, VIMSHOTTARI_SEQUENCE,
+    VIPAREETA_VEDHA_TABLE,
 )
 from vedic_engine.core.coordinates import sign_of, nakshatra_of
 from vedic_engine.analysis.special_points import compute_tarabala, compute_chandrabala
@@ -38,6 +39,80 @@ _P = {
     "VENUS": Planet.VENUS, "SATURN": Planet.SATURN,
     "RAHU": Planet.RAHU, "KETU": Planet.KETU,
 }
+
+
+# ─── Phase 1E.1: Standalone Vedha check ───────────────────────────
+
+def check_vedha(
+        transiting_planet: str,
+        transit_house_from_moon: int,
+        other_planet_houses_from_moon: Dict[str, int],
+) -> Dict:
+    """
+    Returns Vedha obstruction status for a transiting planet.
+
+    Args:
+        transiting_planet: planet name (e.g. "JUPITER")
+        transit_house_from_moon: 1-12, house of transiting planet counted from natal Moon
+        other_planet_houses_from_moon: {planet_name: house_from_moon} for all other planets
+
+    Returns:
+        {
+          "vedha_blocked": bool,         # True if auspicious transit is blocked
+          "vedha_by": str,               # planet name causing blocking (or "")
+          "vipareeta": bool,             # True if inauspicious transit is cancelled
+          "vipareeta_by": str,           # planet cancelling negative transit
+          "result_modified": bool,       # True if ANY modification occurred
+        }
+    """
+    p_enum = _P.get(transiting_planet)
+    if not p_enum:
+        return {"vedha_blocked": False, "vedha_by": "", "vipareeta": False,
+                "vipareeta_by": "", "result_modified": False}
+
+    h = transit_house_from_moon
+    favorable_houses = set(TRANSIT_FAVORABLE.get(p_enum, []))
+    is_favorable = h in favorable_houses
+
+    vedha_blocked = False
+    vedha_by = ""
+    vipareeta = False
+    vipareeta_by = ""
+
+    if is_favorable:
+        # Check if any other planet blocks (Vedha)
+        vedha_pair = VEDHA_TABLE.get(p_enum, {}).get(h)
+        if vedha_pair:
+            for other_name, other_h in other_planet_houses_from_moon.items():
+                if other_name == transiting_planet:
+                    continue
+                if other_h == vedha_pair:
+                    other_enum = _P.get(other_name)
+                    if other_enum and frozenset({p_enum, other_enum}) not in VEDHA_EXCEPTIONS:
+                        vedha_blocked = True
+                        vedha_by = other_name
+                        break
+    else:
+        # Check if negative transit is cancelled by Vipareeta Vedha
+        vip_pair = VIPAREETA_VEDHA_TABLE.get(p_enum, {}).get(h)
+        if vip_pair:
+            for other_name, other_h in other_planet_houses_from_moon.items():
+                if other_name == transiting_planet:
+                    continue
+                if other_h == vip_pair:
+                    other_enum = _P.get(other_name)
+                    if other_enum and frozenset({p_enum, other_enum}) not in VEDHA_EXCEPTIONS:
+                        vipareeta = True
+                        vipareeta_by = other_name
+                        break
+
+    return {
+        "vedha_blocked": vedha_blocked,
+        "vedha_by": vedha_by,
+        "vipareeta": vipareeta,
+        "vipareeta_by": vipareeta_by,
+        "result_modified": vedha_blocked or vipareeta,
+    }
 
 
 # ─── Approximate planet positions (fallback) ──────────────────────

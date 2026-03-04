@@ -1,0 +1,652 @@
+﻿[Chart computed via Swiss Ephemeris (SWE-powered)]
+[Analysis date: 03 Mar 2026]
+[Engine: pyswisseph  |  Ayanamsa: Lahiri (23.7755┬░)  |  Houses: Placidus  |  Nodes: Mean]
+
+Computing static analysis ΓÇª done.
+Computing dynamic analysis ΓÇª done.
+
+======================================================================
+======================== NATAL CHART ANALYSIS ========================
+======================================================================
+  Lagna (Ascendant) : Aquarius
+  Moon Sign (Rashi) : Leo
+
+
+------------------------------------------------------------
+  PLANET POSITIONS
+------------------------------------------------------------
+  Su SUN       314.428┬░  Aquarius     H1
+  Mo MOON      148.095┬░  Leo          H7
+  Ma MARS      299.605┬░  Capricorn    H12
+  Me MERCURY   301.049┬░  Aquarius     H1 [R]
+  Ju JUPITER   200.877┬░  Libra        H9
+  Ve VENUS     324.305┬░  Aquarius     H1
+  Sa SATURN    309.715┬░  Aquarius     H1
+  Ra RAHU      214.301┬░  Scorpio      H10 [R]
+  Ke KETU       34.301┬░  Taurus       H4 [R]
+
+------------------------------------------------------------
+  JAIMINI CHARA KARAKAS
+------------------------------------------------------------
+  AK    Atma Karaka          MARS       29.61┬░ in sign
+  AmK   Amatya Karaka        MOON       28.09┬░ in sign
+  BK    Bhratri Karaka       VENUS      24.30┬░ in sign
+  MK    Matri Karaka         JUPITER    20.88┬░ in sign
+  PK    Putra Karaka         SUN        14.43┬░ in sign
+  GK    Gnati Karaka         SATURN     9.71┬░ in sign
+  DK    Dara Karaka          MERCURY    1.05┬░ in sign
+  AK(MARS) ΓÇö AmK(MOON) : House 8 apart
+
+------------------------------------------------------------
+  ACTIVE YOGAS (15 detected)
+------------------------------------------------------------
+  * Shasha Yoga (Pancha Mahapurusha)
+  * Akhanda Samrajya Yoga
+  * Adhi Yoga
+  * Saraswati Yoga
+  * Kahala Yoga
+  * Raj Yoga (H1L + H5L conjunction)
+  * Raj Yoga (H1L + H9L conjunction)
+  * Raj Yoga (H4L + H5L conjunction)
+  * Chandra-Mangal Yoga
+  * Dhana Yoga (Lord of 2nd in gain house)
+
+------------------------------------------------------------
+  SHADBALA STRENGTH RATIOS  (>1.0 = above minimum)
+------------------------------------------------------------
+  SUN         1.37x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê   STRONG
+  VENUS       1.35x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê   STRONG
+  MARS        1.32x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê   STRONG
+  SATURN      1.11x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê     STRONG
+  MERCURY     1.08x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê      STRONG
+  JUPITER     1.01x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê      STRONG
+  MOON        0.92x  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê       WEAK
+
+------------------------------------------------------------
+  SARVASHTAKVARGA  (total: 337/337)
+------------------------------------------------------------
+  Ari  Tau  Gem  Can  Leo  Vir  Lib  Sco  Sag  Cap  Aqu  Pis
+   29   26   30   31   25   26   31   33   38   21   26   21
+
+------------------------------------------------------------
+  FUNCTIONAL ANALYSIS  (Lagna: Aquarius)
+------------------------------------------------------------
+  Yogakaraka(s)       : VENUS
+  Functional Benefics : None
+  Functional Malefics : MOON
+  Badhaka (H9 lord): VENUS
+  Marakas (H2+H7 lords): JUPITER
+
+------------------------------------------------------------
+  DISPOSITOR GRAPH ANALYSIS
+------------------------------------------------------------
+  Final dispositor(s): MOON, SATURN (self-ruled ΓÇö highest independent authority in chart). Most controlling planet: SATURN (disposits 4 others).
+  Final dispositors : MOON, SATURN
+
+------------------------------------------------------------
+  SPECIAL POINTS
+------------------------------------------------------------
+  Gulika            174.49┬░  Virgo
+  Mandi             180.25┬░  Libra
+  Hora Lagna        311.40┬░  Aquarius
+  Ghati Lagna       306.87┬░  Aquarius
+  Indu Lagna        328.10┬░  Aquarius
+  Bhrigu Bindu        1.20┬░  Aries
+  Upagrahas       
+    Dhuma            87.76┬░  Gemini
+    Vyatipata       272.24┬░  Capricorn
+    Parivesha        92.24┬░  Cancer
+    Indrachapa      267.76┬░  Sagittarius
+    Upaketu         284.43┬░  Capricorn
+  Yogi Point        195.86┬░  Libra  [planet: RAHU, dup-yogi: VENUS]
+  Avayogi Point      22.52┬░  Aries  [planet: VENUS]
+  Lagna Drekkana   2/3  Aquarius  [Manushya]
+
+------------------------------------------------------------
+  DIVISIONAL CHARTS (VARGA) ANALYSIS
+------------------------------------------------------------
+  D60 Karma  : 7 planets in shubha D60, 2 in krura D60
+  Vargottama : SUN  (same sign in D1 & D9 ΓÇö maximum stability)
+  Pushkara   : VENUS, SATURN, KETU  (Pushkara Navamsa ΓÇö auspicious blessing)
+  D9 Marriage: VENUS strong in D9 (Taurus) ΓåÆ favors marriage
+  D10 Career+: D10 lagna lord VENUS in own sign ΓåÆ stable career
+  D10 10th house: MERCURY, KETU
+  D7 Children: est. 0 children indicated
+    Malefics in D7-1st ΓåÆ constitutional fertility considerations
+    D7-9th house planets (KETU) ΓåÆ lineage / grandchildren karma
+  D4 Property: D4 lagna lord MERCURY in dusthana ΓåÆ challenges with property/assets
+  D60 Krura  : MARS, JUPITER ΓÇö karma fine-print may offset D1 results
+
+------------------------------------------------------------
+  ARUDHA PADAS (Jaimini Manifested Image)
+------------------------------------------------------------
+  AL  (Arudha Lagna / world image)   : Scorpio
+  UL  (Upapada Lagna / marriage)     : Pisces
+  A7  (Darapada / spouse image)      : Taurus
+  A10 (Career/profession image)      : Pisces
+
+------------------------------------------------------------
+  RASHI DRISHTI (Jaimini Sign Aspects ΓÇö planets aspecting each sign)
+------------------------------------------------------------
+  Aries        : aspected by SUN, MOON, MERCURY, VENUS, SATURN, RAHU
+  Taurus       : aspected by MARS, JUPITER
+  Cancer       : aspected by SUN, MERCURY, VENUS, SATURN, RAHU, KETU
+  Leo          : aspected by MARS, JUPITER
+  Libra        : aspected by SUN, MOON, MERCURY, VENUS, SATURN, KETU
+  Scorpio      : aspected by MARS
+  Capricorn    : aspected by MOON, RAHU, KETU
+  Aquarius     : aspected by JUPITER
+
+======================================================================
+====================== CURRENT TIMING ANALYSIS =======================
+======================================================================
+
+------------------------------------------------------------
+  VIMSHOTTARI DASHA (Active Periods)
+------------------------------------------------------------
+  Maha-dasha   : RAHU
+  Antar-dasha  : MERCURY
+  Pratyantar   : RAHU
+  [R] Maha-dasha lord RAHU is RETROGRADE in natal chart
+  [R] Antar-dasha lord MERCURY is RETROGRADE in natal chart
+
+------------------------------------------------------------
+  ASHTOTTARI DASHA (108-yr Conditional)
+------------------------------------------------------------
+  Maha-dasha   : MERCURY
+  Antar-dasha  : VENUS
+  Note: Research Brief: Run Ashtottari alongside Vimshottari. If both confirm same domain/event ΓåÆ near-absolute certainty.
+
+------------------------------------------------------------
+  YOGINI DASHA
+------------------------------------------------------------
+  Yogini Lord  : Ulka  (ruled by SATURN)
+  Sub-Yogini   : Sankata  (ruled by RAHU)
+
+------------------------------------------------------------
+  JAIMINI CHARA DASHA
+------------------------------------------------------------
+  Direction    : forward
+  Maha-dasha   : Gemini           ΓåÆ 
+
+------------------------------------------------------------
+  DASHA QUALITY (Ishta/Kashta Phala)
+------------------------------------------------------------
+  Maha-dasha lord: RAHU
+  Quality        : DIFFICULT DASHA  (27%)
+  Maturity stage : IMMATURE  (├ù0.40)
+    Ishta/Kashta: 1.00  Shadbala: 0.50  Functional: 0.40  D9 dignity: 0.50
+
+------------------------------------------------------------
+  SADE SATI / DHAIYA STATUS
+------------------------------------------------------------
+  [!] DHAIYA ACTIVE - Dhaiya (8th): obstacles, delays, introspection required [Iron Paya]
+
+------------------------------------------------------------
+  PANCHANGA (Daily Timing Quality)
+------------------------------------------------------------
+  Tithi     : Krishna Pratipada (Krishna) ΓÇö Neutral
+  Vara      : Tuesday ΓÇö ruled by MARS (Neutral)
+  Nakshatra : Purva Phalguni Pada 3 [Mridu] ΓÇö lord: VENUS
+  Yoga      : Dhriti (Auspicious)
+  Karana    : Kaulava (Auspicious)
+  Moon Phase: Full Moon  |  Timing Quality: EXCELLENT (+0.60)
+
+------------------------------------------------------------
+  KP RULING PLANETS (Current Moment)
+------------------------------------------------------------
+  Day Lord        : MARS
+  Moon Star Lord  : SUN
+  Moon Sign Lord  : SUN
+  Lagna Sign Lord : SATURN
+  Lagna Star Lord : RAHU
+  Active RPs      : RAHU, MARS, SATURN, SUN
+
+------------------------------------------------------------
+  DASHA LORD TRANSIT (Gochar)
+------------------------------------------------------------
+  Maha-dasha lord RAHU: Aquarius  H7 from Moon  H1 from Lagna  Gochar=+0.40
+    Moderate ΓÇö partnerships activate, travel possible
+    *** Activating natal SUN (0.2┬░ orb): EXACT NATAL POSITION
+    Next ingress -> Capricorn in 277 days (2026-12-05)
+  Antar-dasha lord MERCURY: Aquarius  H7 from Moon  H1 from Lagna  Gochar=+0.40
+    Moderate ΓÇö partnerships activate, travel possible
+    *** Activating natal VENUS (1.8┬░ orb): CLOSE ACTIVATION
+    Next ingress -> Pisces in 2 days (2026-03-05)
+  Combined transit quality: GOOD (55%)
+
+------------------------------------------------------------
+  UPCOMING PLANETARY INGRESSES
+------------------------------------------------------------
+  SUN        Aquarius       -> Pisces         in 11 days  (2026-03-14)
+  MARS       Aquarius       -> Pisces         in 44 days  (2026-04-16)
+  JUPITER    Gemini         -> Cancer         in 108 days  (2026-06-19)
+  RAHU       Aquarius       -> Capricorn      in 277 days  (2026-12-05)
+  SATURN     Pisces         -> Aries          in 662 days  (2027-12-25)
+
+------------------------------------------------------------
+  TRANSIT HIGHLIGHTS (House from Moon)
+------------------------------------------------------------
+  Sa SATURN     H8   in Pisces         - score=0.05
+  Ju JUPITER    H11  in Gemini         + score=0.53 [VEDHA]
+  Ma MARS       H7   in Aquarius       - score=0.15
+  Ve VENUS      H8   in Pisces         + score=0.47
+  Su SUN        H7   in Aquarius       - score=0.25
+
+------------------------------------------------------------
+  TRANSIT-TO-NATAL ASPECTS (Weighted Orb)
+------------------------------------------------------------
+  RAHU       Conjunction  SUN        [malefic ] orb=0.2┬░ str=1.00 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
+  KETU       Opposition   SUN        [malefic ] orb=0.2┬░ str=1.00 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
+  JUPITER    Trine        JUPITER    [benefic ] orb=0.1┬░ str=0.99 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Separating)
+  MOON       Sextile      JUPITER    [benefic ] orb=0.3┬░ str=0.96 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Separating)
+  SUN        Trine        JUPITER    [benefic ] orb=2.0┬░ str=0.86 ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
+  MERCURY    Opposition   MOON       [malefic ] orb=2.0┬░ str=0.77 ΓûêΓûêΓûêΓûêΓûêΓûêΓûê (Applying)
+
+------------------------------------------------------------
+  SECONDARY PROGRESSIONS (Day-for-Year)
+------------------------------------------------------------
+  Progressed date  : 1994-03-31
+  Solar arc        : +32.12┬░
+  Prog Sun sign    : Pisces
+  Prog Moon sign   : Scorpio
+  Prog lunation    : Disseminating
+  Progressed activations (3):
+    MARS conj natal VENUS (0.63┬░)
+    SATURN conj natal SUN (0.96┬░)
+    JUPITER conj natal JUPITER (1.43┬░)
+  Activation boost : +4.50%
+
+------------------------------------------------------------
+  UPCOMING SOLAR TERMS (Sun at 15┬░ Multiples)
+------------------------------------------------------------
+  2026-03-14  Sun ingress Pisces (Sankranti)  (in 11 days)
+  2026-03-30  Sun enters 15┬░ Pisces  (in 27 days)
+  2026-04-14  Sun ingress Aries (Sankranti)  (in 42 days)
+  2026-04-29  Sun enters 15┬░ Aries  (in 57 days)
+  2026-05-14  Sun ingress Taurus (Sankranti)  (in 72 days)
+  2026-05-30  Sun enters 15┬░ Taurus  (in 87 days)
+
+------------------------------------------------------------
+  UPCOMING ECLIPSES  [4 in 12 months]
+------------------------------------------------------------
+  [2026-05-16] Solar Eclipse in Krittika  H10 from Moon  sig=0.92
+    Near natal: KETU ΓÇö ECLIPSE near natal KETU ΓÇö Spirituality, detachment, past karma ΓÇö release, moksha
+  [2026-05-31] Penumbral Lunar Eclipse in Anuradha  H4 from Moon  sig=0.85
+    ECLIPSE ΓÇö general disruption/reset in all domains
+  [2026-11-09] Solar Eclipse in Vishakha  H3 from Moon  sig=0.92
+    Near natal: JUPITER ΓÇö ECLIPSE near natal JUPITER ΓÇö Wealth, guru, children, dharma ΓÇö major philosophica
+  [2026-11-24] Lunar Eclipse in Krittika  H10 from Moon  sig=0.92
+    Near natal: KETU ΓÇö ECLIPSE near natal KETU ΓÇö Spirituality, detachment, past karma ΓÇö release, moksha
+
+------------------------------------------------------------
+  NEXT 12 MONTHS ΓÇö TIMING WINDOWS
+------------------------------------------------------------
+  CAREER:
+    + BEST  2026-05-29 ΓÇö 2026-06-28  (peak 2026-06-13)  score=0.53
+    - AVOID 2026-07-18 ΓÇö 2026-08-07  (trough 2026-07-28)  score=0.41
+  FINANCE:
+    + BEST  2026-05-05 ΓÇö 2026-06-04  (peak 2026-05-20)  score=0.64
+    + BEST  2027-01-12 ΓÇö 2027-02-11  (peak 2027-01-27)  score=0.53
+    - AVOID 2026-06-21 ΓÇö 2026-07-11  (trough 2026-07-01)  score=0.38
+  HEALTH:
+    + BEST  2026-10-14 ΓÇö 2026-11-13  (peak 2026-10-29)  score=0.51
+    - AVOID 2026-03-05 ΓÇö 2026-03-25  (trough 2026-03-15)  score=0.36
+  RELATIONSHIPS:
+    + BEST  2026-03-24 ΓÇö 2026-04-23  (peak 2026-04-08)  score=0.58
+    + BEST  2026-10-05 ΓÇö 2026-11-04  (peak 2026-10-20)  score=0.55
+    - AVOID 2026-08-14 ΓÇö 2026-09-03  (trough 2026-08-24)  score=0.42
+
+======================================================================
+========================= DOMAIN PREDICTIONS =========================
+======================================================================
+
+  ΓöÇΓöÇ NAKSHATRA ANALYSIS ΓöÇΓöÇ
+  Tarabala: Tara 1 (Janma) ΓÇö negative_neutral  [multiplier +0.00]  
+  Chandrabala: House 1 from natal Moon ΓÇö favorable  [score 0.80]
+  Natal Moon: Uttara Phalguni pada 1  Bija Akshara: 'Te'  [Fire / Vata / Moksha]
+  Vargottama Planets: SUN  [D1=D9 sign ΓÇö amplified natural expression]
+  SATURN: Pushkara Navamsa (2├ù)  ΓÇö PUSHKARA NAVAMSA in Shatabhisha at 9.7┬░ in sign. Multiplier 2.0 ΓÇö benefic result
+
+  ΓöÇΓöÇ TAJIKA VARSHAPHALA ΓöÇΓöÇ
+  Muntha      : Libra (0.0┬░) ΓÇö Lord: VENUS
+    House 9: Desires fulfilled, dharma elevation ΓÇö spiritual gains
+  Varsha Pati : SATURN  (Janma Lagna Pati)  PVB=15.2 [Parakrami]
+  PVB Leaders : MARS=17.2(P), SATURN=15.2(P), MOON=15.0(P)
+
+  Tajika Yogas (74 detected):
+    Γùå Itthasala          [SUN+JUPITER]: SUN applying to JUPITER ΓÇö success for 6.4┬░ residual
+    Γùå Itthasala          [SUN+KETU]: SUN applying to KETU ΓÇö success for 10.1┬░ residual
+    Γùå Itthasala          [MERCURY+RAHU]: MERCURY applying to RAHU ΓÇö success for 3.3┬░ residual
+    Γùå Itthasala          [SATURN+KETU]: SATURN applying to KETU ΓÇö success for 5.4┬░ residual
+    Γùå Nakta              [SUN+JUPITER+MARS]: JUPITER transfers light between SUN and MARS ΓÇö 3rd-part
+    Γùå Nakta              [SUN+RAHU+MARS]: RAHU transfers light between SUN and MARS ΓÇö 3rd-party m
+
+  Mudda Dasha : SUN  2026-03-03 ΓåÆ 2026-03-19  (16 days)
+    Next: MOON(2026-03)  MARS(2026-04)  RAHU(2026-05)
+
+  ΓöÇΓöÇ JAIMINI EXTENDED ANALYSIS ΓöÇΓöÇ
+
+  Sthira Karakas (Ayur Dasha use only):
+    Father: SUN  Mother: MARS  Longevity: SATURN
+
+  Svamsha     : AK in Virgo Navamsha
+    Fire hazards, gastrointestinal heat, severe digestive distress (Virgo)
+  Karakamsha  : Virgo (D-1 rotated) ΓÇö Ishta Devata: MOON  Moksha Yoga: No
+    10th Lord (career indicator): MERCURY
+
+  Jaimini Yogas (2 detected):
+    ΓÿàΓÿàΓÿà AK-AmK Raja Yoga (Primary)             [MARS+MOON]
+       Highest Jaimini Raja Yoga. Soul and career minister aligned. Guarantees signific
+    Γÿà AK Svamsha (Virgo)                     [MARS]
+       Fire hazards, gastrointestinal heat, severe digestive distress (Virgo)
+
+  AL-UL Analysis:
+    AL=Scorpio  UL=Pisces  A10=Pisces
+    Marriage Axis: Γ£ô SUSTAINABLE ΓÇö AL (Scorpio) and UL (Pisces) in Kendra/Trikona relationship (5th 
+    ΓÜá SUTRA 5: Rahu/Ketu on AL, on 7th from AL ΓåÆ severe chronic stomach disorders, high fir
+    A10 Career Reputation: NEUTRAL ΓÇö Career uninfluenced by strong planetary signature on A10.
+    Contraargala: Contraargala on A10: ['SUN', 'MERCURY', 'VENUS', 'SATURN'] in 12th from A10
+
+  Additional Jaimini Dasha Systems:
+    Shoola  : starts Aquarius | Rudra=MERCURY  [Aquarius 8yr]
+    Niryana : starts Aquarius | Rudra=MERCURY  [Aquarius 9yr]
+    Brahma  : starts Aquarius | Rudra=MERCURY  [Aquarius 8yr]
+    Navamsha: starts Capricorn  [Capricorn 1yr]
+    Sudasa  : starts Pisces  [Pisces 1.34yr]
+    Drig    : starts Libra  [Libra 7yr]
+    Trikona : starts Aquarius  [Aquarius 12yr]
+
+======================================================================
+========= FILE 5: KALACHAKRA ┬╖ MEDICAL ┬╖ CONDITIONAL DASHAS ==========
+======================================================================
+
+  ΓöÇΓöÇ KALACHAKRA DASHA ΓöÇΓöÇ
+  Direction   : Counter-Clockwise (Apasavya) | Group 6 | Pada 1
+  Paramayus   : 86 years | Deha: Sagittarius | Jeeva: Cancer
+    Sagittarius    10yr [DEHA]
+    Capricorn       4yr
+    Aquarius        4yr
+    Pisces         10yr
+    Aries           7yr
+
+  ΓöÇΓöÇ MEDICAL ANALYSIS ΓöÇΓöÇ
+  Disease Alerts: None detected (strong chart)
+  22nd Drekkana : Capricorn (lord: SATURN) 90┬░ΓÇô100┬░
+  Longevity Band: Alpa Ayus (Short)  (Pindayu (Sun strongest))
+    ΓÜá Classical estimate only ΓÇö NOT a medical prognosis.
+    Pindayu / Nisargayu / Amsayu median yields this band.
+
+  ΓöÇΓöÇ CONDITIONAL DASHA ELIGIBILITY ΓöÇΓöÇ
+    Γ£ù Shodashottari        Night birth, Krishna Paksha, Sun Hora ΓÇö conditions not met
+    Γ£ù Dwadasottari         D-9 Lagna in Capricorn ΓÇö not Venus Navamsa
+    Γ£ù Panchottari          D-1 Lagna=Aquarius, D-12 Lagna=Aquarius ΓÇö Cancer required in both
+    Γ£ù Shatabdika           D-1 Lagna=Aquarius, D-9 Lagna=Capricorn ΓÇö not Vargottama
+    Γ£ù Chaturaashiti        10th lord (MARS) in H12 ΓÇö must be in 10th
+    Γ£ô Dwisaptati           7th lord (SUN) in Lagna
+    Γ£ù Shat_Trimsa          Night birth + Sun Hora Lagna ΓÇö conditions not met
+
+  Active Conditional Dasha Systems:
+    Dwisaptati    ( 72yr): starts JUPITER ΓåÆ JUPITER 8.036yr
+    Moola Dasha   (var yr): starts SUN ΓåÆ SUN 5.0yr
+    Tara Dasha    (120yr): starts MARS ΓåÆ MARS 6.25yr [INAUSPICIOUS]
+
+------------------------------------------------------------
+  CAREER  ΓÇö  VERY LOW  (39.5%)
+------------------------------------------------------------
+  Confidence : [ΓûêΓûêΓûêΓûêΓûêΓûêΓûê             ] 39.5%
+  Calibrated : 38%  (32%ΓÇô42%)  Reliability: Insufficient
+    dasha_alignment                0.47  ΓûêΓûêΓûêΓûê
+    transit_support                0.22  ΓûêΓûê
+    ashtakvarga_support            0.65  ΓûêΓûêΓûêΓûêΓûêΓûê
+    yoga_activation                1.00  ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê
+    kp_confirmation                0.06  
+    functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
+    house_lord_strength            0.53  ΓûêΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+
+  Dispositor Chain [MODERATE]  (combined strength 69%)
+    RAHU chain -> final lord: MARS
+    MERCURY chain -> final lord: SATURN
+
+  Fuzzy Convergence [PARTIAL]  (fuzzy=42%, method=skfuzzy)
+    timing=0.33  transit=0.35  structural=0.71
+
+  Bayesian Posterior [MARGINAL]  (p=52%, 80% CI: 34%-68%, UNCERTAIN)
+  Argala Modifier      : +1.8%  [NEUTRAL / BALANCED]
+  Aspect Transit Mod   : -1.6% (drag)  [activation=0.34]
+  Progression Boost    : +4.50%  [SA/Secondary activations]
+
+  Three-Pillar Promise : 100%  [STRONG]
+    bhava        = 0.64
+    bhavesha     = 0.94
+    karaka       = 1.00
+
+  Dasha Diagnostic     : MIXED RETROGRADE  [MD/AD geometry: kendra_4th_from_MD]
+    RAHU lords neutral house.
+    | RAHU strong D1+D9 ΓåÆ grand, sustainable results.
+
+  Dasha Consensus      : LOW  (multiplier ├ù0.60)
+    Only Vimshottari (RAHU) supports career. Chara (Gemini) and Yogini (SATURN) oppose/neutral. Event ca
+  Chara Dasha sign     : H5 (Creativity, children, intelligence ΓêÆ speculative/learning period)
+
+  >> Final confidence (all layers blended): 40%
+
+  DOMAIN: CAREER | Confidence: VERY LOW (13.2%)
+  Active dasha: RAHU / MERCURY  (Yogini: SATURN)
+  Supportive transits: JUPITER
+  Vedha (transit obstruction) by: JUPITER ΓÇö results may be delayed
+  Active yogas: Shasha Yoga (Pancha Mahapurusha), Akhanda Samrajya Yoga, Adhi Yoga, Saraswati Yoga, Kahala Yoga
+  Good period for professional assertion, visibility, and new responsibilities.
+
+  Supporting transits : JUPITER
+  Blocked by Vedha    : JUPITER
+
+  Badhaka [LOW friction]  Badhakesh=VENUS  reduction=10%  multiplier=0.90
+  Badhaka Sthana: H9 (fixed ascendant)
+
+  [COMBUSTION REPORT]
+  MERCURY: 48% combust  Retained=52%  Karakatwa=BURNED  Lordship=SURVIVES
+    MERCURY is 48.1% combust (7.264┬░ from Sun). Living significations (Karakatwa) ar
+  MARS: 28% combust  Retained=72%  Karakatwa=BURNED  Lordship=SURVIVES
+    MARS is 28.0% combust (12.237┬░ from Sun). Living significations (Karakatwa) are 
+
+------------------------------------------------------------
+  CAREER DECISION TREE (5-Step Checklist)
+------------------------------------------------------------
+  Direction    : exceptional_career_promise
+  Career Score : 82%
+  Soul Alignment (AK-AmK): neutral_alignment
+  D10 Sustainability  : sustained_success
+  Dasha Activated     : YES
+  Double Transit      : NO
+  Karmic Skills (D3) : technology, foreign connections, unconventional fields (karmic accumul
+    ΓåÆ AmK (SATURN): Neither trine nor 6/8 to AK. Moderate soul-career alignment ΓÇö depends on tra
+    ΓåÆ MARS in D10 5th (Trikona) ΓåÆ Dharmic career upliftment; long-term success via virtuous work
+    ΓåÆ Past-life skills and karmic career drives via D3 10th: technology, foreign connections, un
+
+  Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
+
+------------------------------------------------------------
+  FINANCE  ΓÇö  VERY LOW  (29.5%)
+------------------------------------------------------------
+  Confidence : [ΓûêΓûêΓûêΓûêΓûê               ] 29.5%
+  Calibrated : 27%  (21%ΓÇô32%)  Reliability: Insufficient
+    dasha_alignment                0.00  
+    transit_support                0.48  ΓûêΓûêΓûêΓûê
+    ashtakvarga_support            0.73  ΓûêΓûêΓûêΓûêΓûêΓûêΓûê
+    yoga_activation                0.60  ΓûêΓûêΓûêΓûêΓûêΓûê
+    kp_confirmation                0.00  
+    functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
+    house_lord_strength            0.12  Γûê
+    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+
+  Dispositor Chain [MODERATE]  (combined strength 69%)
+    RAHU chain -> final lord: MARS
+    MERCURY chain -> final lord: SATURN
+
+  Fuzzy Convergence [SCATTERED]  (fuzzy=3%, method=fallback-harmonic)
+    timing=0.00  transit=0.55  structural=0.44
+
+  Bayesian Posterior [WEAK]  (p=35%, 80% CI: 20%-52%, UNCERTAIN)
+  Argala Modifier      : +1.8%  [NEUTRAL / BALANCED]
+  Aspect Transit Mod   : +3.4% (boost)  [activation=0.84]
+  Progression Boost    : +4.50%  [SA/Secondary activations]
+
+  Three-Pillar Promise : 100%  [STRONG]
+    bhava        = 0.74
+    bhavesha     = 0.86
+    karaka       = 0.88
+
+  Dasha Diagnostic     : MIXED RETROGRADE  [MD/AD geometry: kendra_4th_from_MD]
+    RAHU lords neutral house.
+    | RAHU strong D1+D9 ΓåÆ grand, sustainable results.
+
+  Dasha Consensus      : BLOCKED  (multiplier ├ù0.15)
+    Both Vimshottari (RAHU) AND Chara (Gemini) DENY finance ΓåÆ event cannot manifest in current period ev
+  Chara Dasha sign     : H5 (Creativity, children, intelligence ΓêÆ speculative/learning period)
+
+  >> Final confidence (all layers blended): 30%
+
+  DOMAIN: FINANCE | Confidence: VERY LOW (20.0%)
+  Active dasha: RAHU / MERCURY  (Yogini: SATURN)
+  Supportive transits: VENUS, JUPITER, MOON
+  Vedha (transit obstruction) by: JUPITER ΓÇö results may be delayed
+  Active yogas: Shasha Yoga (Pancha Mahapurusha), Akhanda Samrajya Yoga, Adhi Yoga, Saraswati Yoga, Kahala Yoga
+  Track income sources carefully; auspicious for investments when Jupiter supports.
+
+  Supporting transits : VENUS, JUPITER, MOON
+  Blocked by Vedha    : JUPITER
+
+  Badhaka [LOW friction]  Badhakesh=VENUS  reduction=10%  multiplier=0.90
+  Badhaka Sthana: H9 (fixed ascendant)
+
+  [COMBUSTION REPORT]
+  MERCURY: 48% combust  Retained=52%  Karakatwa=BURNED  Lordship=SURVIVES
+    MERCURY is 48.1% combust (7.264┬░ from Sun). Living significations (Karakatwa) ar
+
+  Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
+
+------------------------------------------------------------
+  MARRIAGE  ΓÇö  VERY LOW  (29.0%)
+------------------------------------------------------------
+  Confidence : [ΓûêΓûêΓûêΓûêΓûê               ] 29.0%
+  Calibrated : 27%  (21%ΓÇô32%)  Reliability: Insufficient
+    dasha_alignment                0.00  
+    transit_support                0.37  ΓûêΓûêΓûê
+    ashtakvarga_support            0.53  ΓûêΓûêΓûêΓûêΓûê
+    yoga_activation                0.05  
+    kp_confirmation                0.00  
+    functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
+    house_lord_strength            0.40  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.40  ΓûêΓûêΓûêΓûê
+
+  Dispositor Chain [MODERATE]  (combined strength 69%)
+    RAHU chain -> final lord: MARS
+    MERCURY chain -> final lord: SATURN
+
+  Fuzzy Convergence [SCATTERED]  (fuzzy=18%, method=skfuzzy)
+    timing=0.00  transit=0.42  structural=0.30
+
+  Bayesian Posterior [VERY WEAK]  (p=22%, 80% CI: 9%-37%, UNCERTAIN)
+  Argala Modifier      : +1.8%  [NEUTRAL / BALANCED]
+  Aspect Transit Mod   : +3.5% (boost)  [activation=0.85]
+  Progression Boost    : +4.50%  [SA/Secondary activations]
+
+  Three-Pillar Promise : 33%  [WEAK]
+    bhava        = 0.30
+    bhavesha     = 0.30
+    karaka       = 1.00
+
+  Dasha Diagnostic     : MIXED RETROGRADE  [MD/AD geometry: kendra_4th_from_MD]
+    RAHU lords neutral house.
+    | RAHU strong D1+D9 ΓåÆ grand, sustainable results.
+
+  Dasha Consensus      : BLOCKED  (multiplier ├ù0.15)
+    Both Vimshottari (RAHU) AND Chara (Gemini) DENY marriage ΓåÆ event cannot manifest in current period e
+  Chara Dasha sign     : H5 (Creativity, children, intelligence ΓêÆ speculative/learning period)
+
+  >> Final confidence (all layers blended): 29%
+
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (19.1%)
+  Active dasha: RAHU / MERCURY  (Yogini: SATURN)
+  Supportive transits: VENUS, JUPITER, MOON
+  Vedha (transit obstruction) by: JUPITER ΓÇö results may be delayed
+  Active yogas: Shasha Yoga (Pancha Mahapurusha), Akhanda Samrajya Yoga, Adhi Yoga, Saraswati Yoga, Kahala Yoga
+  Relationship harmony depends on Venus/Jupiter dasha strength.
+
+  Supporting transits : VENUS, JUPITER, MOON
+  Blocked by Vedha    : JUPITER
+
+  Badhaka [LOW friction]  Badhakesh=VENUS  reduction=10%  multiplier=0.90
+  Badhaka Sthana: H9 (fixed ascendant)
+
+  [COMBUSTION REPORT]
+  MARS: 28% combust  Retained=72%  Karakatwa=BURNED  Lordship=SURVIVES
+    MARS is 28.0% combust (12.237┬░ from Sun). Living significations (Karakatwa) are 
+
+  Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
+
+------------------------------------------------------------
+  HEALTH  ΓÇö  LOW  (36.0%)
+------------------------------------------------------------
+  Confidence : [ΓûêΓûêΓûêΓûêΓûêΓûêΓûê             ] 36.0%
+  Calibrated : 34%  (29%ΓÇô39%)  Reliability: Insufficient
+    dasha_alignment                0.31  ΓûêΓûêΓûê
+    transit_support                0.25  ΓûêΓûê
+    ashtakvarga_support            0.57  ΓûêΓûêΓûêΓûêΓûê
+    yoga_activation                0.05  
+    kp_confirmation                0.60  ΓûêΓûêΓûêΓûêΓûêΓûê
+    functional_alignment           0.50  ΓûêΓûêΓûêΓûêΓûê
+    house_lord_strength            0.43  ΓûêΓûêΓûêΓûê
+    jaimini_sub                    0.46  ΓûêΓûêΓûêΓûê
+
+  Dispositor Chain [MODERATE]  (combined strength 69%)
+    RAHU chain -> final lord: MARS
+    MERCURY chain -> final lord: SATURN
+
+  Fuzzy Convergence [PARTIAL]  (fuzzy=44%, method=skfuzzy)
+    timing=0.41  transit=0.35  structural=0.30
+
+  Bayesian Posterior [MARGINAL]  (p=46%, 80% CI: 29%-63%, UNCERTAIN)
+  Argala Modifier      : +1.8%  [NEUTRAL / BALANCED]
+  Aspect Transit Mod   : -4.0% (drag)  [activation=0.10]
+  Progression Boost    : +4.50%  [SA/Secondary activations]
+
+  Three-Pillar Promise : 100%  [STRONG]
+    bhava        = 0.80
+    bhavesha     = 0.93
+    karaka       = 1.00
+
+  Dasha Diagnostic     : MIXED RETROGRADE  [MD/AD geometry: kendra_4th_from_MD]
+    RAHU lords neutral house.
+    | RAHU strong D1+D9 ΓåÆ grand, sustainable results.
+
+  Dasha Consensus      : BLOCKED  (multiplier ├ù0.15)
+    Both Vimshottari (RAHU) AND Chara (Gemini) DENY health ΓåÆ event cannot manifest in current period eve
+  Chara Dasha sign     : H5 (Creativity, children, intelligence ΓêÆ speculative/learning period)
+
+  >> Final confidence (all layers blended): 36%
+
+  DOMAIN: HEALTH | Confidence: LOW (20.0%)
+  Active dasha: RAHU / MERCURY  (Yogini: SATURN)
+  Supportive transits: MOON
+  Active yogas: Shasha Yoga (Pancha Mahapurusha), Akhanda Samrajya Yoga, Adhi Yoga, Saraswati Yoga, Kahala Yoga
+  Attend to vitality; Saturn transit periods require rest and discipline.
+
+  Supporting transits : MOON
+
+  Badhaka [LOW friction]  Badhakesh=VENUS  reduction=10%  multiplier=0.90
+  Badhaka Sthana: H9 (fixed ascendant)
+
+  [COMBUSTION REPORT]
+  MARS: 28% combust  Retained=72%  Karakatwa=BURNED  Lordship=SURVIVES
+    MARS is 28.0% combust (12.237┬░ from Sun). Living significations (Karakatwa) are 
+
+  Dhana Stacking: 3 Dhana Yoga(s) ΓåÆ Wealth Tier: [TRANSCENDENT]
+
+======================================================================
+  Vedic Astrology Engine | github.com/vedic-engine
+  Results are computed mathematically; consult a jyotishi for interpretation.
+======================================================================
+

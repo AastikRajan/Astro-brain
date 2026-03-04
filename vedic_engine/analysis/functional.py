@@ -34,6 +34,11 @@ _ALL_PLANETS = [
     Planet.JUPITER, Planet.VENUS, Planet.SATURN,
 ]
 
+# Natural benefics subject to Kendradhipati Dosha (BPHS / Phaladeepika):
+# When these planets own ONLY pure kendra houses (4, 7, 10 — NOT house 1
+# which is simultaneously a trikona), they lose their benefic nature.
+NATURAL_BENEFICS = frozenset({Planet.JUPITER, Planet.VENUS, Planet.MERCURY})
+
 # House categories
 TRIKONA_HOUSES = frozenset({1, 5, 9})
 KENDRA_HOUSES  = frozenset({1, 4, 7, 10})
@@ -112,6 +117,14 @@ def classify_planet(planet: Planet, lagna_sign: int) -> Dict:
 
     # Clamp
     score = max(-1.0, min(2.0, score))
+
+    # Kendradhipati Dosha: natural benefics owning kendra but NOT trikona
+    # lose their benefic nature and become functional malefics.
+    # Classical cases: Jupiter for Gemini/Virgo (rules H7+H10 / H4+H7);
+    #                  Mercury for Sagittarius/Pisces (rules H7+H10 / H4+H7).
+    # Exception: H1 is both kendra AND trikona → owns_trikona=True → no dosha.
+    if planet in NATURAL_BENEFICS and owns_kendra and not owns_trikona:
+        score = min(score, -0.8)  # force into functional_malefic territory
 
     if owns_kendra and owns_trikona:
         role = "yogakaraka"

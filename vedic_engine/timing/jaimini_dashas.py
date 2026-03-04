@@ -761,3 +761,240 @@ def check_death_timing_window(
             if flag else "No critical mortality convergence at this time."
         ),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NARAYANA DASHA (Phase 1C 2026-03-02)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Odd-footed (Visama Pada) signs → progression moves FORWARD
+_ODD_FOOT = frozenset({0, 1, 2, 6, 7, 8})        # Aries,Tau,Gem,Lib,Sco,Sag
+# Even-footed (Sama Pada) signs → progression moves BACKWARD
+_EVEN_FOOT = frozenset({3, 4, 5, 9, 10, 11})     # Can,Leo,Vir,Cap,Aqu,Pis
+
+# Dual sign sequence offsets (relative to start) — forward traversal
+# Pattern: Dharma(1-5-9), Artha(10-2-6), Kama(7-11-3), Moksha(4-8-12)
+_DUAL_FWD_OFFSETS = [0, 4, 8, 9, 1, 5, 6, 10, 2, 3, 7, 11]
+_DUAL_BWD_OFFSETS = [0, 8, 4, 3, 7, 11, 6, 2, 10, 9, 5, 1]
+
+
+def _narayana_duration(dasha_sign: int, lord: str, planet_signs: Dict[str, int],
+                        forward: bool) -> int:
+    """
+    Duration for Narayana sign dasha:
+    - Count signs from dasha_sign to lord's sign in the chosen direction.
+    - If count == 0 (lord in own sign → cycles back): 12 years.
+    - Exalted lord: +1; Debilitated lord: -1. Capped at [1, 12].
+    """
+    lord_sign = planet_signs.get(lord)
+    if lord_sign is None:
+        return 9  # default fallback
+
+    if lord_sign == dasha_sign:
+        duration = 12
+    else:
+        if forward:
+            distance = (lord_sign - dasha_sign) % 12
+        else:
+            distance = (dasha_sign - lord_sign) % 12
+        duration = distance  # 1..11
+
+    # Exaltation / debilitation modifier
+    if _is_exalted(lord, lord_sign):
+        duration += 1
+    elif _is_debilitated(lord, lord_sign):
+        duration -= 1
+
+    return max(1, min(12, duration))
+
+
+def _narayana_sequence(start: int, modality: str, forward: bool,
+                        has_saturn: bool, has_ketu: bool) -> List[int]:
+    """
+    Generate 12-sign Narayana Dasha sequence from start sign.
+    Saturn override: forces adjacent-sign progression.
+    Ketu override: reverses direction.
+    """
+    # Ketu reverses direction
+    fwd = forward
+    if has_ketu:
+        fwd = not fwd
+
+    # Saturn override: always adjacent
+    if has_saturn:
+        step = 1 if fwd else 11
+        return [(start + step * i) % 12 for i in range(12)]
+
+    if modality == "movable":
+        step = 1 if fwd else 11
+        return [(start + step * i) % 12 for i in range(12)]
+    elif modality == "fixed":
+        step = 5 if fwd else 7   # 6th house forward = +5; backward = +7
+        return [(start + step * i) % 12 for i in range(12)]
+    else:  # dual
+        offsets = _DUAL_FWD_OFFSETS if fwd else _DUAL_BWD_OFFSETS
+        return [(start + off) % 12 for off in offsets]
+
+
+def _narayana_start_sign(lagna_sign: int, planet_lons: Dict[str, float]) -> int:
+    """
+    Select starting Rasi: compare Lagna vs 7th house (Lagna+6) by Jaimini rules.
+    Returns the stronger sign.
+    """
+    seventh = (lagna_sign + 6) % 12
+    candidates = [lagna_sign, seventh]
+
+    planet_signs = {p: _sign_of(lon) for p, lon in planet_lons.items()}
+
+    def planet_count(s: int) -> int:
+        return sum(1 for ps in planet_signs.values() if ps == s)
+
+    def has_benefic_aspect(s: int) -> bool:
+        """Jupiter/Mercury/own lord has rashi drishti on sign s."""
+        for p in ["JUPITER", "MERCURY"]:
+            if _has_rashi_drishti(planet_signs.get(p, -1), s):
+                return True
+        lord = _SIGN_LORD.get(s, "")
+        if lord and _has_rashi_drishti(planet_signs.get(lord, -1), s):
+            return True
+        return False
+
+    def has_exalted(s: int) -> bool:
+        for p, es in _EXALT_SIGN.items():
+            if es == s and planet_signs.get(p) == s:
+                return True
+        return False
+
+    def modality_strength(s: int) -> int:
+        if s in _DUAL: return 2
+        if s in _FIXED: return 1
+        return 0  # movable
+
+    def odd_even_lord_bonus(s: int) -> bool:
+        lord = _SIGN_LORD.get(s, "")
+        if not lord: return False
+        lord_sign = planet_signs.get(lord, -1)
+        s_even = (s % 2 == 1)         # 0-based; Taurus(1)=even in 1-based
+        lord_odd = (lord_sign % 2 == 0)  # Aries(0)=odd in 1-based
+        # even sign + lord in odd sign → bonus
+        # odd sign + lord in even sign → bonus
+        return s_even == lord_odd
+
+    # Rule 1: more planets
+    pc = [planet_count(s) for s in candidates]
+    if pc[0] != pc[1]:
+        return candidates[0] if pc[0] > pc[1] else candidates[1]
+
+    # Rule 2: benefic aspect
+    ba = [has_benefic_aspect(s) for s in candidates]
+    if ba[0] != ba[1]:
+        return candidates[0] if ba[0] else candidates[1]
+
+    # Rule 3: exalted planet
+    ex = [has_exalted(s) for s in candidates]
+    if ex[0] != ex[1]:
+        return candidates[0] if ex[0] else candidates[1]
+
+    # Rule 4: modality (Dual > Fixed > Movable)
+    ms = [modality_strength(s) for s in candidates]
+    if ms[0] != ms[1]:
+        return candidates[0] if ms[0] > ms[1] else candidates[1]
+
+    # Rule 5: odd/even lord placement bonus
+    ob = [odd_even_lord_bonus(s) for s in candidates]
+    if ob[0] != ob[1]:
+        return candidates[0] if ob[0] else candidates[1]
+
+    # Rule 6: higher duration → default to Lagna
+    return lagna_sign
+
+
+def compute_narayana_dasha(
+    birth_dt: datetime,
+    lagna_sign: int,
+    planet_lons: Dict[str, float],
+) -> List[Dict]:
+    """
+    Compute Narayana Dasha timeline (Jaimini sign-based) from birth. (Phase 1C)
+
+    Returns list of dicts:
+      {sign, sign_name, lord, duration_years, start_date, end_date}
+
+    Rules (from Research File 5):
+    - Start from stronger of Lagna or 7th (Jaimini strength rules)
+    - Duration: count from sign to its lord's sign in motion direction, -0 if own
+    - Sequence: modality of start sign (Movable=adjacent, Fixed=6th, Dual=trinal)
+    - Direction: 9th house from start — odd-footed=forward, even-footed=backward
+    - Saturn override: forces adjacent sequence
+    - Ketu override: reverses direction
+    """
+    planet_signs = {p: _sign_of(lon) for p, lon in planet_lons.items()}
+
+    # 1. Determine start sign
+    start = _narayana_start_sign(lagna_sign, planet_lons)
+
+    # 2. Modality of start sign
+    if start in _MOVABLE:
+        modality = "movable"
+    elif start in _FIXED:
+        modality = "fixed"
+    else:
+        modality = "dual"
+
+    # 3. Direction: 9th from start
+    ninth_from_start = (start + 8) % 12
+    forward = ninth_from_start in _ODD_FOOT
+
+    # 4. Saturn/Ketu overrides in start sign
+    has_saturn = planet_signs.get("SATURN") == start
+    has_ketu   = planet_signs.get("KETU")   == start
+
+    # 5. Build 12-sign dasha sequence
+    sequence = _narayana_sequence(start, modality, forward, has_saturn, has_ketu)
+
+    # 6. Compute durations and build timeline
+    periods: List[Dict] = []
+    current_date = birth_dt
+
+    for sign in sequence:
+        # Determine lord — Scorpio uses MARS/KETU, Aquarius uses SATURN/RAHU
+        primary_lord = _SIGN_LORD[sign]
+        dual = _DUAL_LORDS.get(sign)
+        if dual:
+            # Pick the one with higher Jaimini strength (planet count in sign)
+            l1, l2 = dual
+            c1 = sum(1 for ps in planet_signs.values() if ps == planet_signs.get(l1, -99))
+            c2 = sum(1 for ps in planet_signs.values() if ps == planet_signs.get(l2, -99))
+            lord = l1 if c1 >= c2 else l2
+        else:
+            lord = primary_lord
+
+        dur = _narayana_duration(sign, lord, planet_signs, forward)
+        end_date = current_date + timedelta(days=dur * 365.25)
+
+        periods.append({
+            "sign":          sign,
+            "sign_name":     SIGN_NAMES[sign],
+            "lord":          lord,
+            "duration_years": dur,
+            "start_date":    current_date.isoformat(),
+            "end_date":      end_date.isoformat(),
+            "modality":      modality,
+            "direction":     "forward" if forward else "backward",
+        })
+        current_date = end_date
+
+    return periods
+
+
+def get_active_narayana(periods: List[Dict], on_date: datetime) -> Dict:
+    """Return the active Narayana Dasha period for a given date."""
+    for p in periods:
+        try:
+            start = datetime.fromisoformat(p["start_date"])
+            end   = datetime.fromisoformat(p["end_date"])
+            if start <= on_date < end:
+                return p
+        except Exception:
+            continue
+    return periods[-1] if periods else {}

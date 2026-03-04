@@ -106,41 +106,48 @@ def compute_gulika(
 
 
 # ─── Hora Lagna ───────────────────────────────────────────────────
-# "Hora" = 1 hour. The Hora Lagna advances ~30° (1 sign) per hora
-# from the Lagna position at sunrise.
+# Formula (Research File 2 / BPHS): HL = Sun_lon + minutes_from_sunrise × 0.5°
+# Anchor = Sun longitude (advances 30°/hr = 0.5°/min from Sun at sunrise).
+# FIX 2026-03-02: was anchoring at Lagna; correct anchor is Sun longitude.
 
 def compute_hora_lagna(
     birth_dt: datetime,
-    lagna_lon: float,
+    sun_lon: float,
     sunrise_hour: float = 6.0,
 ) -> float:
     """
     Compute Hora Lagna sidereal longitude.
-    Hora Lagna = Lagna + (hours since sunrise) × 30°
-    Used as an alternate lagna for wealth and financial analysis.
+    HL = Sun_lon + (minutes_from_sunrise) × 0.5°
+    Advances at 30°/hr (1 sign/hora) anchored to Sun at sunrise.
+    Used for wealth and financial analysis.
+    FIX 2026-03-02: anchor corrected from Lagna to Sun longitude.
     """
     hour = birth_dt.hour + birth_dt.minute / 60.0
-    hours_since_sunrise = hour - sunrise_hour
-    hora_lon = normalize(lagna_lon + hours_since_sunrise * 30.0)
+    minutes_since_sunrise = (hour - sunrise_hour) * 60.0
+    hora_lon = normalize(sun_lon + minutes_since_sunrise * 0.5)
     return round(hora_lon, 3)
 
 
 # ─── Ghati Lagna ──────────────────────────────────────────────────
-# 1 Ghati = 24 minutes. Lagna rises ~1.25°/minute = 30°/ghati.
+# Formula (Research File 2): GL = Sun_lon + minutes_from_sunrise × 1.25°
+# (30° per Ghati = 30°/24min = 1.25°/min)
 # Used for gauging native's authority and kingly/powerful periods.
+# FIX 2026-03-02: anchor corrected from Lagna to Sun longitude.
 
 def compute_ghati_lagna(
     birth_dt: datetime,
-    lagna_lon: float,
+    sun_lon: float,
     sunrise_hour: float = 6.0,
 ) -> float:
     """
     Compute Ghati Lagna sidereal longitude.
-    Ghati Lagna = Lagna + (minutes since sunrise) × 1.25°
+    GL = Sun_lon + (minutes_from_sunrise) × 1.25°
+    Advances 30° per Ghati (24 minutes of clock time).
+    FIX 2026-03-02: anchor corrected from Lagna to Sun longitude.
     """
     hour = birth_dt.hour + birth_dt.minute / 60.0
     minutes_since_sunrise = (hour - sunrise_hour) * 60.0
-    ghati_lon = normalize(lagna_lon + minutes_since_sunrise * 1.25)
+    ghati_lon = normalize(sun_lon + minutes_since_sunrise * 1.25)
     return round(ghati_lon, 3)
 
 
@@ -194,6 +201,273 @@ def compute_indu_lagna(
     return round(indu_lon, 3)
 
 
+# ─── Varnada Lagna ─────────────────────────────────────────────────────────
+# Primary domain: Varna (social class), vocational trajectory, karmic burdens.
+# Research File 2 (Part C.3) — sign-parity vector algorithm.
+# ADDED 2026-03-02: Phase 1B.
+
+_ODD_SIGNS_SET = {0, 2, 4, 6, 8, 10}   # Aries, Gemini, Leo, Libra, Sag, Aquarius
+
+def compute_varnada_lagna(lagna_lon: float, hora_lagna_lon: float) -> float:
+    """
+    Compute Varnada Lagna using the sign-parity vector algorithm (Research File 2).
+
+    Steps:
+      1. Count L_count: if Lagna is ODD → forward from Aries (1-based);
+                        if EVEN → backward from Pisces (1-based).
+      2. Count H_count: same rule for Hora Lagna sign.
+      3. Shift V = L_count + H_count  [if same parity]
+               V = |L_count - H_count| [if different parity; 0 → 12]
+      4. Project VL: if original Lagna is ODD → count V signs forward from Aries;
+                     if EVEN → count V signs backward from Pisces.
+    Returns approximate sidereal longitude (0° of the resulting sign).
+    """
+    lagna_sign = int(lagna_lon / 30) % 12
+    hl_sign    = int(hora_lagna_lon / 30) % 12
+
+    lagna_odd  = lagna_sign in _ODD_SIGNS_SET
+    hl_odd     = hl_sign    in _ODD_SIGNS_SET
+
+    # Count from Aries (forward) or Pisces (backward)
+    L_count = (lagna_sign + 1)          if lagna_odd else (12 - lagna_sign)
+    H_count = (hl_sign    + 1)          if hl_odd    else (12 - hl_sign)
+
+    # Shift vector
+    if lagna_odd == hl_odd:   # same parity
+        V = L_count + H_count
+    else:                     # different parity
+        V = abs(L_count - H_count)
+        if V == 0:
+            V = 12
+
+    # Project V signs from Aries (odd lagna) or backward from Pisces (even lagna)
+    if lagna_odd:
+        vl_sign = (V - 1) % 12        # 0-based sign index
+    else:
+        vl_sign = (12 - V) % 12       # backward from Pisces
+
+    vl_lon = vl_sign * 30.0
+    return round(vl_lon, 3)
+
+
+# ─── Pranapada Lagna ────────────────────────────────────────────────────────
+# Primary domain: breath rhythm, physiological vitality, birth time rectification.
+# Research File 2 (Part C.4) — Vighati / Sun modality formula.
+# ADDED 2026-03-02: Phase 1B.
+
+_PRANAPADA_BASE_BY_MODALITY = {
+    "movable":  0.0,    # Aries = 0°
+    "fixed":    270.0,  # Capricorn = 270°
+    "dual":     180.0,  # Libra = 180°
+}
+_MOVABLE_SIGNS = {0, 3, 6, 9}   # Aries, Cancer, Libra, Capricorn
+_FIXED_SIGNS   = {1, 4, 7, 10}  # Taurus, Leo, Scorpio, Aquarius
+
+def compute_pranapada_lagna(
+    birth_dt: datetime,
+    sun_lon: float,
+    sunrise_hour: float = 6.0,
+) -> float:
+    """
+    Compute Pranapada Lagna (Research File 2, Part C.4).
+
+    Steps:
+      1. Elapsed vighatis since sunrise (1 Ghati=24 min; 1 Vighati=24 sec).
+         Total_vighatis = elapsed_seconds / 24
+      2. Signs advanced  = floor(total_vighatis / 15)
+         Degrees in sign = (total_vighatis % 15) × 2°   [30°/15 = 2°/vighati]
+      3. Base longitude from Sun modality:
+         Movable → 0° (Aries), Fixed → 270° (Capricorn), Dual → 180° (Libra)
+      4. Pranapada = base + signs×30 + remainder_degrees  (mod 360)
+    """
+    birth_hour     = birth_dt.hour + birth_dt.minute / 60.0 + birth_dt.second / 3600.0
+    elapsed_sec    = (birth_hour - sunrise_hour) * 3600.0
+    if elapsed_sec < 0:
+        elapsed_sec += 86400.0
+    total_vighatis = elapsed_sec / 24.0      # 1 vighati = 24 seconds
+
+    full_signs     = int(total_vighatis / 15)
+    remainder_vig  = total_vighatis % 15
+    remainder_deg  = remainder_vig * 2.0     # 2 degrees per vighati
+
+    sun_sign = int(sun_lon / 30) % 12
+    if sun_sign in _MOVABLE_SIGNS:
+        base = 0.0
+    elif sun_sign in _FIXED_SIGNS:
+        base = 270.0
+    else:
+        base = 180.0
+
+    pranapada_lon = normalize(base + full_signs * 30.0 + remainder_deg)
+    return round(pranapada_lon, 3)
+
+
+# ─── Sri Lagna ──────────────────────────────────────────────────────────────
+# Primary domain: seat of Lakshmi; supreme fortune, abundant wealth.
+# Research File 2 (Part C.6) — fractional Moon nakshatra traversal × 360°.
+# ADDED 2026-03-02: Phase 1B.
+
+_NAK_SPAN = 360.0 / 27.0   # 13.3333... degrees per nakshatra
+
+def compute_sri_lagna(lagna_lon: float, moon_lon: float) -> float:
+    """
+    Compute Sri Lagna sidereal longitude (Research File 2, Part C.6).
+
+    Formula:
+      nak_start  = floor(moon_lon / nak_span) × nak_span  [start of Moon's nakshatra]
+      traveled   = moon_lon - nak_start                   [degrees traversed so far]
+      fraction   = traveled / nak_span                    [0.0 – 1.0]
+      shift      = fraction × 360°
+      Sri Lagna  = (lagna_lon + shift) mod 360°
+    """
+    nak_idx    = int(moon_lon / _NAK_SPAN)
+    nak_start  = nak_idx * _NAK_SPAN
+    traveled   = moon_lon - nak_start
+    fraction   = traveled / _NAK_SPAN
+    shift      = fraction * 360.0
+    sri_lon    = normalize(lagna_lon + shift)
+    return round(sri_lon, 3)
+
+
+# ─── Natal Sahams (Arabic Parts / Classical Lots) ────────────────────────────
+# 19 classical Sahams per Research File 2 (Part D) Algebraic Matrix.
+# General formula (day birth): ASC + A - B
+# Night reversal (unless marked NO_REVERSAL): ASC + B - A
+# ADDED 2026-03-02: Phase 1B.
+
+# Format: name → {day: (A, B, anchor), night: (A, B, anchor), no_reversal: bool}
+# Anchor: "ASC" or specific planet key ("SUN", "VENUS", ...)
+# Special: "PUNYA" = use pre-computed Punya Saham longitude
+_NATAL_SAHAM_FORMULAS: Dict = {
+    #  name        day (A, B)                       anchor  no_rev
+    "Punya":    {"day": ("MOON",   "SUN"),    "anchor": "ASC",    "no_rev": False},
+    "Vidya":    {"day": ("SUN",    "MOON"),   "anchor": "ASC",    "no_rev": False},
+    "Yasas":    {"day": ("JUPITER","PUNYA"),  "anchor": "ASC",    "no_rev": False},
+    "Mitra":    {"day": ("JUPITER","PUNYA"),  "anchor": "VENUS",  "no_rev": False},
+    "Mahatmya": {"day": ("PUNYA",  "MARS"),   "anchor": "ASC",    "no_rev": False},
+    "Asha":     {"day": ("SATURN", "MARS"),   "anchor": "ASC",    "no_rev": False},
+    "Samartha": {"day": ("MARS",   "L1"),     "anchor": "ASC",    "no_rev": False},
+    "Bhratri":  {"day": ("JUPITER","SATURN"), "anchor": "ASC",    "no_rev": True },
+    "Gaurava":  {"day": ("JUPITER","MOON"),   "anchor": "SUN",    "no_rev": False},
+    "Pitri":    {"day": ("SATURN", "SUN"),    "anchor": "ASC",    "no_rev": False},
+    "Matri":    {"day": ("MOON",   "VENUS"),  "anchor": "ASC",    "no_rev": False},
+    "Putra":    {"day": ("JUPITER","MOON"),   "anchor": "ASC",    "no_rev": False},
+    "Jeeva":    {"day": ("SATURN", "JUPITER"),"anchor": "ASC",    "no_rev": False},
+    "Karma":    {"day": ("MARS",   "MERCURY"),"anchor": "ASC",    "no_rev": False},
+    "Roga":     {"day": ("ASC",    "MOON"),   "anchor": "ASC",    "no_rev": True },  # ASC+ASC-Moon
+    "Kali":     {"day": ("JUPITER","MARS"),   "anchor": "ASC",    "no_rev": False},
+    "Mrityu":   {"day": ("H8",     "MOON"),   "anchor": "ASC",    "no_rev": True },  # house cusp
+    "Paradesa": {"day": ("H9",     "L9"),     "anchor": "ASC",    "no_rev": True },  # house cusp
+    "Vivaha":   {"day": ("VENUS",  "SATURN"), "anchor": "ASC",    "no_rev": False},
+}
+
+_SAHAM_SIGNIFICATIONS_NATAL: Dict[str, str] = {
+    "Punya":    "Fortune, dharma, protective shield",
+    "Vidya":    "Education, intellect, learning",
+    "Yasas":    "Fame, public prominence",
+    "Mitra":    "Friends, alliances, networking",
+    "Mahatmya": "Greatness, grandeur, status",
+    "Asha":     "Hope, unfulfilled desires",
+    "Samartha": "Enterprise, capability, potential",
+    "Bhratri":  "Siblings, courage, initiative",
+    "Gaurava":  "Respect, social regard, honor",
+    "Pitri":    "Father, paternal lineage, authority",
+    "Matri":    "Mother, maternal lineage, property",
+    "Putra":    "Children, progeny, creativity",
+    "Jeeva":    "Life, vitality, longevity",
+    "Karma":    "Career, action, profession",
+    "Roga":     "Disease, physical ailment, debt",
+    "Kali":     "Strife, great misfortune, conflict",
+    "Mrityu":   "Death, transformation, endings",
+    "Paradesa": "Foreign travel, exile",
+    "Vivaha":   "Marriage, unions, partnerships",
+}
+
+
+def compute_natal_sahams(
+    planet_lons: Dict[str, float],
+    asc_lon: float,
+    house_cusps: Optional[Dict[int, float]] = None,    # {1: lon, 2: lon,...}
+    lagna_lord_lon: Optional[float] = None,            # longitude of L1 planet
+    is_daytime: bool = True,
+) -> Dict[str, Dict]:
+    """
+    Compute 19 classical natal Sahams (Arabic Parts) — Research File 2 (Part D).
+
+    Day formula:   Saham = anchor + A - B  (mod 360)
+    Night formula: Saham = anchor + B - A  (if no_reversal=False)
+    30-degree rule: if anchor \u2228 Saham not on shortest path B\u2192A, add 30\u00b0.
+
+    Special keys:
+      PUNYA   = Punya Saham longitude (computed first)
+      H8/H9   = 8th/9th house cusp longitude
+      L1      = Ascendant lord longitude (lagna_lord_lon)
+      ASC     = asc_lon
+    ADDED 2026-03-02: Phase 1B.
+    """
+    def _resolve(key: str, punya_lon: float, cusps: Dict[int, float]) -> Optional[float]:
+        if key == "ASC":       return asc_lon
+        if key == "PUNYA":     return punya_lon
+        if key == "L1":
+            return lagna_lord_lon if lagna_lord_lon is not None else asc_lon
+        if key.startswith("H"):
+            house_num = int(key[1:])
+            return cusps.get(house_num, asc_lon)
+        p = key.upper()
+        aliases = {"JUPITER": "JUPITER", "SATURN": "SATURN", "MARS": "MARS",
+                   "MERCURY": "MERCURY", "VENUS": "VENUS", "MOON": "MOON",
+                   "SUN": "SUN", "RAHU": "RAHU", "KETU": "KETU"}
+        pname = aliases.get(p, p)
+        return planet_lons.get(pname, asc_lon)
+
+    cusps = house_cusps or {}
+    results = {}
+
+    # Punya Saham computed first (others reference it)
+    punya_formula = _NATAL_SAHAM_FORMULAS["Punya"]
+    if is_daytime:
+        A_key, B_key = punya_formula["day"]
+    else:
+        A_key, B_key = punya_formula["day"][::-1]   # reverse
+    A_lon    = _resolve(A_key, 0.0, cusps) or 0.0
+    B_lon    = _resolve(B_key, 0.0, cusps) or 0.0
+    punya_lon = normalize(asc_lon + A_lon - B_lon)
+
+    for name, formula in _NATAL_SAHAM_FORMULAS.items():
+        no_rev   = formula.get("no_rev", False)
+        anchor_k = formula.get("anchor", "ASC")
+        A_key, B_key = formula["day"]
+
+        if is_daytime or no_rev:
+            A_lon = _resolve(A_key, punya_lon, cusps) or 0.0
+            B_lon = _resolve(B_key, punya_lon, cusps) or 0.0
+        else:
+            # Night reversal
+            A_lon = _resolve(B_key, punya_lon, cusps) or 0.0
+            B_lon = _resolve(A_key, punya_lon, cusps) or 0.0
+
+        anchor_lon = _resolve(anchor_k, punya_lon, cusps) or asc_lon
+
+        # Samartha edge-case: if Mars = Lagna lord, swap to Jupiter/Mars pair
+        if name == "Samartha" and lagna_lord_lon is not None:
+            mars_lon = planet_lons.get("MARS", 0.0)
+            if abs((mars_lon - lagna_lord_lon + 180) % 360 - 180) < 0.5:
+                A_lon = planet_lons.get("JUPITER", asc_lon)
+                B_lon = mars_lon
+
+        saham_lon = normalize(anchor_lon + A_lon - B_lon)
+        sign_idx  = int(saham_lon / 30) % 12
+        _SIGN_NAMES = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+                       "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
+        results[name] = {
+            "longitude":    round(saham_lon, 3),
+            "sign":         _SIGN_NAMES[sign_idx],
+            "sign_idx":     sign_idx,
+            "significance": _SAHAM_SIGNIFICATIONS_NATAL.get(name, ""),
+        }
+    return results
+
+
 # ─── Tarabala ─────────────────────────────────────────────────────
 # Relationship of the current transit Moon nakshatra to the natal
 # Moon nakshatra. The 9-nakshatra cycle from the natal Moon repeats
@@ -201,6 +475,7 @@ def compute_indu_lagna(
 
 TARA_NAMES: List[str] = [
     "Janma",      # 1 – birth nakshatra – mixed (can cause illness/events)
+
     "Sampat",     # 2 – wealth / prosperity
     "Vipat",      # 3 – danger/loss
     "Kshema",     # 4 – well-being
@@ -569,31 +844,33 @@ def compute_all_special_points(
     latitude: float = 0.0,
     longitude: float = 0.0,
     tz_offset: float = 5.5,
+    planet_lons: Optional[Dict[str, float]] = None,
+    house_cusps: Optional[Dict[int, float]] = None,
+    lagna_lord_lon: Optional[float] = None,
+    is_daytime: bool = True,
 ) -> Dict:
     """
     Compute all special sensitive points for a birth chart.
 
-    Now uses SWE-precise sunrise/sunset (via get_sunrise_sunset_hours) for
-    Gulika, Mandi, Hora Lagna, and Ghati Lagna instead of hardcoded 6am/6pm.
+    Uses SWE-precise sunrise/sunset for Gulika, Mandi, Hora/Ghati Lagna.
+
+    Now returns (UPDATED 2026-03-02):
+      gulika, mandi, hora_lagna (FIX: anchors to Sun), ghati_lagna (FIX: anchors to Sun),
+      indu_lagna, varnada_lagna (NEW), pranapada (NEW), sri_lagna (NEW),
+      upagrahas, yogi_avayogi, bhrigu_bindu, lagna_drekkana,
+      natal_sahams (NEW — 19 classical Arabic Parts).
 
     Args:
-        birth_dt:    birth datetime
-        lagna_lon:   Ascendant longitude (sidereal)
-        moon_lon:    Moon longitude (sidereal)
-        house_lords: {house_num: planet_name} (needed for Indu Lagna)
-        sun_lon:     Sun longitude (needed for Upagrahas, Yogi)
-        rahu_lon:    Rahu longitude (needed for Bhrigu Bindu)
-        latitude:    birth latitude (for precise sunrise)
-        longitude:   birth longitude (for precise sunrise)
-        tz_offset:   UTC offset hours (for precise sunrise)
-
-    Returns dict with all computed points and their sign placements.
+        planet_lons:    {planet_name: longitude} — for natal sahams
+        house_cusps:    {1..12: cusp_longitude}  — for Mrityu/Paradesa sahams
+        lagna_lord_lon: longitude of Lagna lord planet — for Samartha saham
+        is_daytime:     True if birth is between sunrise and sunset
     """
     from vedic_engine.core.coordinates import sign_of as _sign_of
     sign_names = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo",
                   "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
 
-    # ── Compute real sunrise/sunset for this birth date & location ──
+    # ── Compute real sunrise/sunset ──────────────────────────────────────────
     sunrise_h, sunset_h = 6.0, 18.0
     if _HAS_SUNRISE_API and (latitude != 0.0 or longitude != 0.0):
         try:
@@ -605,20 +882,29 @@ def compute_all_special_points(
 
     gulika      = compute_gulika(birth_dt, lagna_lon, sunrise_h, sunset_h)
     mandi       = compute_mandi(birth_dt, lagna_lon, sunrise_h, sunset_h)
-    hora_lagna  = compute_hora_lagna(birth_dt, lagna_lon, sunrise_h)
-    ghati_lagna = compute_ghati_lagna(birth_dt, lagna_lon, sunrise_h)
+    # FIX 2026-03-02: hora and ghati lagna now anchored to sun_lon (not lagna_lon)
+    hora_lagna  = compute_hora_lagna(birth_dt, sun_lon if sun_lon else lagna_lon, sunrise_h)
+    ghati_lagna = compute_ghati_lagna(birth_dt, sun_lon if sun_lon else lagna_lon, sunrise_h)
     indu_lagna  = compute_indu_lagna(lagna_lon, moon_lon, house_lords or {})
+
+    # NEW 2026-03-02: Varnada, Pranapada, Sri Lagnas
+    varnada_lagna  = compute_varnada_lagna(lagna_lon, hora_lagna)
+    pranapada      = compute_pranapada_lagna(birth_dt, sun_lon if sun_lon else lagna_lon, sunrise_h)
+    sri_lagna      = compute_sri_lagna(lagna_lon, moon_lon)
 
     def _describe(lon: float) -> Dict:
         s = _sign_of(lon)
         return {"longitude": lon, "sign": sign_names[s], "sign_idx": s}
 
     result = {
-        "gulika":      _describe(gulika),
-        "mandi":       _describe(mandi),
-        "hora_lagna":  _describe(hora_lagna),
-        "ghati_lagna": _describe(ghati_lagna),
-        "indu_lagna":  _describe(indu_lagna),
+        "gulika":        _describe(gulika),
+        "mandi":         _describe(mandi),
+        "hora_lagna":    _describe(hora_lagna),
+        "ghati_lagna":   _describe(ghati_lagna),
+        "indu_lagna":    _describe(indu_lagna),
+        "varnada_lagna": _describe(varnada_lagna),
+        "pranapada":     _describe(pranapada),
+        "sri_lagna":     _describe(sri_lagna),
     }
 
     # Upagrahas (from Sun)
@@ -636,4 +922,14 @@ def compute_all_special_points(
     # Lagna drekkana nature
     result["lagna_drekkana"] = classify_drekkana(lagna_lon)
 
+    # NEW 2026-03-02: 19 classical natal Sahams
+    if planet_lons:
+        result["natal_sahams"] = compute_natal_sahams(
+            planet_lons, lagna_lon,
+            house_cusps=house_cusps,
+            lagna_lord_lon=lagna_lord_lon,
+            is_daytime=is_daytime,
+        )
+
     return result
+

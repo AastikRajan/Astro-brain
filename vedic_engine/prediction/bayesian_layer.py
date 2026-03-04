@@ -86,6 +86,8 @@ def _kp_evidence(kp_confirmation: float) -> Tuple[float, float]:
 def compute_bayesian_confidence(
     components: Dict[str, float],
     domain: str = "generic",
+    dasha_convergence: "float | None" = None,   # Phase 2G: 1.5 pseudo-obs
+    varshaphala_score: "float | None" = None,   # Phase 2H: 1.0 pseudo-obs
 ) -> Dict:
     """
     Bayesian Beta-conjugate update of domain success probability.
@@ -100,6 +102,12 @@ def compute_bayesian_confidence(
               dasha_planet            : str   — name of active MD lord
               strong_transit_planets  : list  — planets with net_score ≥ 0.5
     domain : str — used for labelling only
+    dasha_convergence : float [0,1] or None
+        Phase 2G — ratio of dasha systems (Vim/Yogini/Chara/Ashto) that
+        agree on domain support. Adds 1.5 pseudo-observations.
+    varshaphala_score : float [0,1] or None
+        Phase 2H — Tajika annual chart alignment for the domain.
+        Adds 1.0 pseudo-observations.
 
     Returns
     -------
@@ -158,6 +166,22 @@ def compute_bayesian_confidence(
     kp_a, kp_b = _kp_evidence(kp)
     alpha += kp_a; beta_ += kp_b
     factors["kp"] = round(kp_a / (kp_a + kp_b + 1e-9), 3)
+
+    # ── Phase 2G: Multi-dasha convergence (1.5 pseudo-obs) ────────
+    if dasha_convergence is not None:
+        _dc = max(0.0, min(1.0, float(dasha_convergence)))
+        _dc_str = 1.5
+        alpha += _dc * _dc_str
+        beta_  += (1.0 - _dc) * _dc_str
+        factors["dasha_convergence_2g"] = round(_dc, 3)
+
+    # ── Phase 2H: Varshaphala alignment (1.0 pseudo-obs) ──────────
+    if varshaphala_score is not None:
+        _vs = max(0.0, min(1.0, float(varshaphala_score)))
+        _vs_str = 1.0
+        alpha += _vs * _vs_str
+        beta_  += (1.0 - _vs) * _vs_str
+        factors["varshaphala_2h"] = round(_vs, 3)
 
     # ── Posterior statistics ──────────────────────────────────────
     posterior_mean = alpha / (alpha + beta_)

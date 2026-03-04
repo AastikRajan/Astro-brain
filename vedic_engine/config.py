@@ -362,15 +362,18 @@ NIGHT_STRONG_PLANETS: FrozenSet[Planet] = frozenset({
 # Points awarded in each varga for each dignity level (in shashtiamsas)
 # Based on standard BPHS interpretation
 SAPTAVARGAJA_SCORES: Dict[Dignity, float] = {
-    Dignity.EXALTED: 45.0,       # Treated equivalent to Moolatrikona (BPHS Table 2)
-    Dignity.MOOLATRIKONA: 45.0,
-    Dignity.OWN: 30.0,
-    Dignity.GREAT_FRIEND: 22.5,
-    Dignity.FRIEND: 15.0,
-    Dignity.NEUTRAL: 7.5,
-    Dignity.ENEMY: 3.75,
-    Dignity.GREAT_ENEMY: 1.875,
-    Dignity.DEBILITATED: 0.0,
+    # Research File 1 (Saravali / BPHS Ch.27) exact classical values:
+    # Exalted: bypassed in Saptavargaja context → treated as Own Sign (30)
+    # Debilitated: bypassed → treated as Adhi Satru (2)
+    Dignity.EXALTED: 30.0,       # Classical bypass: no exaltation bonus in varga context → OWN equivalent
+    Dignity.MOOLATRIKONA: 45.0,  # Root Trine
+    Dignity.OWN: 30.0,           # Swakshetra
+    Dignity.GREAT_FRIEND: 20.0,  # Adhi Mitra (Extreme Friend)  [was 22.5 — FIXED]
+    Dignity.FRIEND: 15.0,        # Mitra
+    Dignity.NEUTRAL: 10.0,       # Sama (Neutral)               [was 7.5  — FIXED]
+    Dignity.ENEMY: 4.0,          # Satru                        [was 3.75 — FIXED]
+    Dignity.GREAT_ENEMY: 2.0,    # Adhi Satru (Extreme Enemy)   [was 1.875 — FIXED]
+    Dignity.DEBILITATED: 2.0,    # Classical bypass → Adhi Satru equivalent
 }
 
 # The 7 vargas used for Saptavargaja
@@ -514,12 +517,27 @@ VEDHA_TABLE: Dict[Planet, Dict[int, int]] = {
     Planet.SUN:     {3: 9, 6: 12, 10: 4, 11: 5},
     Planet.MOON:    {1: 5, 3: 9, 6: 12, 7: 2, 10: 4, 11: 8},
     Planet.MARS:    {3: 12, 6: 9, 11: 5},
-    Planet.MERCURY: {6: 12, 8: 1, 10: 4, 11: 3},   # fixed: removed 2:5 and 4:3 (2,4 not favorable)
+    Planet.MERCURY: {2: 5, 4: 3, 6: 9, 8: 1, 10: 8, 11: 12},  # fixed: Mercury favored in 2,4,6,8,10,11
     Planet.JUPITER: {2: 12, 5: 4, 7: 3, 9: 10, 11: 8},
     Planet.VENUS:   {1: 8, 2: 7, 3: 1, 4: 10, 5: 9, 8: 5, 9: 11, 11: 3, 12: 6},
     Planet.SATURN:  {3: 12, 6: 9, 11: 5},
     Planet.RAHU:    {3: 12, 6: 9, 11: 5},
     Planet.KETU:    {3: 12, 6: 9, 11: 5},
+}
+
+# Vipareeta Vedha: when transit planet is in INAUSPICIOUS house, if another
+# planet is in the paired house the adverse effect is cancelled.
+# Format: Planet → {inauspicious_house: cancelling_house}
+VIPAREETA_VEDHA_TABLE: Dict[Planet, Dict[int, int]] = {
+    Planet.SUN:     {4: 10, 5: 11, 9: 3, 12: 6},
+    Planet.MOON:    {2: 7, 4: 10, 5: 1, 8: 11, 9: 3, 12: 6},
+    Planet.MARS:    {5: 11, 9: 6, 12: 3},
+    Planet.MERCURY: {1: 8, 3: 4, 5: 2, 9: 6, 12: 11},
+    Planet.JUPITER: {3: 7, 4: 5, 8: 11, 10: 9, 12: 2},
+    Planet.VENUS:   {6: 11, 7: 2, 10: 4},
+    Planet.SATURN:  {5: 11, 9: 6, 12: 3},
+    Planet.RAHU:    {5: 11, 9: 6, 12: 3},
+    Planet.KETU:    {5: 11, 9: 6, 12: 3},
 }
 
 # Exception: Sun and Saturn do NOT obstruct each other
@@ -776,7 +794,7 @@ TRIKONA_GROUPS: List[Tuple[Sign, Sign, Sign]] = [
 
 RASHI_MULTIPLIERS: Dict[Sign, int] = {
     Sign.ARIES: 7, Sign.TAURUS: 10, Sign.GEMINI: 8, Sign.CANCER: 4,
-    Sign.LEO: 10, Sign.VIRGO: 8, Sign.LIBRA: 7, Sign.SCORPIO: 8,
+    Sign.LEO: 10, Sign.VIRGO: 5, Sign.LIBRA: 7, Sign.SCORPIO: 8,
     Sign.SAGITTARIUS: 9, Sign.CAPRICORN: 5, Sign.AQUARIUS: 11, Sign.PISCES: 12,
 }
 

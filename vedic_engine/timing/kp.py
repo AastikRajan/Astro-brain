@@ -238,20 +238,22 @@ def compute_ruling_planets(
 
 # House arrays for YES/NO query resolution (KP method)
 PRASHNA_HOUSE_ARRAYS: Dict[str, Dict[str, list]] = {
+    "career":         {"yes": [2, 6, 10, 11],  "no": [5, 8, 12]},
     "marriage":       {"yes": [2, 7, 11],       "no": [1, 6, 10, 12]},
     "job":            {"yes": [2, 6, 10, 11],   "no": [1, 5, 9, 12]},
     "promotion":      {"yes": [2, 6, 10, 11],   "no": [1, 5, 9, 12]},
     "health_recovery":{"yes": [1, 5, 11],       "no": [6, 8, 12]},
-    "financial_gain": {"yes": [2, 6, 11],       "no": [5, 8, 12]},
-    "foreign_travel": {"yes": [3, 9, 12],       "no": [2, 4, 11]},
-    "legal_victory":  {"yes": [6, 11],          "no": [7, 12]},
+    "financial_gain": {"yes": [2, 6, 10, 11],    "no": [5, 8, 12]},
+    "children":       {"yes": [2, 5, 11],         "no": [1, 4, 10, 12]},
+    "foreign_travel": {"yes": [3, 9, 12],         "no": [2, 8, 11]},
+    "legal_victory":  {"yes": [6, 11],            "no": [7, 12]},
 }
 
 # Primary cusp for each query type
 PRASHNA_PRIMARY_CUSP: Dict[str, int] = {
     "marriage": 7, "job": 10, "promotion": 10,
-    "health_recovery": 6, "financial_gain": 2,
-    "foreign_travel": 9, "legal_victory": 6,
+    "health_recovery": 1, "financial_gain": 2,
+    "children": 5, "foreign_travel": 12, "legal_victory": 6,
 }
 
 

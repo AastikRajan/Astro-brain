@@ -961,6 +961,7 @@ def _dharma_karmadhipati_yoga(
         house_lords: Dict[int, str],
         shadbala_ratios: Dict[str, float],
         asp_map: Dict,
+        lagna_sign: int = 0,
 ) -> List[YogaResult]:
     """
     Dharma-Karmadhipati Raja Yoga: mutual aspect, conjunction, or sign-exchange
@@ -992,7 +993,13 @@ def _dharma_karmadhipati_yoga(
         return results
 
     mode = "conjunction" if conjunction else ("exchange" if exchange else "mutual aspect")
-    s = _avg_strength([l9, l10], shadbala_ratios)
+    # Per-lagna blemish dampeners: when L9/L10 simultaneously rules a dusthana
+    # Aries: Saturn(L10) also rules 11th → moderate; Gemini: Saturn(L9) also rules 8th → severe
+    # Leo: Venus(L10) also rules 3rd → mild; Capricorn: Mercury(L9) also rules 6th → mild
+    # Aquarius: Mars(L10) also rules 3rd → mild
+    _DKA_BLEMISH = {0: 0.70, 2: 0.40, 4: 0.80, 9: 0.80, 10: 0.80}
+    blemish_factor = _DKA_BLEMISH.get(lagna_sign, 1.0)
+    s = _avg_strength([l9, l10], shadbala_ratios) * blemish_factor
     results.append(YogaResult(
         name="Dharma-Karmadhipati Raja Yoga",
         category="raj",
@@ -2313,6 +2320,429 @@ def compute_yoga_compounding(
     }
 
 
+# ═══════════════════════════════════════════════════════════════════
+# SECTION H: PHASE 1D — SAMBANDHA, GRADING, DARIDRA, ARISTHA, PRAVRAJYA
+# ═══════════════════════════════════════════════════════════════════
+
+def has_sambandha(
+        planet_a: str,
+        planet_b: str,
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        house_lords: Dict[int, str],
+        asp_map: Dict = None,
+) -> bool:
+    """
+    Returns True if planet_a and planet_b have a Sambandha (relationship):
+      1. Conjunction — both occupy the same house
+      2. Mutual aspect — each aspects the other (from asp_map)
+      3. Parivartana — each is in the other's own sign (sign exchange)
+    """
+    if asp_map is None:
+        asp_map = {}
+    ha = planet_houses.get(planet_a, 0)
+    hb = planet_houses.get(planet_b, 0)
+    # 1. Conjunction
+    if ha and hb and ha == hb:
+        return True
+    # 2. Mutual aspect
+    if (planet_a, planet_b) in asp_map or (planet_b, planet_a) in asp_map:
+        return True
+    # 3. Parivartana — pA in sign owned by pB AND pB in sign owned by pA
+    sign_a = sign_of(planet_lons.get(planet_a, 0))
+    sign_b = sign_of(planet_lons.get(planet_b, 0))
+    # Build reverse map: planet_name → list of own signs (0-based index)
+    own_of_a: List[int] = []
+    own_of_b: List[int] = []
+    try:
+        pa_enum = _P.get(planet_a)
+        pb_enum = _P.get(planet_b)
+        if pa_enum and pb_enum:
+            for s_enum, lord_enum in SIGN_LORDS.items():
+                if lord_enum == pa_enum:
+                    own_of_a.append(s_enum.value)
+                if lord_enum == pb_enum:
+                    own_of_b.append(s_enum.value)
+            if sign_a in own_of_b and sign_b in own_of_a:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def grade_yoga(
+        yoga_planets: List[str],
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        shadbala_ratios: Dict[str, float],
+        asp_map: Dict = None,
+        malefic_set: Optional[Set[str]] = None,
+) -> Dict:
+    """
+    Universal yoga grading: returns {grade: str, score: float}.
+      S-Tier (1.0): exalted/moolatrikona + kendra/trikona, no malefic combust
+      A-Tier (0.75): own sign OR avg shadbala >= 1.0, kendra/trikona, not combust
+      B-Tier (0.50): shadbala >= 0.7, neutral positions
+      C-Tier (0.25): weak, afflicted, upachaya
+    """
+    if asp_map is None:
+        asp_map = {}
+    if malefic_set is None:
+        malefic_set = {p.name for p in NATURAL_MALEFICS}
+
+    avg_sb = _avg_strength(yoga_planets, shadbala_ratios)
+    any_combust = any(_is_combust(p, planet_lons) for p in yoga_planets)
+    any_exalted = any(_is_exalted(p, planet_lons.get(p, 0)) for p in yoga_planets)
+    any_moolatrikona = any(
+        MOOLATRIKONA.get(_P.get(p)) is not None
+        and sign_of(planet_lons.get(p, 0)) == MOOLATRIKONA.get(_P.get(p)).value
+        for p in yoga_planets if _P.get(p)
+    )
+    all_kendra_trikona = all(
+        _is_in_kendra(planet_houses.get(p, 0)) or _is_in_trikona(planet_houses.get(p, 0))
+        for p in yoga_planets
+    )
+    any_own = any(
+        _is_own_sign(p, sign_of(planet_lons.get(p, 0))) for p in yoga_planets
+    )
+    any_dusthana = any(planet_houses.get(p, 0) in {6, 8, 12} for p in yoga_planets)
+
+    if (any_exalted or any_moolatrikona) and all_kendra_trikona and not any_combust:
+        return {"grade": "S", "score": 1.0}
+    if (any_own or avg_sb >= 1.0) and all_kendra_trikona and not any_combust:
+        return {"grade": "A", "score": 0.75}
+    if avg_sb >= 0.7 and not any_dusthana:
+        return {"grade": "B", "score": 0.5}
+    return {"grade": "C", "score": 0.25}
+
+
+def _daridra_yogas(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+) -> List[YogaResult]:
+    """
+    Daridra (poverty) yogas:
+      - L11 in dusthana (6, 8, 12)
+      - L2 in dusthana
+      - Kemadruma (Moon isolated — no planets in 2nd or 12th from Moon)
+    Viparita override: if the afflicted lord also rules a dusthana, the yoga is cancelled
+    (the malefic house-ownership neutralises the damage).
+    """
+    results: List[YogaResult] = []
+    dusthana = {6, 8, 12}
+    # Dusthana lords (rulers) — for Viparita check
+    dusthana_lords: Set[str] = set()
+    for dh in dusthana:
+        l = house_lords.get(dh, "")
+        if l:
+            dusthana_lords.add(l)
+
+    for house_num, tag in [(11, "11th"), (2, "2nd")]:
+        lord = house_lords.get(house_num, "")
+        if not lord:
+            continue
+        h = planet_houses.get(lord, 0)
+        if h not in dusthana:
+            continue
+        # Viparita override: lord also rules a dusthana house → cancel
+        if lord in dusthana_lords:
+            continue
+        s = shadbala_ratios.get(lord, 0.5)
+        results.append(YogaResult(
+            name=f"Daridra Yoga (L{house_num} in H{h})",
+            category="daridra",
+            detected=True,
+            strength=1.0 - s,
+            planets=[lord],
+            houses=[h],
+            description=(
+                f"Lord of {tag} placed in {h}th house (dusthana). "
+                "Daridra Yoga: financial strain, losses, obstructions to gains. "
+                "Activated during that lord's dasha."
+            ),
+            activating_dasha=[lord],
+        ))
+
+    # Kemadruma as Daridra subtype (if Moon is isolated)
+    moon_h = planet_houses.get("MOON", 0)
+    if moon_h and not _is_in_kendra(moon_h):
+        second_from_moon   = (moon_h % 12) + 1
+        twelfth_from_moon  = (moon_h - 2) % 12 + 1
+        surrounding = {moon_h, second_from_moon, twelfth_from_moon}
+        nearby = [
+            p for p in PLANET_NAMES_7
+            if p != "MOON" and planet_houses.get(p, 0) in surrounding
+        ]
+        if not nearby:
+            results.append(YogaResult(
+                name="Kemadruma Daridra Yoga",
+                category="daridra",
+                detected=True,
+                strength=1.0 - shadbala_ratios.get("MOON", 0.5),
+                planets=["MOON"],
+                houses=[moon_h],
+                description=(
+                    "Moon isolated with no planets in 2nd/12th from itself. "
+                    "Kemadruma: emotional and financial hardship; lack of support."
+                ),
+                activating_dasha=["MOON"],
+            ))
+    return results
+
+
+def _aristha_yogas(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        shadbala_ratios: Dict[str, float],
+        lagna_sign: int = 0,
+        asp_map: Dict = None,
+) -> List[YogaResult]:
+    """
+    Aristha (health adversity) yogas:
+      Balarishta:
+        (a) Moon in dusthana (6/8/12) AND aspected by MAR or SAT
+        (b) Moon conjunct Rahu or Ketu
+        (c) Luminaries (Sun+Moon) conjunct a node in the same sign
+      Bhanga (cancellation):
+        - Jupiter in H1
+        - Lagna lord (house_lords[1]) in kendra (1/4/7/10)
+      If Bhanga applies, yoga is still recorded but cancellation_reason is set.
+    """
+    if asp_map is None:
+        asp_map = {}
+    results: List[YogaResult] = []
+    dusthana = {6, 8, 12}
+    moon_h = planet_houses.get("MOON", 0)
+
+    def _bhanga_check() -> Optional[str]:
+        jup_h = planet_houses.get("JUPITER", 0)
+        if jup_h == 1:
+            return "Jupiter in Lagna cancels Balarishta"
+        # lagna lord in kendra — requires house_lords, but we don't have it here;
+        # we'll use a simpler proxy: any planet in H1 that belongs to lagna sign
+        return None
+
+    bhanga_reason = _bhanga_check()
+
+    # Case (a): Moon in dusthana + malefic aspect
+    if moon_h in dusthana:
+        malefic_asp = (
+            ("MARS", "MOON") in asp_map or ("MOON", "MARS") in asp_map or
+            ("SATURN", "MOON") in asp_map or ("MOON", "SATURN") in asp_map
+        )
+        if malefic_asp:
+            results.append(YogaResult(
+                name="Balarishta Yoga (Moon in dusthana + malefic aspect)",
+                category="aristha",
+                detected=True,
+                strength=0.8,
+                planets=["MOON"],
+                houses=[moon_h],
+                description=(
+                    f"Moon in {moon_h}th (dusthana) aspected by Mars/Saturn. "
+                    "Balarishta: health challenges especially in early life."
+                ),
+                cancellation_reason=bhanga_reason or "",
+                activating_dasha=["MOON"],
+            ))
+
+    # Case (b): Moon conjunct Rahu or Ketu
+    rahu_h = planet_houses.get("RAHU", planet_houses.get("NORTHNODE", 0))
+    ketu_h = planet_houses.get("KETU", planet_houses.get("SOUTHNODE", 0))
+    if moon_h and (moon_h == rahu_h or moon_h == ketu_h):
+        node_name = "RAHU" if moon_h == rahu_h else "KETU"
+        results.append(YogaResult(
+            name=f"Balarishta Yoga (Moon conjunct {node_name})",
+            category="aristha",
+            detected=True,
+            strength=0.7,
+            planets=["MOON", node_name],
+            houses=[moon_h],
+            description=(
+                f"Moon conjunct {node_name} in H{moon_h}. "
+                "Node conjunction afflicts Moon: health, emotional instability."
+            ),
+            cancellation_reason=bhanga_reason or "",
+            activating_dasha=["MOON"],
+        ))
+
+    # Case (c): Sun + Moon both conjunct a node (same house)
+    sun_h = planet_houses.get("SUN", 0)
+    if sun_h and moon_h and sun_h == moon_h:
+        if sun_h == rahu_h or sun_h == ketu_h:
+            node_name = "RAHU" if sun_h == rahu_h else "KETU"
+            results.append(YogaResult(
+                name=f"Chandraditya-Grahan Aristha (Luminaries + {node_name})",
+                category="aristha",
+                detected=True,
+                strength=0.9,
+                planets=["SUN", "MOON", node_name],
+                houses=[sun_h],
+                description=(
+                    f"Sun and Moon both conjunct {node_name} in H{sun_h}. "
+                    "Severe eclipse-type affliction; vitality and mind challenged."
+                ),
+                cancellation_reason=bhanga_reason or "",
+                activating_dasha=["SUN", "MOON"],
+            ))
+    return results
+
+
+def _pravrajya_yogas(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        house_lords: Dict[int, str],
+        shadbala_ratios: Dict[str, float],
+        asp_map: Dict = None,
+) -> List[YogaResult]:
+    """
+    Pravrajya (renunciation / spiritual path) yoga:
+      - 4 or more planets in a single sign
+      - Flavor determined by the highest-Shadbala planet among those crowded
+        SUN=Tapasvi  MOON=Kapali  MARS=Rakta-Sannyas  MERCURY=Jnani
+        JUPITER=Parivrajaka  VENUS=Bhushundi  SATURN=Yogi
+      - Ketu trigger: Ketu in 12th + aspected by L5, L9, or Jupiter ← adds 0.1 boost
+      - Cancelled if the strongest planet is combust
+    """
+    if asp_map is None:
+        asp_map = {}
+    results: List[YogaResult] = []
+    _FLAVOR = {
+        "SUN": "Tapasvi (ascetic of fire)",
+        "MOON": "Kapali (wandering mendicant)",
+        "MARS": "Rakta-Sannyas (warrior renunciant)",
+        "MERCURY": "Jnani (philosopher-scholar)",
+        "JUPITER": "Parivrajaka (forest sage)",
+        "VENUS": "Bhushundi (devotee of beauty)",
+        "SATURN": "Yogi (disciplined ascetic)",
+    }
+    # Count planets per sign
+    sign_count: Dict[int, List[str]] = {}
+    for p in PLANET_NAMES_7:
+        s = sign_of(planet_lons.get(p, 0))
+        sign_count.setdefault(s, []).append(p)
+
+    for sign_idx, planets_in_sign in sign_count.items():
+        if len(planets_in_sign) < 4:
+            continue
+        # Strongest by Shadbala
+        strongest = max(planets_in_sign, key=lambda p: shadbala_ratios.get(p, 0))
+        flavor = _FLAVOR.get(strongest, "unknown")
+        # Check cancellation: strongest planet combust
+        if _is_combust(strongest, planet_lons):
+            continue
+        # Ketu trigger bonus
+        ketu_h = planet_houses.get("KETU", planet_houses.get("SOUTHNODE", 0))
+        ketu_bonus = 0.0
+        l5 = house_lords.get(5, "")
+        l9 = house_lords.get(9, "")
+        if ketu_h == 12:
+            jup_asp = ("JUPITER", "KETU") in asp_map or ("KETU", "JUPITER") in asp_map
+            l5_asp  = l5 and (
+                (l5, "KETU") in asp_map or ("KETU", l5) in asp_map
+            )
+            l9_asp  = l9 and (
+                (l9, "KETU") in asp_map or ("KETU", l9) in asp_map
+            )
+            if jup_asp or l5_asp or l9_asp:
+                ketu_bonus = 0.1
+        strength = min(1.0, _avg_strength(planets_in_sign, shadbala_ratios) + ketu_bonus)
+        results.append(YogaResult(
+            name=f"Pravrajya Yoga ({flavor})",
+            category="pravrajya",
+            detected=True,
+            strength=strength,
+            planets=planets_in_sign,
+            houses=[planet_houses.get(p, 0) for p in planets_in_sign],
+            description=(
+                f"{len(planets_in_sign)} planets in sign {sign_idx}. "
+                f"Pravrajya Yoga — {flavor}. Indicates renunciation, "
+                "spiritual absorption, or a life devoted to higher purpose."
+            ),
+            activating_dasha=[strongest],
+        ))
+    return results
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SECTION I: UNIFIED YOGA OUTPUT (Phase 1D.9)
+# ═══════════════════════════════════════════════════════════════════
+
+_YOGA_DOMAIN_MAP: Dict[str, str] = {
+    "raj": "career", "dhana": "finance", "daridra": "finance",
+    "aristha": "health", "nabhasa": "general", "pravrajya": "spiritual",
+    "moksha": "spiritual", "pancha_mahapurusha": "career",
+    "challenging": "general", "graha_yuddha": "general",
+}
+
+
+def compute_all_extended_yogas(
+        planet_houses: Dict[str, int],
+        planet_lons: Dict[str, float],
+        shadbala_ratios: Dict[str, float],
+        house_lords: Dict[int, str],
+        asp_map: Dict = None,
+        lagna_sign: int = 0,
+        dasha_planet: str = "",
+        antardasha_planet: str = "",
+        retrograde_planets: Set[str] = None,
+        planet_lats: Dict[str, float] = None,
+) -> List[Dict]:
+    """
+    Master yoga computation returning unified list of dicts for Phase 1D.9.
+    Combines detect_all_yogas() with new Daridra, Aristha, Pravrajya detectors
+    and grades each yoga with grade_yoga().
+
+    Returns list of:
+      {name, type, planets, grade, score, domain, active, cancellation}
+    """
+    if asp_map is None:
+        asp_map = {}
+    retrograde_planets = retrograde_planets or set()
+    planet_lats = planet_lats or {}
+
+    # ── Run base detector (all existing yogas) ─────────────────
+    base: List[YogaResult] = detect_all_yogas(
+        planet_houses, planet_lons, shadbala_ratios,
+        house_lords, asp_map, lagna_sign=lagna_sign,
+        dasha_planet=dasha_planet, antardasha_planet=antardasha_planet,
+        retrograde_planets=retrograde_planets, planet_lats=planet_lats,
+    )
+
+    # ── Run new Phase 1D detectors ─────────────────────────────
+    daridra  = _daridra_yogas(planet_houses, planet_lons, house_lords, shadbala_ratios)
+    aristha  = _aristha_yogas(planet_houses, planet_lons, shadbala_ratios,
+                               lagna_sign=lagna_sign, asp_map=asp_map)
+    pravrajya = _pravrajya_yogas(planet_houses, planet_lons, house_lords,
+                                  shadbala_ratios, asp_map=asp_map)
+
+    all_results: List[YogaResult] = base + daridra + aristha + pravrajya
+
+    # ── Convert to unified dict format ─────────────────────────
+    unified: List[Dict] = []
+    for y in all_results:
+        if not y.detected:
+            continue
+        grading = grade_yoga(
+            y.planets, planet_houses, planet_lons, shadbala_ratios, asp_map
+        )
+        domain = _YOGA_DOMAIN_MAP.get(y.category, "general")
+        unified.append({
+            "name":         y.name,
+            "type":         y.category,
+            "planets":      y.planets,
+            "grade":        grading["grade"],
+            "score":        grading["score"],
+            "domain":       domain,
+            "active":       not bool(y.cancellation_reason),
+            "cancellation": y.cancellation_reason or None,
+        })
+
+    return unified
+
+
 def detect_all_yogas(
         planet_houses: Dict[str, int],
         planet_lons: Dict[str, float],
@@ -2361,7 +2791,7 @@ def detect_all_yogas(
         all_results.append(sw)
 
     # ── New catalog yogas (Section A) ────────────────────────────
-    all_results.extend(_dharma_karmadhipati_yoga(planet_houses, planet_lons, house_lords, shadbala_ratios, asp_map))
+    all_results.extend(_dharma_karmadhipati_yoga(planet_houses, planet_lons, house_lords, shadbala_ratios, asp_map, lagna_sign=lagna_sign))
     kh = _kahala_yoga(planet_houses, house_lords, shadbala_ratios)
     if kh:
         all_results.append(kh)

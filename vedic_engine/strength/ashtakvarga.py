@@ -208,7 +208,9 @@ def compute_full_ashtakvarga(
     2. Sarvashtakvarga
     3. Checksum validation
     4. Trikona + Ekadhipatya Shodhana per planet
-    5. Pinda Sadhana per planet
+    5. Pinda Sadhana per planet (legacy combined formula)
+    6. Shodhya Pinda per planet (Phase 1C: correct R+G formula)
+    7. Prastharashtakavarga / PAV (Phase 1C: full 8×12 kakshya matrix)
     """
     bhinna = compute_all_bhinna(planet_signs, lagna_sign)
     sarva = compute_sarvashtakvarga(bhinna)
@@ -223,6 +225,12 @@ def compute_full_ashtakvarga(
         shodhana_results[pname] = after_ekad
         pinda_results[pname] = pinda_sadhana(after_ekad, pname, planet_signs)
 
+    # Phase 1C: Shodhya Pinda (correct Rashi Pinda + Graha Pinda formula)
+    shodhya_pinda = compute_shodhya_pinda(shodhana_results, planet_signs)
+
+    # Phase 1C: Prastharashtakavarga (PAV) — full 8-contributor × 12-sign matrices
+    pav = compute_prastharashtakavarga(planet_signs, lagna_sign)
+
     return {
         "bhinna": bhinna,
         "sarva": sarva,
@@ -230,6 +238,8 @@ def compute_full_ashtakvarga(
         "checksums": checks,
         "shodhana": shodhana_results,
         "pinda": pinda_results,
+        "shodhya_pinda": shodhya_pinda,
+        "pav": pav,
         "sign_names": SIGN_NAMES,
     }
 
@@ -258,6 +268,186 @@ def transit_av_score(
         "bav_above_average": bav_score > 4,  # >4 of 8 is above average
         "overall_favorable": bav_score > 3 and sav_score > sav_avg,
     }
+
+
+# ─── Shodhya Pinda (Phase 1C 2026-03-02) ────────────────────────────────────
+
+_RASHI_GUN: List[int] = [7, 10, 8, 4, 10, 5, 7, 8, 9, 5, 11, 12]  # Aries–Pisces
+_GRAHA_GUN: Dict[str, int] = {
+    "SUN": 5, "MOON": 5, "MARS": 8, "MERCURY": 5,
+    "JUPITER": 10, "VENUS": 7, "SATURN": 5,
+}
+
+
+def compute_shodhya_pinda(
+        shodhana: Dict[str, List[int]],
+        planet_signs: Dict[str, int],
+) -> Dict[str, int]:
+    """
+    Compute Shodhya Pinda for each planet (Phase 1C).
+
+    Formula (BPHS):
+      Rashi Pinda  = Σ_s (reduced_bindu[s] × RASHI_GUN[s])   for ALL 12 signs
+      Graha Pinda  = Σ_p (reduced_bindu[sign_of_p] × GRAHA_GUN[p])  for each planet
+      Shodhya Pinda = Rashi Pinda + Graha Pinda
+
+    Args:
+        shodhana:     {planet: [12 reduced bindus]} — output of ekadhipatya_shodhana
+        planet_signs: {planet_name: sign_index (0-11)}
+
+    Returns: {planet: shodhya_pinda_integer}
+    """
+    result: Dict[str, int] = {}
+    for pname, bindus in shodhana.items():
+        # Rashi Pinda
+        rashi_pinda = sum(bindus[s] * _RASHI_GUN[s] for s in range(12))
+        # Graha Pinda — for each planet located in a sign, add reduced_bindu × graha_gun
+        graha_pinda = 0
+        for contrib_name, g_mult in _GRAHA_GUN.items():
+            s = planet_signs.get(contrib_name)
+            if s is not None:
+                graha_pinda += bindus[s] * g_mult
+        result[pname] = rashi_pinda + graha_pinda
+    return result
+
+
+# ─── Prastharashtakavarga / PAV (Phase 1C 2026-03-02) ───────────────────────
+# 7 planets' PAV contribution tables: {recipient → {contributor → [house_offsets_1based]}}
+# Source: Research File 5 (Vedic Astrology Engine: Ashtakavarga & Dashas)
+
+_PAV_TABLES: Dict[str, Dict[str, List[int]]] = {
+    "SUN": {
+        "SUN":     [1,2,4,7,8,9,10,11],
+        "MOON":    [3,6,10,11],
+        "MARS":    [1,2,4,7,8,9,10,11],
+        "MERCURY": [3,5,6,9,10,11,12],
+        "JUPITER": [5,6,9,11],
+        "VENUS":   [6,7,12],
+        "SATURN":  [1,2,4,7,8,9,10,11],
+        "ASC":     [3,4,6,10,11,12],
+    },
+    "MOON": {
+        "SUN":     [3,6,7,8,10,11],
+        "MOON":    [1,3,6,7,10,11],
+        "MARS":    [2,3,5,6,9,10,11],
+        "MERCURY": [1,3,4,5,7,8,10,11],
+        "JUPITER": [1,4,7,8,10,11,12],
+        "VENUS":   [3,4,5,7,9,10,11],
+        "SATURN":  [3,5,6,11],
+        "ASC":     [3,6,10,11],
+    },
+    "MARS": {
+        "SUN":     [3,5,6,10,11],
+        "MOON":    [3,6,11],
+        "MARS":    [1,2,4,7,8,10,11],
+        "MERCURY": [3,5,6,11],
+        "JUPITER": [6,10,11,12],
+        "VENUS":   [6,8,11,12],
+        "SATURN":  [1,4,7,8,9,10,11],
+        "ASC":     [1,3,6,10,11],
+    },
+    "MERCURY": {
+        "SUN":     [5,6,9,11,12],
+        "MOON":    [2,4,6,8,10,11],
+        "MARS":    [1,2,4,7,8,9,10,11],
+        "MERCURY": [1,3,5,6,9,10,11,12],
+        "JUPITER": [6,8,11,12],
+        "VENUS":   [1,2,3,4,5,8,9,11],
+        "SATURN":  [1,2,4,7,8,9,10,11],
+        "ASC":     [1,2,4,6,8,10,11],
+    },
+    "JUPITER": {
+        "SUN":     [1,2,3,4,7,8,9,10,11],
+        "MOON":    [2,5,7,9,11],
+        "MARS":    [1,2,4,7,8,10,11],
+        "MERCURY": [1,2,4,5,6,9,10,11],
+        "JUPITER": [1,2,3,4,7,8,10,11],
+        "VENUS":   [2,5,6,9,10,11],
+        "SATURN":  [3,5,6,12],
+        "ASC":     [1,2,4,5,6,7,9,10,11],
+    },
+    "VENUS": {
+        "SUN":     [8,11,12],
+        "MOON":    [1,2,3,4,5,8,9,11,12],
+        "MARS":    [3,5,6,9,11,12],
+        "MERCURY": [3,5,6,9,11],
+        "JUPITER": [5,8,9,10,11],
+        "VENUS":   [1,2,3,4,5,8,9,10,11],
+        "SATURN":  [3,4,5,8,9,10,11],
+        "ASC":     [1,2,3,4,5,8,9,11],
+    },
+    "SATURN": {
+        "SUN":     [1,2,4,7,8,10,11],
+        "MOON":    [3,6,11],
+        "MARS":    [3,5,6,10,11,12],
+        "MERCURY": [6,8,9,10,11,12],
+        "JUPITER": [5,6,11,12],
+        "VENUS":   [6,11,12],
+        "SATURN":  [3,5,6,11],
+        "ASC":     [1,3,4,6,10,11],
+    },
+}
+
+_CONTRIBUTORS = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN", "ASC"]
+
+
+def compute_prastharashtakavarga(
+        planet_signs: Dict[str, int],
+        lagna_sign: int,
+) -> Dict[str, Dict[str, List[int]]]:
+    """
+    Compute Prastharashtakavarga (PAV) — the full 8-contributor × 12-sign matrix
+    for each of the 7 classical planets. (Phase 1C 2026-03-02)
+
+    PAV[recipient][contributor] = [12 bindus (0 or 1)]
+    A bindu of 1 at sign S means contributor at natal_sign gave a benefic to sign S.
+
+    Contributors: SUN, MOON, MARS, MERCURY, JUPITER, VENUS, SATURN, ASC(Lagna)
+
+    Kakshya use: Each sign divides into 8 kakshyas (3°45' each), ruled by
+    SAT→JUP→MAR→SUN→VEN→MER→MOO→ASC. A transit is favorable in a kakshya if
+    PAV[planet][kakshya_lord][transit_sign] == 1.
+
+    Returns:
+        { recipient_planet: { contributor: [12 int (0/1)] }, ... }
+    """
+    result: Dict[str, Dict[str, List[int]]] = {}
+
+    for recipient, contributor_table in _PAV_TABLES.items():
+        pav_planet: Dict[str, List[int]] = {}
+
+        for contrib_name in _CONTRIBUTORS:
+            bindus = [0] * 12
+
+            # Determine contributor's natal sign
+            if contrib_name == "ASC":
+                contrib_sign = lagna_sign
+            else:
+                contrib_sign = planet_signs.get(contrib_name)
+                if contrib_sign is None:
+                    pav_planet[contrib_name] = bindus
+                    continue
+
+            offsets = contributor_table.get(contrib_name, [])
+            for h in offsets:                              # h is 1-based house offset
+                target = (contrib_sign + h - 1) % 12
+                bindus[target] = 1
+
+            pav_planet[contrib_name] = bindus
+
+        result[recipient] = pav_planet
+
+    return result
+
+
+def kakshya_lord_of_degree(degree_in_sign: float) -> str:
+    """
+    Return the Kakshya lord for a given degree within a sign (0–30°).
+    8 Kakshyas, each 3°45' (3.75°). Order: SAT, JUP, MAR, SUN, VEN, MER, MOO, ASC.
+    """
+    _KAKSHYA_LORDS = ["SATURN", "JUPITER", "MARS", "SUN", "VENUS", "MERCURY", "MOON", "ASC"]
+    idx = min(int(degree_in_sign / 3.75), 7)
+    return _KAKSHYA_LORDS[idx]
 
 
 def get_kaksha_lord(sign: int, degree_in_sign: float) -> str:

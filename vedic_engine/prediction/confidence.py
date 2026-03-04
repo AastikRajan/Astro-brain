@@ -176,40 +176,92 @@ def score_yoga_activation(
     domain: str,
 ) -> float:
     """
-    Quality and domain relevance of currently active yogas.
-    - Raja Yogas → career, authority
-    - Dhana Yogas → finance
-    - Gajakesari → career, wealth
-    - Amala → reputation, career
-    - etc.
+    Quality and domain relevance of currently active yogas — Phase 2A upgrade.
+
+    Uses extended yoga fields (grade, domain) when available:
+      - grade "S" → 1.00, "A" → 0.75, "B" → 0.50, "C" → 0.25
+      - domain field from extended yogas for direct domain match
+      - Name-based fallback for basic yogas (grade="C", domain="general")
+      - Cancelled yogas (active=False) count at 50% weight (weakened, not absent)
+      - Inherently negative yoga types (daridra/aristha/challenging) excluded
+
+    Scoring formula (backward-compatible + grade differentiation):
+      count_score   = min(domain_count, 5) / 5.0          (same scale as old formula)
+      avg_grade     = total_grade_sum / domain_count        (0.25..1.0)
+      grade_premium = (avg_grade - 0.25) / 0.75            (0.0..1.0)
+      score         = count_score × (1.0 + 0.5 × grade_premium)
+    Net effect: all-C chart = same as old; A/S yogas earn up to 50% bonus.
     """
-    domain_yoga_map = {
+    _GRADE_SCORE    = {"S": 1.00, "A": 0.75, "B": 0.50, "C": 0.25}
+    _NEGATIVE_TYPES = {"daridra", "aristha", "challenging"}
+
+    # Name-based domain map — fallback when domain field is absent or "general"
+    _NAME_DOMAIN_MAP: Dict[str, List[str]] = {
         "career":   ["Raja Yoga", "Gajakesari Yoga", "Amala Yoga", "Pancha Mahapurusha",
-                     "Budha-Aditya Yoga", "Adhi Yoga"],
+                     "Budha-Aditya Yoga", "Adhi Yoga", "Kahala Yoga", "Shasha Yoga",
+                     "Akhanda Samrajya Yoga", "Simhasana Yoga"],
         "finance":  ["Dhana Yoga", "Gajakesari Yoga", "Chandra-Mangal Yoga",
                      "Lakshmi Yoga", "Kubera Yoga"],
         "marriage": ["Kalathra Yoga", "Malavya Yoga", "Venus strong", "7L Dhana"],
         "health":   ["Viparita Raja Yoga", "Neechabhanga"],
-        "spiritual":["Viparita Raja Yoga", "Hamsa Yoga", "Neechabhanga"],
+        "spiritual":["Viparita Raja Yoga", "Hamsa Yoga", "Neechabhanga",
+                     "Pravrajya Yoga"],
     }
-    relevant_names = domain_yoga_map.get(domain.lower(), [])
+    relevant_names = _NAME_DOMAIN_MAP.get(domain.lower(), [])
+
     if not active_yogas:
-        return 0.1
+        return 0.05
 
-    matches = 0
+    domain_count     = 0
+    domain_grade_sum = 0.0
+
     for yoga in active_yogas:
-        # Handle both dict and dataclass/namedtuple
+        # Unpack yoga fields (dict = extended, else = legacy YogaResult)
         if isinstance(yoga, dict):
-            name = yoga.get("name", "")
+            name        = yoga.get("name", "")
+            yoga_domain = yoga.get("domain", "general")
+            yoga_type   = yoga.get("type", "general")
+            grade       = yoga.get("grade", "C")
+            active      = yoga.get("active", True)
+            gpt_mult    = float(yoga.get("_gpt_multiplier", 1.0))
         else:
-            name = getattr(yoga, "name", str(yoga))
-        if any(r.lower() in name.lower() for r in relevant_names):
-            matches += 1
+            name        = getattr(yoga, "name", str(yoga))
+            yoga_domain = "general"
+            yoga_type   = "general"
+            grade       = "C"
+            active      = not bool(getattr(yoga, "cancellation_reason", None))
+            gpt_mult    = 1.0
 
-    # More matches = stronger; cap at 5
-    score = min(matches, 5) / 5.0
-    # Baseline: having any yogas at all is positive
-    score = max(score, 0.1 * min(len(active_yogas), 5) / 5.0)
+        # Skip inherently negative categories — they don't add domain strength
+        if yoga_type in _NEGATIVE_TYPES:
+            continue
+
+        # Cancelled yogas: weakened but not absent — 50% weight
+        active_mult = 1.0 if active else 0.5
+        base = _GRADE_SCORE.get(grade, 0.25) * gpt_mult * active_mult
+
+        # Domain match: explicit field (extended) OR name-based (basic/general)
+        if yoga_domain == domain.lower():
+            domain_count += 1
+            domain_grade_sum += base
+        elif any(r.lower() in name.lower() for r in relevant_names):
+            domain_count += 1
+            domain_grade_sum += base
+
+    # ── Score computation ─────────────────────────────────────
+    if domain_count == 0:
+        return 0.05
+
+    # Count baseline (identical scale to old formula, capped at 5 matches)
+    count_score = min(domain_count, 5) / 5.0
+
+    # Average grade of matched yogas (0.25=all C … 1.0=all S)
+    avg_grade = domain_grade_sum / domain_count
+
+    # Grade premium: 0 (all C → no change) … 1 (all S → +50% bonus)
+    grade_premium = max(0.0, (avg_grade - 0.25) / 0.75)
+
+    score = min(1.0, count_score * (1.0 + 0.5 * grade_premium))
     return _clamp(score)
 
 
