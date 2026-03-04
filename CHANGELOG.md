@@ -4,7 +4,38 @@
 
 ---
 
-### 2026-03-03
+### 2026-03-03 (Phase 5)
+
+2026-03-03 timing/tithi_pravesh.py ADD — Phase 5 File 1a: Luni-Solar Annual Return (Tithi Pravesh), natal tithi angle, iterative solver, weekday lords
+2026-03-03 timing/pancha_pakshi.py ADD — Phase 5 File 1b: Five Bird Timing System, 5 birds × 5 activities × day/night sequences, birth bird from nakshatra
+2026-03-03 analysis/lal_kitab.py ADD — Phase 5 File 1c: Lal Kitab diagnostics — sleeping planets (4 rules), karmic debts (6 scenarios), varshphal (planet age triggers)
+2026-03-03 prashna/prashna_advanced.py ADD — Phase 5 File 2: 5 advanced prashna subsystems — Ashtamangala Enhanced, Aksharachakra (52 letters), Nimitta (15 types), Prashna Timing (hora + sunrise fraction), Trisphutam
+2026-03-03 data/validation_data.py ADD — Phase 5 File 3: 10 benchmark charts, BVB marriage parameters (P1–P8), 5 edge case types (rashi sandhi, kala sarpa, neechabhanga, retrograde combustion, nodes in angles)
+2026-03-03 data/lookup_tables.py ADD — Phase 5 File 4: Yoni 14×14 matrix, Vashya 5×5 matrix, Bhakoot 12×12 matrix + 6 cancellation rules, Nara Chakra 27-entry body map, 50 Extended Sahams, 16 Tajika Yoga definitions + Deeptamsha, D60 even sign table (60 entries)
+2026-03-03 timing/rare_dashas.py ADD — Phase 5 File 5: Mandooka Dasha (eligibility: 4+ planets in Kendras; 12 precomputed sequences; Cardinal=7/Fixed=8/Dual=9 yr), Padanadhamsha Dasha (6 pattern variants by polarity+modality; D9-based duration)
+2026-03-03 analysis/advanced_yogas.py ADD — Phase 5 File 6: 20+ new yoga detectors — Kemadruma Bhanga, Chandra-Mangala, Budhaditya filtered (6–14° sweet spot), Dhana Matrix, Chandika, Shankha, Tapasvi, Sharada, Vidya, Jaimini Longevity (Kakshya Vridhi/Hrasa), Foreign (3 types), Bandhana (5 variants), Vehicular, Graha Malika, Parijata, Gauri, Vidyut, Siva, Puskala
+2026-03-03 prediction/engine.py ADD — Phase 5 imports: 7 try/except blocks for tithi_pravesh, pancha_pakshi, lal_kitab, prashna_advanced, lookup_tables, rare_dashas, advanced_yogas
+2026-03-03 prediction/engine.py ADD — Phase 5 computation blocks (§5.1–5.7) in analyze_static(): tithi_pravesh, pancha_pakshi, lal_kitab, advanced_prashna, nara_chakra+tajika_yoga_defs, rare_dashas, advanced_yogas+jaimini_longevity
+2026-03-03 prediction/engine.py ADD — Phase 5 results merged into static["computed"] via **_p5_computed spread (NO prediction logic, pure classical computation) → content40 Exit 0 (CAREER 48.8%, FINANCE 34.6%, MARRIAGE 34.3%, HEALTH 44.1%)
+
+---
+
+### 2026-03-03 (Phase 4)
+
+2026-03-03 analysis/doshas.py ADD — Phase 4 File 1: 13 pure functions — Kala Sarpa (12 variants, partial, cancellation), Manglik (6 houses × 3 lagnas, 13 cancellations), Pitru Dosha (5 triggers, Mahan 1.5×), Combustion (Rx-adjusted orbs), Gandanta (4-tier 10pt), Graha Shanti (Kali Yuga ×4), Agni Vasa, Ashtamangala, Tambula Lagna, Trisphutam, Pushkara Navamsha/Bhaga, Abhijit Nakshatra
+2026-03-03 core/varga_interpretations.py ADD — Phase 4 File 2: 10 functions — D60 (60 named deities, saumya/krura), D30 Trimsamsha, Sapta Varga (7-chart weights), Dasha Varga (10-chart weights), Kashinath Hora, D10 career vector, Vargottama check, Varga domain lookup
+2026-03-03 analysis/nakshatra_extended.py ADD — Phase 4 File 3: 8 functions — Rajju (5 body parts), Vedha (13 pairs), Stree Deergha, Nadi Dosha Enhanced (6 cancellations), Panchaka, Nakshatra Classification (7 categories), Tarabala Extended (9 categories), Extended Compatibility
+2026-03-03 timing/muhurta_extended.py ADD — Phase 4 File 4: ~20 functions — Panchanga Shuddhi (221-point), Hora (Chaldean), Choghadiya (7 types), Abhijit Muhurta, Durmuhurta, Rahu Kaal/Yamagandam/Gulika Kaal, Directional Shoola, Marriage/Griha Pravesh/Business/Travel/Surgery Muhurta checkers
+2026-03-03 analysis/medical_extended.py ADD — Phase 4 File 5: 15 functions — Triple Map (12-house organ/dosha/karaka), Drekkana Body Map (36-part), Dasha Disease Patterns, Maraka identification + period assessment, Arishta + cancellation, 7 Disease Yogas, Psychiatric Yogas (Kemadruma/Psychosis/Anxiety), Beeja/Kshetra Sphuta, Gender prediction (Vighati + Sign methods), Decumbiture
+2026-03-03 timing/advanced_dashas.py ADD — Phase 4 File 6a: 5 functions — Sudarshana degree balance/sequence/event, Patyayini Dasha (Tajika, Krishamsha→Patyamsha, 8 entities), Ashtaka Dasha (BAV-proportional, SAV_CONSTANT=337)
+2026-03-03 analysis/advanced_techniques.py ADD — Phase 4 File 6b: 16+ functions — Bhrigu Sutras (9×12=108 aphorisms), Nadi Amsa (150-part 0.2°), Chaturthamsha D4, 3 Drekkana variants (Parashari/Parivritta/Somnath), Ashtamsha D8, Extended Neechabhanga (Jataka Tatva: Upachaya/D9/Mutual), Saptha Shalaka Vedha, Phala Jyotish (theft/litigation/travel/competition), Jataka Tatva Arishta
+2026-03-03 prediction/engine.py ADD — Phase 4 imports: 7 try/except blocks for doshas, varga_interpretations, nakshatra_extended, muhurta_extended, medical_extended, advanced_dashas, advanced_techniques
+2026-03-03 prediction/engine.py ADD — Phase 4 computation blocks (§4.1–4.7) in analyze_static(): ~30 calls producing classical analysis results
+2026-03-03 prediction/engine.py ADD — Phase 4 results merged into static["computed"] via **_p4_computed spread (NO prediction logic, pure classical computation)
+
+---
+
+### 2026-03-03 (Phase 3)
 
 2026-03-03 timing/nadi_timing.py ADD — Phase 3A: BCP active house/planets, Nadi Saturn activation, Patel marriage dates, BNN graph, BNN connectivity scores, spouse career sign
 2026-03-03 timing/hellenistic.py ADD — Phase 3B: Annual Profections (one sign/year, time lord), Hellenistic Sect (day=Sun+Jup+Sat; night=Moon+Ven+Mar), Lot of Fortune+Spirit, ZR Spirit+Fortune, Midpoints

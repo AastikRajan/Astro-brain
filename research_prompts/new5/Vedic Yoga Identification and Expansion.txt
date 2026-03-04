@@ -1,0 +1,283 @@
+﻿Advanced Computational Architecture for Vedic Astrological Yogas
+The translation of classical Vedic astrology—rooted in the aphorisms of the Brihat Parashara Hora Shastra (BPHS), Phaladeepika, Saravali, Jataka Parijata, and Uttara Kalamrita—into a robust computational framework requires a rigorous definition of planetary geometry, dignities, and positional mathematics. While foundational combinations such as the Pancha Mahapurusha and basic Dhana yogas form the preliminary layer of any astrological calculation engine, a comprehensive system must integrate highly conditional secondary, tertiary, and obscure configurations. The programmatic logic must account for spatial proximity (combustion), exact degrees of separation, planetary war (Graha Yuddha), and complex divisional mappings (such as the Navamsha and Shodashamsha).
+This report provides an exhaustive, computationally structured matrix of advanced yogas. It meticulously details the qualitative logic, origin, and mechanism of each configuration, followed by the exact Boolean formation rules required for programmatic implementation. The classification system grades each yoga to optimize algorithm execution: Major (always check to define the core chart architecture), Minor (check if contextually relevant to the user query), and Rare (evaluate strictly as edge cases).
+1. Solar Yogas: The Architecture of Ego and Authority
+Solar yogas define the structural support surrounding the native's ego, vitality, and natural authority. According to classical texts, the Sun represents the king or central executive function within the cognitive framework. Therefore, planets situated in the houses immediately adjacent to the Sun dictate the resources available to support or project this authority. Crucially, the programmatic evaluation of all Solar yogas must strictly exclude the Moon (which forms a different matrix of yogas), Rahu, and Ketu (which are shadow nodes that eclipse rather than support the Sun).1
+The conceptual mechanism behind these yogas is rooted in temporal flow. The second house from the Sun represents the future, or the assets the Sun uses to lead and project power forward. This configuration forms Veshi Yoga.1 Conversely, the twelfth house from the Sun represents the past, hidden reserves, and the foundation that protects the ego from behind, forming Vashi (or Voshi) Yoga.1 When the Sun is flanked on both sides, it creates Ubhayachari Yoga, indicating a fully insulated, supremely supported authoritative figure.1
+For any of these yogas to manifest positive results in a computational model, a strict combustion check must be executed. A planet placed in the second or twelfth house from the Sun might technically fulfill the house-based positional requirement, but if its longitudinal distance falls within the combustion orb, the planet is rendered impotent. The algorithm must verify that Mercury is separated by more than 14 degrees, Venus by 10 degrees, Mars by 17 degrees, Jupiter by 11 degrees, and Saturn by 15 degrees.1
+The qualitative output of Veshi Yoga is highly dependent on the occupying planet. A computational engine should output distinct predictions based on this variable. For instance, if Mars forms Veshi Yoga, the algorithm should output predictions related to courage, military prowess, and engineering leadership. If Mercury is the forming planet, the output must emphasize commercial intellect, media, and communication. Jupiter yields ethical leadership and financial wisdom; Venus provides diplomatic charm and artistic success; and Saturn guarantees slow, enduring, and disciplined authority.1
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Veshi Yoga
+	`(∃ P ∈ Planets \ {Moon, Rahu, Ketu})
+	PosFrom(P, Sun) == 2 AND Distance(P, Sun) > CombustionOrb(P)`
+	Enhances the Sun's power forward. Grants truthfulness, logical speech, and multiple income sources.1
+	Vashi Yoga
+	`(∃ P ∈ Planets \ {Moon, Rahu, Ketu})
+	PosFrom(P, Sun) == 12 AND Distance(P, Sun) > CombustionOrb(P)`
+	Protects the Sun from behind. Grants hidden reserves, spiritual backing, and protection from political downfall.1
+	Ubhayachari Yoga
+	Veshi_Yoga == TRUE AND Vashi_Yoga == TRUE
+	Surrounds the Sun with support. Yields ruler-like status, immense public standing, and a highly balanced personality.1
+	Major
+	2. Lunar Yogas: The Framework of the Mind and Public Reception
+While the Sun dictates authority, the Moon governs the Manas—the mind, psychological architecture, and the capacity to interact with the public. Astrologically, the Moon is the most volatile and fastest-moving entity. It is symbolically likened to water, which requires structural "banks" to prevent it from spilling erratically.4 Lunar yogas evaluate whether these banks exist. The isolation of the Moon represents a critical psychological flaw, whereas its support indicates emotional resilience and material stability.4
+The structural banks are provided by planets in the second and twelfth houses from the Moon. Planets in the second house from the Moon form Sunapha Yoga, representing the mind's capacity to accumulate resources, self-earned properties, and practical intelligence.4 Planets in the twelfth house from the Moon form Anapha Yoga, representing the mind's ability to rest, its spiritual inclinations, and its capacity for philanthropy.4 When both houses are occupied, Durudhara Yoga is formed, creating a perfectly balanced psychological state capable of commanding subordinates and enjoying sustained luxuries.4
+The absence of these flanking planets results in Kemadruma Yoga, one of the most feared configurations in classical astrology. An isolated Moon indicates a mind without boundaries or support. Computationally, if the second and twelfth houses from the Moon are empty (excluding the Sun, Rahu, and Ketu), Kemadruma is triggered. The classical texts predict psychological poverty, erratic thought processes, and potential material destitution.4 However, the algorithm must immediately check for Kemadruma Bhanga (cancellation). If planets are situated in the Kendras (angles: 1st, 4th, 7th, 10th houses) from either the Moon or the Ascendant (Lagna), the structural reality of the physical world provides the necessary grounding, effectively neutralizing the psychological void of the isolated Moon.5
+Other critical Lunar yogas include Chandra-Mangala Yoga and Amala Yoga. Chandra-Mangala is a straightforward conjunction of the Moon and Mars, fusing the mind with aggressive, martial energy. This indicates a fierce drive for wealth accumulation, often through real estate or mechanical fields, though it may induce emotional volatility.7 Amala Yoga, translating to "spotless" or "unblemished," forms when a natural benefic (Jupiter, Venus, Mercury, or the Sun) occupies the tenth house from either the Moon or the Lagna. It cleanses the professional karma, ensuring ethical success, lasting recognition, and untainted fame (Nirmala Kirti).9
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Sunapha Yoga
+	`(∃ P ∈ Planets \ {Sun, Rahu, Ketu})
+	PosFrom(P, Moon) == 2`
+	Proud ownership of properties, earned through perseverance. Highly intelligent, rarely makes bad decisions.4
+	Anapha Yoga
+	`(∃ P ∈ Planets \ {Sun, Rahu, Ketu})
+	PosFrom(P, Moon) == 12`
+	Good health, flawless reputation, spiritual inclination, and psychological peace.4
+	Durudhara Yoga
+	Sunapha_Yoga == TRUE AND Anapha_Yoga == TRUE
+	Natural leadership, surrounded by loyal subordinates. Balanced psychological fortitude and comfort.4
+	Major
+	Kemadruma Yoga
+	NOT (Sunapha_Yoga OR Anapha_Yoga OR Durudhara_Yoga)
+	Psychological isolation, volatility, lack of fixed thought frames. Can indicate deep mental poverty.4
+	Major
+	Kemadruma Bhanga
+	Kemadruma_Yoga == TRUE AND (Count(Planets in Kendra from Moon) > 0 OR Count(Planets in Kendra from Lagna) > 0)
+	Neutralizes mental isolation. The native grounds their mind through tangible action, overcoming early struggles.5
+	Major
+	Chandra-Mangala
+	Conjunct(Moon, Mars)
+	Aggressive financial drive. Success in real estate, engineering, and wealth accumulation. Emotional volatility.7
+	Minor
+	Amala Yoga
+	`(∃ P ∈ {Jupiter, Venus, Mercury, Sun})
+	(PosFrom(P, Moon) == 10 OR PosFrom(P, Lagna) == 10)`
+	Untainted fame (Nirmala Kirti). Professional success achieved purely through ethical and righteous means.9
+	3. Wealth Yogas: Advanced Parivartana and Dhana Matrices
+While basic Dhana yogas rely on the simple association of the second lord (accumulated wealth) and the eleventh lord (gains and income), a sophisticated computational matrix must map the broader economic topology of the chart. Wealth generation is mathematically dictated by the structural resonance between the houses of accumulation (2nd), speculation and intelligence (5th), fortune and destiny (9th), and liquid gains (11th).11
+The programmatic implementation of the Complete Dhana Matrix requires iterating through all possible permutations of the lords of the 2nd, 5th, 9th, and 11th houses. For maximum effect, these lords must interact through conjunction, mutual aspect, or exchange (Parivartana), and they must be positioned in angular (Kendra) or trinal (Trikona) houses.12 The involvement of the Ascendant (1st house) amplifies the result, as the 1st house operates as both a Kendra and a Trikona. Specific algorithms can even estimate the magnitude of wealth. For example, if the 11th lord is placed in the 1st or 3rd house alongside a strong benefic like Jupiter or Venus, texts suggest exponential, multi-million dollar financial gains manifesting at specific chronological milestones.13
+Beyond straightforward associations, the exchange of signs—known as Parivartana Yoga—creates the most powerful, inextricably linked energetic feedback loops in astrology. When the lords of two houses swap positions, the matters of those houses become fused.14 Maha Parivartana Yoga occurs when the lords of the auspicious houses (1st, 2nd, 4th, 5th, 7th, 9th, 10th, 11th) exchange signs, leading to immense status, wealth, and health.14 Khala Parivartana occurs when the lord of the 3rd house exchanges with an auspicious house lord; this indicates fluctuating fortunes where the native must endure extreme, grinding struggles before achieving success.15 Dainya Parivartana involves the lords of the Dusthanas (evil houses: 6th, 8th, 12th) exchanging with auspicious houses, resulting in debt, enmity, and continuous hardship.15 A special subroutine must check if a Dainya exchange occurs exclusively between two Dusthana lords; this flips the polarity, creating a Vipareeta Raja Yoga that brings sudden success emerging from a crisis.15
+Additional rare wealth yogas require complex multidimensional checks. Chandika Yoga, for instance, requires the Ascendant to be a fixed sign (Taurus, Leo, Scorpio, Aquarius). It then evaluates the Navamsha (D9) dispositors of the 6th and 9th lords, demanding that the Sun conjuncts both of these dispositors in the birth chart, while the 6th lord aspects the Ascendant.17 This highly specific geometry transforms the adversarial nature of the 6th house into aggressive, war-like competence and political dominance, yielding immense wealth.17 Similarly, Shankha Yoga forms when the lords of the 5th and 6th houses conjunct in a Kendra, indicating that intellectual capability (5th) is forged through relentless obstacles (6th), ultimately producing hard-earned prosperity.19
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Complete Dhana Matrix
+	Let W = {Lord(2), Lord(5), Lord(9), Lord(11)}. `(∃ W1, W2 ∈ W
+	W1!= W2) AND (Conjunct(W1, W2) OR MutualAspect(W1, W2) OR Exchange(W1, W2)) AND InHouse(W1, {1,4,5,7,9,10})`
+	Massive wealth accumulation. If Lord(11) is in 1st or 3rd with Jupiter/Venus, exponential financial gains manifest.13
+	Maha Parivartana
+	Exchange(Lord(1,2,4,5,7,9,10,11), Lord(1,2,4,5,7,9,10,11))
+	Immense status, wealth, and health. Fuses the positive attributes of both involved houses seamlessly.14
+	Major
+	Khala Parivartana
+	Exchange(Lord(3), Lord(1,2,4,5,7,9,10,11))
+	Fluctuating fortunes. The native must overcome intense initial struggles and exert immense willpower before succeeding.15
+	Major
+	Dainya Parivartana
+	Exchange(Lord(6,8,12), Lord(1,2,3,4,5,7,9,10,11))
+	Inauspicious results. Brings debt, enmity, delays, and continuous struggles against systemic hurdles.15
+	Major
+	Chandika Yoga
+	IsFixed(Lagna) AND Conjunct(Sun, NavamshaDispositor(Lord(6))) AND Conjunct(Sun, NavamshaDispositor(Lord(9))) AND Aspect(Lord(6), Lagna)
+	Aggressive political power. Transforms the evil of the 6th lordship into ruthless competence, granting victory and wealth.17
+	Rare
+	Shankha Yoga
+	Conjunct(Lord(5), Lord(6)) AND InHouse(Lord(5), {1,4,7,10})
+	Intellect and endurance. Knowledge is tested repeatedly; growth and wealth come strictly through overcoming obstacles.19
+	Minor
+	4. Asceticism and Spiritual Attainment Yogas
+Yogas indicating a rejection of material constraints—Parivrajya and Sanyasa yogas—operate on the principle of planetary singularity. When a critical mass of planetary energy is localized in a single domain, the diversity of material desires collapses into ascetic focus.
+The primary rule for Parivrajya (Sanyasa) Yoga triggers when four or more planets occupy a single house.20 The specific sect or nature of the asceticism is determined computationally by identifying the strongest planet within the stellium. If the Sun is the strongest, the native becomes a Tapasvi, engaging in severe, heat-generating penance in remote locations. If the Moon is strongest, the path is Kapali, indicating tantric, unorthodox, or emotionally extreme practices. A dominant Mars yields an ascetic wearing red robes, often involved in martial or highly disciplined physical regimens. A dominant Mercury produces a Dandi, a staff-holding ascetic engaged in intellectual debate and scriptural study. If Jupiter dominates, the native becomes a Yati or Paramhansa, reaching the highest philosophical and institutional orders of monasticism. A strong Venus yields a Chakri, a wandering ascetic reliant on devotion, while a dominant Saturn creates a Digambara, a naked ascetic who has entirely stripped away social conventions.20
+The computational evaluation of Parivrajya must account for the anomalous states of combustion and planetary war. If the planet dictating the sanyasa order is combust by the Sun, the native enters the ascetic state psychologically but without formal initiation rituals. If the dominant planet is defeated in Graha Yuddha (planetary war—when two planets are within one degree of each other, typically decided by latitudinal position), the native will take the vows of renunciation but will eventually discard them, returning to material life.20
+Tapasvi Yoga is a specialized spiritual configuration focusing on intense austerity rather than formal institutional renunciation. It requires a geometric link between Venus, Saturn, and Ketu. Astrologically, Venus represents devotion (Bhakti), Saturn represents the endurance required to burn karma (Tapas), and Ketu represents final liberation and detachment (Moksha).22 These three planets must be placed in mutual trines, in conjunction, or linked by Rashi Drishti (sign aspect). If this yoga connects to the Ascendant or its lord, the austerity is directed toward spiritual enlightenment. Without the Ascendant link, the native applies this intense, burning dedication toward a material craft, science, or specific non-spiritual objective, displaying ascetic-like focus in secular domains.22
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Parivrajya / Sanyasa Yoga
+	`(∃ H ∈ Houses)
+	Count(Planets in H) >= 4`
+	Renunciation of material life. The strongest planet determines the specific sect and nature of the ascetic practices.20
+	Tapasvi Yoga
+	Trine(Venus, Saturn, Ketu) OR MutualAspect(Venus, Saturn, Ketu) OR Conjunct(Venus, Saturn, Ketu)
+	Immense capability for hard penance. Grants intense, obsessive dedication to either spiritual liberation or a secular craft.22
+	Rare
+	5. Intellectual, Educational, and Knowledge Configurations
+The computational assessment of intelligence and educational capability relies on the interplay of Mercury (logic, memory, communication), Jupiter (wisdom, synthesis, higher knowledge), and the luminaries.
+Budhaditya Yoga, formed by the conjunction of the Sun and Mercury, is statistically ubiquitous because Mercury's orbit never allows it to travel more than 28 degrees from the Sun. Therefore, a simple boolean check for conjunction is insufficient and will yield false positives.24 The algorithm must filter for the precise angular distance. If Mercury is within 3 to 6 degrees of the Sun, the combustion is severe; intelligence is present but cannot be easily expressed or recognized by society. The "sweet spot" for genuine Budhaditya Yoga occurs when the separation is between 6 and 14 degrees. Here, Mercury retains its full strength while absorbing the illuminating, authoritative energy of the Sun, yielding photographic memory, analytical brilliance, and success in administration or law. If the distance is between 14 and 28 degrees, the integration weakens, and the yoga functions only as a mild intellectual asset.24 The yoga is further nullified if the conjunction occurs in the 6th, 8th, or 12th houses.26
+Sharada Yoga designates a scholar par-excellence. There are two primary variations of this rule across classical traditions. The standard rule requires the 10th lord to be in the 5th house, Mercury to be in a Kendra, the Sun to be in its own sign (Leo) and also in a Kendra. This geometry ensures that the native's career (10th) is driven by creative intelligence (5th), backed by unshakeable moral integrity (angular Sun) and analytical skill (angular Mercury).28 The second variant requires Jupiter to be in a trine to the Moon, and Mars to be in a trine to Mercury. Both variants predict that the native will become a widely acknowledged flame-bearer for a specific field of knowledge, leaving a lasting legacy for future generations.29
+Vidya Yoga and Saraswati Yoga specifically govern institutional education and artistic mastery. Vidya Yoga is formed by the conjunction of Jupiter, Mercury, and Venus.32 Saraswati Yoga, a more dispersed variant, requires these three natural benefics to occupy the Kendras, Trikonas, or the 2nd house (the house of speech and inherited knowledge), while Jupiter must be exceptionally strong (in its own sign, exalted, or friendly sign). This combination blesses the native with eloquence, mathematical genius, musical talent, and a refined aesthetic sense, ensuring they become a "winner" in all educational pursuits.8
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Budhaditya Yoga
+	Conjunct(Sun, Mercury) AND (6 <= Abs(Degree(Sun) - Degree(Mercury)) <= 14) AND NOT InHouse(Sun, {6, 8, 12})
+	Optimal intelligence, analytical brilliance, and logical thinking. Success in administration, politics, and law.24
+	Major
+	Sharada Yoga (V1)
+	PosFrom(Lord(10), Lagna) == 5 AND Kendra(Mercury, Lagna) AND OwnSign(Sun) AND Kendra(Sun, Lagna)
+	Scholar par-excellence. Acknowledged globally as an authority in a specific field. Righteous, integrity-driven leadership.28
+	Rare
+	Sharada Yoga (V2)
+	Trine(Jupiter, Moon) AND Trine(Mars, Mercury)
+	Highly learned in science and philosophy. Patron of fine arts, respected by rulers and academics.28
+	Rare
+	Vidya Yoga
+	Conjunct(Jupiter, Mercury, Venus)
+	Exceptional learning abilities, eloquence, and a refined sense of aesthetics.32
+	Minor
+	Saraswati Yoga
+	(InHouse(Jupiter, {1,2,4,5,7,9,10}) AND InHouse(Mercury, {1,2,4,5,7,9,10}) AND InHouse(Venus, {1,2,4,5,7,9,10})) AND IsStrong(Jupiter)
+	Great intellectual capability, wisdom, and success in arts/sciences. Benevolent, humble, and highly respected.8
+	Major
+	6. Longevity and Life Span Estimation Frameworks
+While specific nomenclature like Kakini Yoga and Makandi Yoga appear in niche commentaries related to the Phaladeepika, the robust, mathematically verifiable framework for lifespan determination relies on Jaimini's Kakshya Vridhi (Increase) and Kakshya Hrasa (Decrease) methodologies.33 The computational engine must prioritize these structural rules to generate an accurate lifespan bracket: Short (0-33 years), Medium (33-66 years), or Long (66+ years).
+The algorithm begins by evaluating the modalities (Chara/Movable, Sthira/Fixed, Dvisvabhava/Dual) of three critical planetary pairs:
+1. The Lord of the Lagna and the Lord of the 8th house.
+2. The Moon and Saturn (the natural significator of longevity).
+3. The Lagna sign and the Hora Lagna sign.35
+The combinations yield specific base lifespans. If both elements in a pair are in Movable signs, or if one is in a Fixed sign and the other in a Dual sign, it points to a Long life. If both are in Fixed signs, or one is Movable and the other Dual, it points to a Short life. If both are in Dual signs, or one is Movable and the other Fixed, it points to a Medium life.35 The algorithm takes the majority result from the three pairs to establish the baseline.
+Following the baseline determination, the engine must execute the Kakshya modification subroutines. Kakshya Vridhi represents an artificial inflation of the lifespan due to divine grace or exceptional genetic fortitude. If Jupiter is exalted, exceptionally strong, or if natural benefics exclusively occupy the 1st and 7th houses, the lifespan category is upgraded by one tier (e.g., Short becomes Medium, Medium becomes Long).37 Conversely, Kakshya Hrasa represents a sudden truncation of the lifespan. This is triggered if Saturn conjuncts the Lagna Lord or Hora Lagna Lord, if Saturn occupies the 8th house, or if natural malefics exclusively occupy the 1st, 5th, 7th, and 9th houses. This drops the lifespan category by one tier.34
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Jaimini Base Span
+	Evaluate modalities of 3 pairs: (Lagna_Lord, 8th_Lord), (Moon, Saturn), (Lagna, Hora_Lagna). (Movable+Movable) OR (Fixed+Dual) = Long. (Fixed+Fixed) OR (Movable+Dual) = Short. (Dual+Dual) OR (Movable+Fixed) = Medium.35
+	Determines the foundational chronological bracket of the native's life: Short (0-33), Medium (33-66), or Long (66+).33
+	Major
+	Kakshya Vridhi
+	IsStrong(Jupiter) OR Exalted(Jupiter) OR (OnlyBenefics(1) AND OnlyBenefics(7))
+	Upgrades the lifespan category by one level due to divine protection or extreme vitality.37
+	Major
+	Kakshya Hrasa
+	(Conjunct(Saturn, Lord(Lagna))) OR (Conjunct(Saturn, Lord(Hora_Lagna))) OR (InHouse(Saturn, 8)) OR (OnlyMalefics(1,5,7,9))
+	Downgrades the lifespan category by one level due to chronic illness, trauma, or structural weakness.34
+	Major
+	7. Expatriation and Foreign Settlement Yogas
+The algorithmic vectors that push a native away from their homeland rely heavily on the activation of the 12th house (representing foreign lands, isolation, and distant shores), the 9th house (representing long-distance journeys and cross-cultural learning), and the nodes, particularly Rahu (the significator of unorthodox, foreign environments).38
+A computational engine must distinguish between temporary travel and permanent immigration. Temporary, frequent travel is triggered when Rahu occupies the 9th or 12th house, or when the Moon (representing wandering and emotional inclination) conjuncts Rahu or Jupiter in a movable sign.38 However, permanent settlement requires the displacement of the 4th house (the homeland and physical residence). If the 4th lord is placed in the 12th house, the physical home is literally established abroad.39
+Another potent combination for permanent immigration involves the 8th lord (sudden breaks, transformations), the 12th lord, and Mars. If these three are conjunct, it indicates a permanent, often sudden or forced shift to a foreign country, driven by the mechanical, activating energy of Mars.40 If Saturn is involved in any of these 12th house combinations, the relocation may face bureaucratic delays, but the settlement will ultimately be highly stable and long-term.38
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Foreign Travel (Frequent)
+	InHouse(Rahu, {9, 12}) OR Conjunct(Moon, Rahu) OR (Conjunct(Moon, Jupiter) AND IsMovable(Sign(Moon)))
+	Sudden, unusual chances to go abroad. Frequent trips for education, spirituality, or wandering, but not necessarily permanent.38
+	Minor
+	Foreign Settlement (Permanent)
+	PosFrom(Lord(4), Lagna) == 12 OR PosFrom(Lord(12), Lagna) == 9 OR PosFrom(Lord(9), Lagna) == 12
+	The native leaves their birthplace to establish a permanent residence and fortune in a distant land.38
+	Minor
+	Transformative Immigration
+	Conjunct(Lord(8), Lord(12), Mars)
+	A sudden, permanent shift to a foreign country. Mars activates the movement, while the 8th lord forces a break from the past.40
+	Minor
+	8. Incarceration and Legal Confinement (Bandhana Yogas)
+Bandhana Yogas indicate confinement. While historically interpreted as literal imprisonment, a modern predictive engine must also output psychological suffocation, debilitating hospital stays, house arrest, or crippling litigation losses.
+The primary rule established by the BPHS and Saravali relies on architectural symmetry. The algorithm must count the number of planets occupying specific opposing axes from either the Ascendant or the Karakamsha Ascendant. The relevant axes are the 2nd/12th, 5th/9th, 6th/12th, 3rd/11th, and 4th/10th houses.42 If an equal number of planets sit on either side of these axes (e.g., two planets in the 2nd house and two in the 12th house), a cosmic pincer is formed that locks the native's free will.42 A vital computational constraint is that Rahu and Ketu are strictly excluded from this planetary count.42 Furthermore, if natural benefics (Jupiter, Mercury, Venus, Waxing Moon) are involved in this symmetry, the bondage manifests emotionally or financially rather than physically. If malefics are involved, physical jail or severe litigation loss is highly probable.42
+Karmic sub-variants of Bandhana occur when the Ascendant lord and the 6th lord (the house of litigation and enemies) conjunct in an angular or trinal house alongside specific malefic planets.43 The specific malefic dictates the nature of the confinement. Ari Bandhan Yoga is triggered by Saturn, indicating confinement due to past-life Prarabdha karmas, debt, or chronic diseases.44 Vir Bandhan Yoga is triggered by Mars, resulting in capture through aggressive conflict, war, or police intervention.44 Naga Bandhan Yoga is triggered by Rahu, leading to incarceration due to fraud, mafia connections, or being framed by bad company.44 Ahi Bandhan Yoga is triggered by Ketu, causing confinement due to bizarre, unimaginable crimes or sudden psychiatric institutionalization.44
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	BPHS Axis Bandhana
+	Let H_A, H_B ∈ {, , , , }. (Count(Planets in H_A) == Count(Planets in H_B)) AND (Count(Planets in H_A) > 0) (Exclude Nodes)
+	Forms a cosmic pincer locking free will. Malefics yield physical jail; benefics yield psychological or financial bondage.42
+	Major
+	Ari Bandhan Yoga
+	Conjunct(Lord(Lagna), Lord(6), Saturn) AND InHouse(Saturn, {1,4,5,7,9,10})
+	Confinement caused by enemies, chronic diseases, or systemic debt. Rooted in deep past-life karma.43
+	Minor
+	Vir Bandhan Yoga
+	Conjunct(Lord(Lagna), Lord(6), Mars) AND InHouse(Mars, {1,4,5,7,9,10})
+	Confinement resulting from physical altercations, war, police action, or unchecked anger.43
+	Minor
+	Naga Bandhan Yoga
+	Conjunct(Lord(Lagna), Lord(6), Rahu) AND InHouse(Rahu, {1,4,5,7,9,10})
+	Confinement due to cheating, swindling, conspiracy, or association with the underworld.43
+	Minor
+	Ahi Bandhan Yoga
+	Conjunct(Lord(Lagna), Lord(6), Ketu) AND InHouse(Ketu, {1,4,5,7,9,10})
+	Confinement due to strange, unpredictable crimes, sudden institutionalization, or severe health changes.43
+	Minor
+	9. Conveyance and Accident Configurations (Vahana & D16 Yogas)
+The analysis of vehicles, vehicular comforts (Sukha), and associated physical traumas requires the algorithm to parse both the D1 (Rasi) chart and the D16 (Shodashamsha) divisional chart. The Shodashamsha acts as a microscopic lens specifically calibrated for material conveyances.46
+In the primary D1 chart, if the 4th lord (governing vehicles) is conjunct or heavily aspected by the 6th lord (accidents/litigation) or the 8th lord (sudden trauma/death), a baseline vulnerability to vehicular accidents is established.47 To confirm the severity, the algorithm must verify the D16 chart. If the 4th house of the D16 chart is occupied by natural malefics, or if the 4th lord of the D16 chart is computationally weak (debilitated or combust), the trauma is confirmed.46 The specific malefic dictates the nature of the accident: Mars indicates violent crashes involving machinery or fire; Saturn indicates crushing damage, delays in rescue, or accidents involving heavy transport; Rahu indicates sudden, unpredictable, catastrophic collisions, often involving intoxication or deception.46
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Vehicular Vulnerability
+	Conjunct(Lord(4_in_D1), Lord(6_in_D1)) OR Conjunct(Lord(4_in_D1), Lord(8_in_D1))
+	Baseline risk for vehicular damage or accidents. Requires confirmation from D16.47
+	Minor
+	D16 Accident Confirmation
+	InHouse_D16(Malefics, 4) OR Weak_D16(Lord(4_in_D16))
+	Confirms severe vehicular trauma. Mars = mechanical/fire; Saturn = crushing/heavy; Rahu = sudden/catastrophic.46
+	Minor
+	10. Rare and Obscure Classical Yogas
+These configurations represent highly specific, mathematically intricate geometries extracted from compendiums like the Phaladeepika, Jataka Parijata, and Uttara Kalamrita. Due to their strict parameters, they act as statistical outliers and should be graded as Rare, but they provide profound predictive accuracy when triggered.10
+Parijata Yoga requires mapping dispositors across multiple layers. The engine must find the dispositor of the Lagna lord, then find the dispositor of that planet, as well as its Navamsha dispositor. If these secondary and tertiary dispositors are in a Kendra or Trikona, and are exalted or in their own sign, Parijata Yoga forms. It indicates that despite early life struggles, the latter half of the native's life will be filled with immense happiness, wealth, and support from high authorities due to a reservoir of positive past-life karma.8
+Graha Malika Yoga represents a chain reaction of planetary energy. It occurs when all seven physical planets occupy consecutive, adjacent houses (e.g., spanning from the 1st to the 7th house). The algorithm must dynamically adjust the prediction based on the starting house (e.g., if starting in the 1st, it is Lagna Malika; if the 2nd, Dhana Malika). This creates an unstoppable, sequential unfolding of life events, where each domain triggers the next in rapid succession.52
+
+
+Yoga Name
+	Exact Boolean Formation Rule
+	Predictive Output
+	Grade
+	Parijata Yoga
+	Let Disp1 = Dispositor(Lord(Lagna)). Let Disp2 = Dispositor(Disp1). Let NavDisp = NavamshaDispositor(Disp1). (Kendra(Disp2, Lagna) OR Trikona(Disp2, Lagna)) AND (Exalted(Disp2) OR OwnSign(Disp2)) AND (Kendra(NavDisp, Lagna) OR Trikona(NavDisp, Lagna)) AND (Exalted(NavDisp) OR OwnSign(NavDisp))
+	Destined for immense happiness and wealth in the middle/later part of life. Support from high authorities.8
+	Rare
+	Gauri Yoga
+	(Sign(Moon) ∈ {Taurus, Cancer}) AND (Kendra(Moon, Lagna) OR Trikona(Moon, Lagna)) AND Aspect(Jupiter, Moon)
+	Produces a compassionate, hardworking individual blessed with pristine reputation, wealth, and spiritual grace.8
+	Rare
+	Vidyut Yoga
+	Exalted(Lord(11)) AND Conjunct(Lord(11), Venus) AND Kendra(Lord(11), Lord(Lagna))
+	Grants control over massive wealth (treasurer status). Life of intense pleasure; status equal to royalty.6
+	Rare
+	Siva Yoga
+	PosFrom(Lord(5), Lagna) == 9 AND PosFrom(Lord(9), Lagna) == 10 AND PosFrom(Lord(10), Lagna) == 5
+	Immensely successful in trading and commerce. Possesses the strategic intellect of an elite merchant.6
+	Rare
+	Gandharva Yoga
+	InHouse(Lord(10), {3, 7, 11}) AND Conjunct(Lord(Lagna), Jupiter) AND Exalted(Sun) AND PosFrom(Moon, Lagna) == 9
+	Unparalleled skill in fine arts. Strong physical constitution, immense fame, and a long life.6
+	Rare
+	Puskala Yoga
+	Let Disp = Dispositor(Moon). (Kendra(Disp, Lagna) OR FriendlySign(Disp)) AND (Kendra(Lord(Lagna), Lagna) OR FriendlySign(Lord(Lagna))) AND Aspect(Benefics, Lagna)
+	Plentiful, abundant wealth. The native is highly honored by the state or government.10
+	Rare
+	Graha Malika Yoga
+	All 7 physical planets occupy consecutive adjacent houses
+	Forms a cosmic "garland." Creates an unstoppable chain reaction of events spanning the involved domains.52
+	Rare

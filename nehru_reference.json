@@ -1,0 +1,87 @@
+{
+  "reference_source": {
+    "document": "AstroSage free chart",
+    "birth_time": "23:26:00",
+    "place": "Allahabad",
+    "latitude": 25.45,
+    "longitude": 81.85,
+    "timezone_hours": 5.5,
+    "ayanamsha": "Lahiri",
+    "ayanamsha_value_decimal": 22.3189
+  },
+
+  "SECTION_1_planet_positions": {
+    "lagna": {
+      "sign": "Cancer",
+      "degree_within_sign": 27.4114,
+      "absolute_longitude": 117.4114,
+      "nakshatra": "Ashlesha",
+      "pada": 4
+    },
+    "planets": [
+      {"name": "SUN", "sign": "Scorpio", "longitude": 210.2889, "house": 5, "nakshatra": "Vishakha", "pada": 4},
+      {"name": "MOON", "sign": "Cancer", "longitude": 108.0533, "house": 1, "nakshatra": "Ashlesha", "pada": 1},
+      {"name": "MARS", "sign": "Virgo", "longitude": 159.9939, "house": 3, "nakshatra": "Uttaraphal", "pada": 4},
+      {"name": "MERCURY", "sign": "Libra", "longitude": 197.1753, "house": 4, "nakshatra": "Swati", "pada": 4},
+      {"name": "JUPITER", "sign": "Sagittarius", "longitude": 255.1819, "house": 6, "nakshatra": "Purvashadha", "pada": 1},
+      {"name": "VENUS", "sign": "Libra", "longitude": 187.3844, "house": 4, "nakshatra": "Swati", "pada": 1},
+      {"name": "SATURN", "sign": "Leo", "longitude": 130.7753, "house": 2, "nakshatra": "Magha", "pada": 4},
+      {"name": "RAHU", "sign": "Gemini", "longitude": 72.7264, "house": 12, "nakshatra": "Ardra", "pada": 2, "retrograde": true},
+      {"name": "KETU", "sign": "Sagittarius", "longitude": 252.7264, "house": 6, "nakshatra": "Mula", "pada": 4, "retrograde": true}
+    ]
+  },
+
+  "SECTION_2_dasha_periods_vimshottari": {
+    "mahadasha_sequence": [
+      {"lord": "MERCURY", "start": "1889-11-14", "end": "1905-02-08"},
+      {"lord": "KETU", "start": "1905-02-08", "end": "1912-02-08"},
+      {"lord": "VENUS", "start": "1912-02-08", "end": "1932-02-08"},
+      {"lord": "SUN", "start": "1932-02-08", "end": "1938-02-08"},
+      {"lord": "MOON", "start": "1938-02-08", "end": "1948-02-08"},
+      {"lord": "MARS", "start": "1948-02-08", "end": "1955-02-08"},
+      {"lord": "RAHU", "start": "1955-02-08", "end": "1973-02-08"}
+    ],
+    "key_events": {
+      "1947-08-15": {"md": "MOON", "ad": "VENUS"},
+      "1964-05-27": {"md": "RAHU", "ad": "SATURN"}
+    }
+  },
+
+  "SECTION_5_ashtakavarga": {
+    "sav_by_sign_aries_to_pisces": [26, 35, 30, 30, 31, 33, 30, 22, 32, 18, 24, 26],
+    "sav_sum": 337,
+    "sun_bav_aries_to_pisces": [6, 6, 5, 3, 4, 7, 3, 2, 5, 0, 3, 4],
+    "moon_bav_aries_to_pisces": [5, 5, 5, 5, 3, 4, 4, 2, 6, 6, 3, 1]
+  },
+
+  "SECTION_6_jaimini_karakas_7planet": {
+    "AK": "MOON",
+    "AmK": "MERCURY",
+    "BK": "JUPITER",
+    "MK": "SATURN",
+    "PK": "MARS",
+    "GK": "VENUS",
+    "DK": "SUN",
+    "karakamsha_sign": "Sagittarius"
+  },
+
+  "SECTION_7_house_lords": {
+    "1": "MOON", "2": "SUN", "3": "MERCURY", "4": "VENUS",
+    "5": "MARS", "6": "JUPITER", "7": "SATURN", "8": "SATURN",
+    "9": "JUPITER", "10": "MARS", "11": "VENUS", "12": "MERCURY"
+  },
+
+  "SECTION_4_shadbala": {
+    "note": "AstroSage shows unusual negative values for Mars/Mercury/Jupiter/Venus/Saturn — likely a different Shadbala computation method or display format. Use with caution.",
+    "total_shadbala": {
+      "SUN": 251.73, "MOON": 431.6, "MARS": -450.24,
+      "MERCURY": -3902.31, "JUPITER": -659.51,
+      "VENUS": -727.74, "SATURN": -748.6
+    },
+    "shadbala_rupas": {
+      "SUN": 4.2, "MOON": 7.19, "MARS": -7.5,
+      "MERCURY": -65.04, "JUPITER": -10.99,
+      "VENUS": -12.13, "SATURN": -12.48
+    }
+  }
+}

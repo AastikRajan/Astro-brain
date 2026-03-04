@@ -1,0 +1,343 @@
+﻿Algorithmic Encoding of Advanced and Esoteric Jyotish Shastra: Mathematical Frameworks for Computational Implementation
+The computational modeling of Jyotish Shastra requires transitioning from heuristic, text-based interpretations to deterministic, mathematically bounded algorithms. While standard Parashari and Jaimini architectures rely on well-documented topological mapping of the ecliptic, the integration of the esoteric layers of Jyotish—encompassing Tantrik timing, Kerala Prashna systems, and highly specific Dosha and Avastha configurations—demands rigorous floating-point precision, complex boolean logic gates, and strict array mapping. The fundamental mechanism of this algorithm operates on the premise that astrological events are geometric intersections of celestial bodies evaluated against localized space-time coordinates. This report provides the exact mathematical structures, decision trees, and lookup tables necessary to encode these advanced modules.
+1. Tantrik Jyotish Timing Systems
+The encoding of Tantrik timing relies on the intersection of planetary transits, lunar phases (Tithi), solar-lunar differentials (Yogas/Karanas), and localized diurnal mathematics (Muhurta). The algorithms evaluate continuous astronomical variables to define discrete, binary action-windows.
+1.1 Chandi Path Timing Algorithms
+The computation of optimal timing for the Chandi Path requires a multi-variable alignment of the lunar day (Tithi), the Moon's sidereal position (Nakshatra), and the localized solar time (Muhurta). The algorithmic trigger for prescribing the ritual is defined by a boolean intersection of these specific variables.1
+Let    be the current Tithi, computed as the angular difference between the Moon and Sun:   . Let    be the current Nakshatra of the Moon, computed as   . Let    be the active diurnal or nocturnal Muhurta segment. The evaluation function returns a TRUE state if any of the following state vectors are satisfied 1:
+* Vector 1 (Ashtami Phase):
+   *    (Shukla or Krishna Ashtami)
+   *    (Ashwini, Bharani, Krittika)
+   *      * Vector 2 (Navami Phase):
+   *    (Maha Navami)
+   *    (Moola, Purva Phalguni)
+   *         * Vector 3 (Chaturdashi Phase):
+      *    (Chaturdashi)
+      *    (Chitra, Swati)
+      *            * Vector 4 (Amavasya/Purnima Phase):
+         *    (Purnima, Amavasya)
+         *    (Magha, Jyeshtha)
+         *   Furthermore, the prescription of a Tantrik ritual is gated by the "Transit Promise" algorithm.2 The ritual is only triggered if the underlying astrological architecture promises an event. The system must evaluate the current Mahadasha (MD) and Antardasha (AD) lords. A boolean score is generated based on transit associations:    point is awarded if the MD lord transits the relevant event houses;    point if it transits the Bhavat Bhavam (derivative house);    point if the Lagna lord associates with the transit; and    point for the natural Karaka.2 A threshold score of    out of    must be met to validate the execution of the Chandi Path.
+1.2 Graha Shanti (Planetary Remedial) Danger-Timing Rules
+Graha Shanti algorithms calculate the precise volume of required iterations (Japa) based on the specific malefic planetary node identified in the natal or transit chart. The system must map the targeted planet to its required frequency threshold.3 The computational trigger for a Graha Shanti is activated when a planet crosses a predefined danger threshold in the transit matrix.4
+Target Planet
+	Algorithmic Variable
+	Required Japa Count (Creq​)
+	Danger Threshold Trigger (Transit / Dasha)
+	Sun (Surya)
+	PL_SUN
+	7,000
+	Sun in 6th, 8th, or 12th; or Sun conjunct Rahu/Ketu.
+	Moon (Chandra)
+	PL_MON
+	11,000
+	Moon conjunct Rahu/Ketu (Chandra Grahan within   ).
+	Mars (Mangal)
+	PL_MAR
+	10,000
+	Mars in Badhakasthana; Mars conjunct Saturn/Rahu.
+	Mercury (Budha)
+	PL_MER
+	9,000
+	Mercury in Gandanta degrees; Mercury combust.
+	Jupiter (Guru)
+	PL_JUP
+	19,000
+	Jupiter debilitated (Capricorn) or afflicted by Rahu (Chandal Yoga).
+	Venus (Shukra)
+	PL_VEN
+	16,000
+	Venus combust; Venus in 6th/8th from Lagna.
+	Saturn (Shani)
+	PL_SAT
+	23,000
+	Saturn transit    of natal Moon (Sade Sati); Saturn in 8th (Ashtamasani).
+	Rahu
+	PL_RAH
+	18,000
+	Rahu transiting 8th or 9th house; Rahu conjunct Sun/Moon.
+	Ketu
+	PL_KET
+	17,000
+	Ketu transiting Lagna or 8th house; Ketu conjunct Mars.
+	The execution protocol requires scaling the base Japa count (  ) by a factor of    for Kali Yuga conditions, meaning the computational output must return    for modern remedial prescriptions.3
+1.3 Homa / Yagna Timing Logic
+The execution of a Homa requires evaluating a localized temporal-spatial construct known as "Agni Vasa" (Residence of Fire). Fire rituals are algorithmically blocked unless Agni is mathematically determined to reside on Earth (Prithvi).
+The algorithm requires the initialization of two discrete variables:
+            1. Calculate the numeric value of the current lunar Tithi (  ), where Shukla Pratipada   , Shukla Purnima   , Krishna Pratipada   , and Amavasya   .
+            2. Calculate the numeric value of the current weekday (  ), where Sunday   , Monday   , Tuesday   , Wednesday   , Thursday   , Friday   , Saturday   .
+The modulo formula for Agni Vasa is defined as:
+  
+
+The decision tree processes the output of   :
+               * If   : Return AGNI_EARTH. The boolean state for ritual execution is TRUE. The planetary condition is met.
+               * If   : Return AGNI_SKY. The boolean state is FALSE. Executing the algorithm in this state outputs a "Loss of Wealth" flag.
+               * If   : Return AGNI_UNDERWORLD. The boolean state is FALSE. Executing the algorithm in this state outputs a "Physical Danger" flag.
+2. Nakshatra-Level Prediction Rules (Beyond Vimshottari)
+The sidereal zodiac is divided into 27 discrete Nakshatra segments of    each. Advanced calculations require subdividing these segments into quarters (Padas) of    and parsing fractional overlaps.
+2.1 Sub-Rules for Marriage Compatibility Beyond Ashta-Koot
+The standard Ashta-Koot (36-point) matching algorithm frequently yields false negatives, specifically regarding Nadi Dosha (which subtracts 8 points). A robust computational engine must include exception handlers (Parihara) that bypass the primary Nadi Dosha trigger.
+The algorithm checks the longitudinal coordinates of the Moon for both subjects (Chart_A and Chart_B). If Chart_A.Nadi == Chart_B.Nadi, a primary dosha flag is raised. However, the exception handler neutralizes the dosha if any of the following spatial vectors align:
+                  * Nakshatra Exception: IF (Chart_A.Nakshatra == Chart_B.Nakshatra) AND (Chart_A.Pada!= Chart_B.Pada) THEN Nadi_Dosha_Penalty = 0.
+                  * Rashi Exception: IF (Chart_A.Rashi == Chart_B.Rashi) AND (Chart_A.Nakshatra!= Chart_B.Nakshatra) THEN Nadi_Dosha_Penalty = 0.
+                  * Directional Exception: The 27 Nakshatras are categorized into three directions (Sthira, Chara, Ugra). If the two Nakshatras belong to the same Nadi but different directional categories, the penalty is nullified.
+Furthermore, the Mahendra and Stree-Deergha sub-routines evaluate the discrete distance between the two Moon positions. For Stree-Deergha, the algorithm evaluates: Distance = (Chart_M.Nakshatra_Index - Chart_F.Nakshatra_Index). If Distance > 15 (accounting for circular array wrapping), a PROSPERITY_FLAG is returned, adding a highly favorable hidden modifier to the compatibility index.
+2.2 Nakshatra Gandanta: Exact Degrees, Severity, and Predictions
+Gandanta represents critical phase transitions in the sidereal zodiac where water signs terminate and fire signs begin. In these narrow computational windows, the lunar and solar-lunar boundaries synchronize, creating a fractional discontinuity. The algorithmic encoding requires a precise floating-point analysis of planetary longitudes (  ) to evaluate severity.6
+Gandanta Boundary Definition Array: The zones exist strictly at the junctions of    increments.7
+                  * Junction 1 (Pisces/Aries):    (   Pisces) to    (   Aries).
+                  * Junction 2 (Cancer/Leo):    (   Cancer) to    (   Leo).
+                  * Junction 3 (Scorpio/Sagittarius):    (   Scorpio) to    (   Sagittarius).6
+Severity Calculation Function (Calc_Gandanta_Severity(longitude)): To determine the magnitude of the karmic knot, calculate the absolute distance (  ) in degrees and minutes from the exact junction point (  ).6
+                     * If   : Return Severity Level 4 (Core - 10/10). Represents lifelong, deterministic effects. Programmatic output flags deep psychological trauma and potential physical mortality in early childhood (Abhukta Moola condition).6
+                     * If   : Return Severity Level 3 (Inner - 8/10). The effects are mathematically gated to trigger only during the Vimshottari Mahadasha of the specific planet occupying the Gandanta zone.6
+                     * If   : Return Severity Level 2 (Middle - 6/10). The effects trigger during specific Antardasha (sub-periods).6
+                     * If   : Return Severity Level 1 (Outer - 4/10). Milder effects, usually manifesting as transient psychological turbulence during lunar transits.6
+The algorithm applies a multi-factor weighting: The exact degree placement accounts for    of the severity logic. The identity of the planet adds    weight (Moon is weighted highest, followed by Sun and Lagna). If a planet is in Gandanta in the D-1 (Rashi) chart and remains in the boundary signs in the D-9 (Navamsha) chart, a "Double Gandanta" multiplier of    is applied.6
+2.3 Abhijit Nakshatra: Computation and Usage
+Unlike the standard 27-Nakshatra array where each node spans exactly   , the 28th Nakshatra, Abhijit, is an intercalary segment overlapping existing coordinate boundaries. It must be encoded as a specific exception handler within the base Nakshatra evaluation logic.9
+Abhijit Spatial Coordinate Bounds:
+                        * Start Longitude:    (   Capricorn).9
+                        * End Longitude:    (   Capricorn).9
+                        * Total Arc Span:    (  ). This represents the final quarter (Pada) of Uttarashada and the first    segment of Shravana.9
+Abhijit Muhurta Temporal Calculation Rules: While rarely utilized for natal ascendant calculations due to its narrow    span, Abhijit is the primary module for electional astrology (Muhurta Shastra). It represents the 8th segment of the 15 daylight Muhurtas.12
+To calculate the precise start and end timestamps dynamically for any geolocation:
+                           1. Compute Local Apparent Sunrise (  ) and Local Apparent Sunset (  ) in continuous time format.
+                           2. Compute Total Daylight Duration (  ) =   .
+                           3. Compute the Standard Muhurta Duration (  ) =   .12
+                           4. Start Timestamp:   .
+                           5. End Timestamp:   .13
+The algorithm flags this temporal window as MAX_AUSPICIOUS, overriding minor diurnal doshas (except on Wednesdays, where the overlap with Rahu Kaal triggers a partial boolean cancellation).
+2.4 Pushkara Navamsha and Pushkara Bhaga Coordinates
+These are highly specific, structurally auspicious spatial coordinates. A Pushkara Navamsha (PN) spans a    block, operating as a regenerative matrix for planetary energy. A Pushkara Bhaga (PB) is a point-specific coordinate requiring strict floating-point proximity (orb of   ).15
+Lookup Matrix: Pushkara Degrees and Navamshas 15:
+Zodiac Element
+	Associated Signs
+	Pushkara Navamsha 1 (3∘20′ Span)
+	Pushkara Navamsha 2 (3∘20′ Span)
+	Exact Pushkara Bhaga Degree
+	Fire
+	Aries, Leo, Sagittarius
+	  
+ –    (Libra Nav)
+	  
+ –    (Sagittarius Nav)
+	  
+
+	Earth
+	Taurus, Virgo, Capricorn
+	  
+ –    (Pisces Nav)
+	  
+ –    (Taurus Nav)
+	Taurus:   , Virgo:   , Capricorn:   
+	Air
+	Gemini, Libra, Aquarius
+	  
+ –    (Pisces Nav)
+	  
+ –    (Taurus Nav)
+	Gemini:   , Libra:   , Aquarius:   
+	Water
+	Cancer, Scorpio, Pisces
+	  
+ –    (Cancer Nav)
+	  
+ –    (Virgo Nav)
+	Cancer:   , Scorpio:   , Pisces:   
+	Computational implementation: When executing the Shadbala (Six-fold strength) evaluation loop, if a planet's ecliptic longitude falls within the defined bounds of a Pushkara Navamsha array, apply a baseline benefic multiplier (  ) to its positional strength. If the longitude evaluates to exactly    of a Pushkara Bhaga constant, apply an exponential benefic modifier (  ). This logic effectively overrides debilitation matrices; for instance, the Sun at    Aries is mathematically in its debilitated Navamsha (Libra), but the Pushkara exception handler intercepts this and assigns a positive strength state.15
+3. Ashtamangala Prashna (Kerala Tradition) Algorithmic Structure
+The Ashtamangala Prashna is a highly complex divinatory architecture native to Kerala. It synthesizes a spatial matrix (the physical board) with randomized numerical generation (the shell throwing) to create a deterministic output array representing the flow of time.19
+3.1 The 108-Cell Board Layout and House Mapping
+The Ashtamangala system utilizes a projected conceptual board, physically constructed on the ground.
+                              * The Matrix Definition: The board is a    grid representing the 108 Navamshas (Padas) of the zodiac.19
+                              * Directional Vectoring: The South Indian chart projection is hardcoded. East bounds Aries and Taurus; South bounds Cancer and Leo; West bounds Libra and Scorpio; North bounds Capricorn and Aquarius.22
+                              * The Swarna Lagna (Gold Ascendant): A proxy (usually a child) places a gold coin randomly into one of the 12 primary Rashi sectors of the drawn mandala. The computational system logs this selected coordinate as the Arudha Lagna (Base Ascendant).20 All subsequent house derivative calculations are iterated using this specific array index as House_1.
+3.2 Shell-Throwing Mechanics and Board Position Conversion
+The core divinatory algorithm generates a 3-digit vector representing the chronological sequence of Past, Present, and Future.24
+Algorithmic Sequence for Ashtamangala Number (Generate_AM_Number()):
+                                 1. Initialize total shell count   .20
+                                 2. Randomly divide    into three independent integer variables representing physical piles:    (left/past),    (center/present),    (right/future), enforcing the constraint that   .20
+                                 3. For each pile   , execute a modulo 8 operation to find the remainder 20:
+  
+                                 4. Apply the Modulo-Zero Correction handler: IF Rx == 0 THEN Rx = 8.20
+                                 5. Return the state array ``.
+Vector Parsing and Prediction Index: Each integer maps to a specific planetary frequency and a binary qualitative state.19
+                                    * Planet Mapping:   .19
+                                    * Qualitative Output: Odd integer values (  ) return BOOLEAN_GOOD (Auspicious). Even integer values (  ) return BOOLEAN_BAD (Inauspicious).19
+                                    * Computational Execution Example: If the returned array is , the system parses this as . The chronological string output reads: "Severe negative conditions in the past, transitioning to protective stability in the present, leading to systemic success in the future".19
+Tambula Formula Algorithm:
+To calculate the secondary ascendant, the Tambula Lagna, from the number of offered betel leaves (  ):
+                                       1. Calculate base variable   .26
+                                       2. Calculate final index using modulo arithmetic:   .26
+                                       3. Map the resulting integer (1 to 7) to the classical weekday planetary sequence (1=Sun, 2=Moon... 3=Mars).20 The sign occupied by that specific planet in the current transit chart becomes the Tambula Lagna.20
+Trisphutam Sub-Routine: An essential mathematical calculation for determining hidden flaws. Trisphutam = Ecliptic_Longitude(Udaya_Lagna) + Ecliptic_Longitude(Moon) + Ecliptic_Longitude(Gulika). If the resulting longitude falls into an inauspicious Navamsha or a Gandanta zone, a critical error flag is returned regarding the query's subject.27
+3.3 The Deva Prashna Variant Decision Tree
+If the Prashna scope is specifically directed toward a temple or deity (Deva Prashna), the algorithm expands to track omens (Nimitta) and spatial orientations via a decision tree.19
+                                          1. Input Matrix: Timestamp of query, placement of Swarna Lagna, ordinal sequence of drawn Cakra lines, spatial orientation of the lamp flame.19
+                                          2. Logic Gate 1 (Cakra Creation): If the Western or Southern boundary lines of the Cakra are drawn first, trigger FLAG_DISEASE or FLAG_HARM.22
+                                          3. Logic Gate 2 (Flame Vector): If the flame of the primary ghee lamp leans toward the South, trigger FLAG_EVIL_OMEN.19
+                                          4. Logic Gate 3 (Coin State): If the Swarna Lagna (gold coin) lands face down or tilted South in the designated Rashi box, trigger FLAG_DEATH_POLLUTION indicating systemic temple desecration or failure.19
+                                          5. Output Resolution: The system cross-verifies the Arudha Lagna, Tambula Lagna, and Ashtamangala Array. If all three evaluate to a BOOLEAN_BAD state, the algorithm confirms absolute loss of deity sanctity.
+4. Sarpa Dosha / Kala Sarpa: Complete Computational Rules
+Kala Sarpa is a structural topological anomaly where the continuous distribution of planetary masses is violently restricted to one hemisphere of the ecliptic, locked between the lunar nodes.
+4.1 Exact Definition and Base Boolean Logic
+Kala Sarpa Dosha is triggered exclusively when all seven classical planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn) are geometrically hemmed between the longitudinal arc defined by Rahu and Ketu.29
+Function Check_Kala_Sarpa(Planet_Array, Rahu_Pos, Ketu_Pos):
+                                          1. Calculate the two possible semi-circles of the ecliptic. Path A is from Rahu to Ketu (Anuloma). Path B is from Ketu to Rahu (Viloma).31
+                                          2. Iterate through the Planet_Array checking the longitude (  ) of each celestial body.
+                                          3. If the longitudinal positions of all seven classical planets fall exclusively within Path A or exclusively within Path B, set Kala_Sarpa_Status = TRUE.29
+                                          4. If even a single planet's longitude (  ) falls outside this specific hemispheric arc, the continuous sequence is broken, and Kala_Sarpa_Status = FALSE.29 Note: The Ascendant (Lagna) degree is strictly ignored in this calculation; only physical planetary masses dictate the boundary break.30
+4.2 Partial Kala Sarpa Breaks
+A specific algorithmic modifier exists for nearly-complete conditions.
+                                             * Rule: If Kala_Sarpa_Status == FALSE only because a single malefic planet (specifically Mars or Saturn) is positioned exactly outside the Rahu-Ketu axis, the system triggers a secondary evaluation. Return Partial_Kala_Sarpa = TRUE.29 The resulting severity index is multiplied by a coefficient of    compared to a full formation.29
+4.3 ALL 12 Variants and Defining Configurations
+The specific variant of the Dosha is determined deterministically by the integer value of the astrological house (  ) occupied by Rahu (from 1 to 12).32
+
+
+Rahu House
+	Ketu House
+	Variant Name
+	Programmatic Prediction Output (Lookup String)
+	1
+	7
+	Anant
+	Self-worth struggles, delayed marriage, unstable partnerships. Struggle for personal success despite intense effort.32
+	2
+	8
+	Kulik
+	Sudden financial losses, familial disputes, harsh speech, health issues related to aging, debt accumulation.32
+	3
+	9
+	Vasuki
+	Fluctuating fortune, strained sibling relations, blockages in professional persistence, health worries regarding father.32
+	4
+	10
+	Shankhpal
+	Domestic friction, career instability, maternal health concerns, erratic professional trajectory.32
+	5
+	11
+	Padma
+	Complications with progeny, lack of focus in academics, erratic financial gains, risky or speculative behaviors.36
+	6
+	12
+	Mahapadma
+	Loss of mental clarity, foreign business profits marred by chronic health issues, hidden debts, spiritual confusion.36
+	7
+	1
+	Takshak
+	Severe marital delay or intense discord, clashes with in-laws, potential litigation, divorce risk.36
+	8
+	2
+	Karkotak
+	Sudden financial shocks, inheritance delays, sharp speech causing relationship breakdowns, accident proneness.36
+	9
+	3
+	Shankhchood
+	Delayed fulfillment of desires causing intense frustration, disputes with paternal figures, spiritual blockages.36
+	10
+	4
+	Ghatak
+	Professional ego clashes, strained relationship with mother, legal entanglement in career, instability in workplace.36
+	11
+	5
+	Vishdhar
+	Blocked income streams, problems with elder siblings, isolation from social circles, creative suppression.36
+	12
+	6
+	Sheshnag
+	Hidden enemies, habit of extreme overspending leading to inescapable debt, prolonged spiritual emptiness, delayed success until mid-life.36
+	5. Pitru Dosha (Ancestral Curse Patterns): Computational Rules
+Pitru Dosha represents the algorithmic tracing of ancestral karmic debt. It is not an arbitrary curse, but a quantifiable malefic alignment primarily disrupting the 9th House (lineage/father) or the 5th House (past life karma/progeny).39
+5.1 Exact Planetary Conditions Defining Pitru Dosha
+The function Evaluate_Pitru_Dosha() returns a severity score based on an additive point system checking specific ecliptic intersections.
+Base Triggers (Assign 1 point for each TRUE evaluation):
+                                                1. Sun-Node Conjunction: Sun is conjunct Rahu or Sun is conjunct Ketu in any house within a    orb.41 (Rahu is immune to solar combustion, meaning the Sun's energy is eclipsed rather than dominant).43
+                                                2. 9th House Affliction: Rahu, Ketu, Saturn, or Mars occupies the 9th house.39
+                                                3. 9th Lord Affliction: The Lord of the 9th House is conjunct Rahu or Saturn, or occupies the 6th, 8th, or 12th houses (Dusthanas).41
+                                                4. Sun-Saturn Alignment: Sun is conjunct Saturn specifically in the 1st, 2nd, 4th, 7th, 9th, or 10th houses.45
+                                                5. Badhakasthana Placement: The Sun or Moon is positioned in the Badhakasthana. (Algorithm: If Ascendant is Moveable    11th house; if Fixed    9th house; if Dual    7th house).46
+5.2 Specific Sub-Routines and Life Domain Modifiers
+The architecture of Pitru Dosha categorizes into 14 sub-types based on exact alignments.47 The most prominent computational combinations include:
+                                                   * Matru Shrapa (Maternal Curse): Evaluates TRUE if the Moon is conjunct Rahu/Ketu (Chandra Grahan Dosha) 42 OR if the Moon is in the 6th, 8th, or 12th house receiving malefic aspects. Modifier Logic: The system overwrites general output to strictly target emotional instability, lack of mental peace, and maternal health complications.47
+                                                   * Brahma / Sarpa Shrapa: Evaluates TRUE if Jupiter (Karaka for children) is conjunct Mars, Rahu is in the Lagna (1st house), AND the 5th Lord is in the 6th, 8th, or 12th house.49 Modifier Logic: Directs algorithmic output strictly toward progeny delay, fertility challenges, and repeated miscarriages.44
+                                                   * Severe (Mahan) Multiplier: If Evaluate_Pitru_Dosha() >= 1 AND the Sun or Moon is located in the Badhakasthana AND simultaneously falls into a Navamsha (D-9) division ruled by Mars or Saturn, apply a    multiplier to the final Pitru Dosha severity score.46
+6. Manglik Dosha: The Complete Rule Set
+Manglik Dosha computation requires checking the position of Mars against three separate reference coordinates (Ascendant, Moon, Venus) and then parsing the output through a massive boolean suppression (cancellation) protocol to prevent false positives.51
+6.1 Base Trigger and House System
+                                                      * House System Geometry: While rudimentary checks use Whole Sign arrays, precision engines utilize Bhava Chalit (Sripat system) where house cusps are calculated via spherical trigonometry, and the planet's longitude is evaluated against floating-point cusp boundaries.
+                                                      * Trigger Condition: The boolean state Mangal_Dosha_Base = TRUE occurs when Mars occupies the 1st, 2nd, 4th, 7th, 8th, or 12th house from the Ascendant (Lagna).51
+                                                      * Multi-Reference Parsing: The identical positional algorithm is reiterated using the longitudinal position of the Moon as the array index zero (Chandra Lagna) and Venus as array index zero (Shukra Lagna).52
+6.2 Graded Severity Lookup Matrix
+                                                      * High Mangal Dosha (Score = 3): Mars triggers the condition from all three reference points (Lagna, Moon, Venus). System flags severe marital disruption.52
+                                                      * Low/Partial Mangal Dosha (Score = 1): Mars triggers the condition from only one or two of the reference charts.52 Modifier: The algorithm automatically nullifies this severity class via a time-gate when the native's calculated age    years.54
+6.3 ALL Cancellation Conditions (Nullification Rules)
+The algorithm must set the final output Manglik_Status = CANCELLED if any of the following state vectors evaluate to TRUE. This acts as a comprehensive exception handler 53:
+                                                         1. Dignity Exception: Mars is in its own sign (Aries, Scorpio) or exalted (Capricorn).53
+                                                         2. Benefic Override: Mars is conjunct with, or receives a direct full aspect (  , or special trinal/square aspects depending on the aspecting body) from Jupiter or a waxing Moon.53
+                                                         3. House-Specific Sign Exceptions:
+                                                            * If House    AND Sign       Cancel.
+                                                            * If House    AND Sign       Cancel.
+                                                            * If House    AND Sign       Cancel.53
+                                                            * If House    AND Sign       Cancel.58
+                                                            * If House    AND Sign       Cancel.57
+                                                               4. Ascendant Lord Exception: The ascendant is Cancer or Leo. In these matrices, Mars operates as a Yogakaraka (a structural benefic) and algorithmically cannot act as an agent of Dosha.58 For Aquarius ascendant, if Mars is in the 4th or 8th house, it is canceled.58
+                                                               5. Movable Sign Exception: Mars is placed in a movable sign (Aries, Cancer, Libra, Capricorn) across any of the dosha-triggering houses.56
+                                                               6. Conjunction Nullification: Mars is conjunct Rahu, Ketu, or Saturn.56
+6.4 The Double Manglik Concept (Dosha Samyoga)
+In compatibility matching routines (Synastry), the system processes the output of two separate arrays. If Chart_A.Manglik_Status == TRUE AND Chart_B.Manglik_Status == TRUE, a boolean AND gate forces a mutual destruction of the doshas. The algorithm overwrites the individual flags and returns COMPATIBILITY_SAFE = TRUE.51
+7. Graha Yuddha (Planetary War) Complete Computation
+Planetary war represents a longitudinal collision of celestial energies where only one planet retains its functional output capability. The algorithms here rely heavily on true astronomical ephemeris data, shifting from standard ecliptic mapping to 3-dimensional spherical coordinates.60
+7.1 Exact Rules, Applicable Planets, and Orb
+                                                               * Participants: The evaluation matrix strictly filters for the five Tara Grahas (Mars, Mercury, Jupiter, Venus, and Saturn). The Sun, Moon, and Nodes (Rahu/Ketu) never participate in Yuddha.61
+                                                               * Orb of Engagement: The trigger condition Yuddha_Active = TRUE occurs when the geocentric apparent longitude (  ) of two participating planets are within    of each other (  ).60 Note: The Surya Siddhanta standard requires topocentric apparent longitude calculations, meaning two planets can be in ecliptic conjunction but physically separated by several degrees from the observer's plane, thus failing to trigger the algorithm.62
+7.2 Victor Determination Algorithm
+The resolution of the planetary war follows a strict descending hierarchy of conditional checks.63
+Let Planet A and Planet B be engaged in Yuddha.
+                                                                  1. Special Exception 1 (Mars): Mars is inherently encoded as the loser in Graha Yuddha, regardless of spatial advantages in latitude or size.63 If   ,    wins.
+                                                                  2. Special Exception 2 (Venus): According to the Surya Siddhanta framework, Venus is virtually always declared the victor, whether its declination is North or South, due to its overwhelming visual effulgence (brightness).60 If    and    (where massive intrinsic strength overrides brightness), Venus wins.63
+                                                                  3. Step 1: Declination / Latitude (Primary Computational Check): Calculate the true declination (  ) of both planets. The planet positioned further North (possessing the higher positive declination or lesser negative declination) is declared the victor.63
+                                                                  4. Step 2: Velocity / Orbital Speed: If declinations are functionally identical within a fractional tolerance, calculate the daily motion vector. The planet with the greater orbital speed (faster daily motion) wins.60
+                                                                  5. Step 3: Planetary Mass / Intrinsic Strength: If velocity matrices are inconclusive, evaluate intrinsic dimensional size: Saturn > Jupiter > Venus > Mercury.63
+7.3 Effects of Losing (The Vanquished Planet)
+The defeated planet (Piidita) yields its functional strength to the victor.61 In the computational model, the Shadbala (Six-fold strength) integer score of the loser is penalized with a negative Yuddha Bala multiplier, while the victor is rewarded with a positive multiplier equivalent to the loser's subtracted points.62 The losing planet is algorithmically blocked from delivering the results of its house lordships and natural significations (Karakatwas) during its operating periods.60
+8. Combustion (Asta / Moudhya) Rules
+Combustion is the mathematical state mapping a planet's heliacal setting, where proximity to the Sun's mass renders it invisible and energetically suppressed. It structurally triggers the Kopa (angry/frustrated) planetary Avastha.66
+8.1 Exact Combustion Orbs
+A planet is flagged as COMBUST = TRUE if the absolute difference in apparent longitude from the Sun (  ) is less than or equal to a predefined planetary orb limit.66
+Planet
+	Direct Orb (Forward Motion)
+	Retrograde Orb (Rx)
+	Moon
+	  
+
+	N/A
+	Mars
+	  
+
+	Cannot be combust while Rx
+	Mercury
+	  
+
+	  
+
+	Jupiter
+	  
+
+	Cannot be combust while Rx
+	Venus
+	  
+
+	  
+
+	Saturn
+	  
+
+	Cannot be combust while Rx
+	Architectural exception: The lunar nodes (Rahu and Ketu) are mathematical points without physical mass; they do not combust. When their longitude approaches the Sun, the algorithm shifts from combustion evaluation to eclipse evaluation.67
+8.2 Retrograde Combustion Rules and Orbital Mechanics
+The computational logic must strictly partition Inner planets (Mercury, Venus) from Outer planets (Mars, Jupiter, Saturn) regarding the intersection of retrograde motion and combustion.70
+                                                                     * Outer Planets Constraint: Outer planets enter retrograde motion exclusively when they approach opposition (roughly   ) to the Sun. Because their minimum distance to the Sun during retrogradation infinitely exceeds their combustion orbs (  ), it is a mathematical impossibility for an outer planet to be evaluated as RETROGRADE = TRUE and COMBUST = TRUE simultaneously.70
+                                                                     * Inner Planets Constraint: Inner planets retrograde during their inferior conjunction (passing directly between the Earth and the Sun). Because they are closest to Earth during this phase, their apparent magnitude increases, meaning their mathematical orb of combustion must be structurally tightened. The algorithm subtracts    from the standard orb for both Mercury (  ) and Venus (  ) during retrogradation.66
+8.3 Combust Lord Effects
+From an output generation standpoint, combustion triggers massive functional handicaps in the predictive matrix. If the Lord of the Ascendant (Lagnesh) evaluates as combust, the algorithm forces a physical vitality degradation flag (Diseases = TRUE) in accordance with Brihat Parashara Hora Shastra (BPHS) guidelines.67 Benefic planets (Jupiter, Venus) lose their positive point multipliers entirely. Malefic planets (Saturn, Mars) retain their inherent nature but trigger erratic, mischievous negative multipliers across their designated house arrays.67 If Jupiter or Venus evaluates to COMBUST = TRUE, the Muhurta (electional) engine must universally block all outputs for major life events, such as marriage or property acquisition, for the duration of the transit.67

@@ -1,0 +1,212 @@
+﻿Algorithmic Frameworks of Classical Vedic Astrological Dasha Systems: A Computational Blueprint
+The chronological mapping of karmic unfurling in classical Vedic astrology (Jyotish) relies on a vast architecture of complex algorithms known as Dasha systems. While the Vimshottari Dasha serves as the universal standard for continuous chronometry, the foundational texts—namely the Brihat Parashara Hora Shastra (BPHS) and the Jaimini Upadesha Sutras—detail an expansive array of conditional and specialized Dasha frameworks.1 These chronometric algorithms are broadly divided into Udu Dashas (nakshatra-based planetary periods) and Rashi Dashas (zodiacal sign-based periods).4 The implementation of these systems in astrological software requires absolute algorithmic precision, strict adherence to astronomical eligibility conditions, and the nuanced application of mathematical sequence routing.
+This comprehensive report provides an exhaustive, expert-level breakdown of eleven specialized Dasha systems. It details their exact eligibility parameters, sequence geometries, duration allocations, and mathematical computation rules to facilitate direct programmatic implementation.
+The Conditional Nakshatra Dashas (Udu Dashas)
+Maharishi Parashara articulated a series of conditional Nakshatra Dashas that supersede or run parallel to the Vimshottari when specific astronomical criteria are met within a natal chart.1 These systems uniformly utilize modulo arithmetic applied to the longitudinal distance between specific stellar starting nodes and the natal Moon. To compute the exact balance of the opening Dasha at birth (Balance of Dasha), algorithms must calculate the proportional distance the Moon has yet to traverse within its current nakshatra, dividing this by the total width of a nakshatra (13 degrees and 20 minutes, or 800 arcminutes), and multiplying the resulting fraction by the total years assigned to the commencing planet.
+1. Dwadashottari Dasha (112 Years)
+The Dwadashottari Dasha is a highly specialized conditional framework spanning a total chronological cycle of 112 years. Its architecture relies on an eight-planet sequence that distinctly excludes Venus from its chronological lordship cycle.7
+A critical clarification regarding the eligibility condition is required based on historical astrological inquiries. The system does not require Venus to be situated in the natal Ascendant. Rather, the triggering eligibility condition dictates that the natal Ascendant (Lagna) must fall within the Navamsha (D-9 divisional chart) of Venus.7 Programmatically, this means the algorithm must evaluate the exact degree of the Ascendant, calculate its D-9 divisional placement, and verify if the resulting Navamsha sign is either Taurus or Libra. If this boolean condition evaluates to true, the Dwadashottari computation is initialized.
+The mathematical derivation to determine the commencing Dasha lord utilizes the Janma Nakshatra (the constellation occupied by the natal Moon). The computational subroutine initializes by noting the numerical index of the Janma Nakshatra. It then calculates the inclusive distance from the Janma Nakshatra to the constellation of Revati. The algorithm divides this resulting integer by 8 and extracts the remainder through a modulo operation.7 This remainder maps directly to the initial presiding lord of the Dasha sequence.
+The total 112-year lifespan is distributed among the eight included planets, with the durations incrementing sequentially by exactly two years per node. Venus is systematically omitted from the lordship cycle.8
+Remainder Calculation
+	Dasha Lord
+	Duration Allocation
+	Cumulative Cycle Years
+	Remainder 1
+	Sun
+	7 Years
+	7
+	Remainder 2
+	Jupiter
+	9 Years
+	16
+	Remainder 3
+	Ketu
+	11 Years
+	27
+	Remainder 4
+	Mercury
+	13 Years
+	40
+	Remainder 5
+	Rahu
+	15 Years
+	55
+	Remainder 6
+	Mars
+	17 Years
+	72
+	Remainder 7
+	Saturn
+	19 Years
+	91
+	Remainder 0 (8)
+	Moon
+	21 Years
+	112
+	Once the commencing lord is identified via the remainder, the sequence progresses sequentially down the table, looping back to the Sun after the Moon's period concludes.
+2. Panchottari Dasha (105 Years)
+The Panchottari Dasha operates as an exceedingly rare 105-year chronological framework characterized by a seven-planet sequence that entirely excludes the lunar nodes, Rahu and Ketu.9
+The stringent eligibility criterion for this system demands a dual-layered geometric alignment. The natal Ascendant must be situated in the sign of Cancer (Karkata) in the primary D-1 Rashi chart, and it must concurrently occupy the Cancer Dwadashamsha in the D-12 divisional chart.9 To code this condition, the software must verify that the Ascendant longitude falls between 90 degrees and 120 degrees of the zodiac, and further verify that the longitude falls specifically within the first 2 degrees and 30 minutes of Cancer, which corresponds to the Cancer division in the D-12 array.
+The mathematical derivation utilizes the nakshatra of Anuradha as the base counting node.9 The algorithm counts the total number of nakshatras from Anuradha to the Janma Nakshatra, maintaining an inclusive count. Following this, modulo 7 arithmetic is applied to the count.9 The resulting remainder determines the presiding lord that initiates the chronological cycle.
+The 105-year sequence increments smoothly by one year per planetary node, commencing with the Sun.9
+Remainder Calculation
+	Dasha Lord
+	Duration Allocation
+	Remainder 1
+	Sun
+	12 Years
+	Remainder 2
+	Mercury
+	13 Years
+	Remainder 3
+	Saturn
+	14 Years
+	Remainder 4
+	Mars
+	15 Years
+	Remainder 5
+	Venus
+	16 Years
+	Remainder 6
+	Moon
+	17 Years
+	Remainder 0 (7)
+	Jupiter
+	18 Years
+	3. Shatabdika Dasha (100 Years)
+The Shatabdika Dasha compresses the idealized human lifespan into a precise 100-year algorithmic cycle.7 It provides an alternative chronometric lens for charts exhibiting high structural integrity between the physical and karmic harmonic charts.
+The eligibility condition for Shatabdika Dasha is operationalized strictly when the natal Ascendant is classified as Vargottama.7 In astrological computation, a Vargottama state occurs when the Ascendant occupies the identical zodiacal sign in both the primary Rashi chart (D-1) and the Navamsha chart (D-9). The code must calculate the D-1 sign index and the D-9 sign index of the Ascendant; if they are mathematically equal, the Shatabdika module is unlocked.
+The computation for the commencing lord initializes from the terminal constellation of the zodiac, Revati.7 The algorithm calculates the inclusive distance from Revati to the natal Janma Nakshatra. It then applies a modulo 7 operation to this integer.10 The resulting remainder dictates the starting point within the sequential array.
+The year allocation in the Shatabdika framework is distinctly non-linear, creating an escalating geometric curve of chronological dominance that heavily weights the periods of Jupiter, Mars, and Saturn.10
+Remainder Calculation
+	Dasha Lord
+	Duration Allocation
+	Remainder 1
+	Sun
+	5 Years
+	Remainder 2
+	Moon
+	5 Years
+	Remainder 3
+	Venus
+	10 Years
+	Remainder 4
+	Mercury
+	10 Years
+	Remainder 5
+	Jupiter
+	20 Years
+	Remainder 6
+	Mars
+	20 Years
+	Remainder 0 (7)
+	Saturn
+	30 Years
+	4. Chaturashiti Sama Dasha (84 Years)
+The Chaturashiti Sama Dasha represents a unique 84-year paradigm where time is distributed with absolute mathematical equity across the seven visible planets, entirely omitting the lunar nodes.11
+The user's premise regarding the eligibility condition is entirely correct. This algorithmic framework is activated solely when the 10th lord (Karmesh) is situated within its own 10th house in the natal D-1 chart.11 Statistically, this specific planetary geometry applies to approximately 8.34% of natal charts, a rarity that grants it high analytical priority when operationalizing predictive modules.13 Programmatically, the software identifies the zodiacal sign on the 10th house cusp, identifies its planetary ruler, and verifies if the celestial longitude of that ruling planet falls within the boundaries of the 10th house.
+The reference node for this sequence is the nakshatra of Swati.11 The subroutine executes an inclusive count from Swati to the Janma Nakshatra. It then executes modulo 7 arithmetic on the resulting sum.11
+Unlike the escalating or variable durations found in other conditional dashas, Chaturashiti Sama enforces absolute temporal equity. Every participating planet receives a duration of precisely 12 years, ensuring the cycle perfectly totals 84 years.11
+Remainder Calculation
+	Dasha Lord
+	Duration Allocation
+	Remainder 1
+	Sun
+	12 Years
+	Remainder 2
+	Moon
+	12 Years
+	Remainder 3
+	Mars
+	12 Years
+	Remainder 4
+	Mercury
+	12 Years
+	Remainder 5
+	Jupiter
+	12 Years
+	Remainder 6
+	Venus
+	12 Years
+	Remainder 0 (7)
+	Saturn
+	12 Years
+	The Ayur and Specialized Sign-Based Dashas (Rashi Dashas)
+Rashi Dashas, prominently featured in the Jaimini tradition, compute chronological unfoldment through the progression across zodiacal signs rather than tracking planetary nakshatra lords.4 These algorithms are highly geometric and topological, relying on aspects, trines, and the modalities of the signs themselves to trigger life events.
+5. Shoola Dasha
+The Shoola Dasha is a specialized Ayur Dasha (longevity framework) intrinsically engineered for identifying periods of profound physical danger, fatal illness, and the precise timing of death for the native as well as their immediate relatives.14 Rooted heavily in the symbolism of Lord Shiva's three-pronged spear (the Trishoola), the system assesses the elemental triads of the zodiac to isolate zones of somatic vulnerability.14 While universally applicable without specific birth preconditions, it is invoked exclusively for somatic vulnerability analysis and longevity determination.14
+The computation algorithm and sequencing logic are robust. Because Saturn serves as the natural astrological significator for longevity, the sequence is invariably regular and direct (zodiacal), moving sequentially through the signs (e.g., Aries, Taurus, Gemini) without reverse or jumping patterns.14 However, the starting node varies dynamically depending on the subject of the astrological inquiry:
+* For the Native (Self) / Spouse: The algorithm evaluates the relative strength of the Ascendant (Lagna) versus the 7th house. The sequence begins from whichever sign is mathematically stronger according to Jaimini strength algorithms (sources of strength include the number of occupying planets, placement of the sign lord, and aspects from Jupiter/Mercury).14
+* For the Father: The starting node is the stronger sign between the 3rd and 9th houses.14
+* For the Mother: The starting node is the stronger sign between the 4th and 10th houses.14
+The duration calculation in the Shoola Dasha utilizes a fixed chronological constant. Every zodiacal sign universally administers a period of exactly 9 years.14 The classical texts offer two contextual derivations for this fixed period. Under the "Full Life Rule," the idealized human lifespan (Purna Ayus) of 108 years is divided equally among the 12 signs, yielding 9 years per sign.14 Under the "Gestation Rule," sub-periods (Antardashas) are modeled to mirror the 9-month human gestation period, ensuring exact fractional alignment (  , which exactly equals 9 years).14
+To program predictive danger alerts within this dasha, the code must calculate the Rudra and the Trishoola.14 The algorithm first determines the Rudra by comparing the lords of the 2nd and 8th houses; the stronger of the two lords becomes the Rudra planet.14 The specific zodiacal sign occupied by the Rudra planet is designated as the Shoola.14 Finally, the elemental trines (1st, 5th, and 9th positions) from the Shoola sign are mapped as the Trishoola.14 Extreme peril or death heavily correlates with the chronological periods when a Trishoola sign is operating as the active Dasha.14
+6. Sudasa (Sree Lagna Kendradi Rasi Dasa)
+A critical computational correction must be addressed regarding the user's premise. While the inquiry posited that Sudasa is synonymous with a Dashamsha (D-10) Dasha used for career timing, classical texts explicitly define Sudasa as the Sree Lagna Kendradi Rasi Dasa.16 It operates primarily on the D-1 chart and is a specialized Jaimini system dedicated to material prosperity, financial fluctuations, and the acquisition or loss of status and power by tracing the kinetic movement of Lakshmi (the goddess of wealth) through the natal chart.17
+Sudasa is universally applicable but strictly requires the precise mathematical derivation of a synthetic coordinate known as the Sree Lagna (SL).16 The Sree Lagna represents the intersection of the Ascendant's geometry with the Moon's fractional transit.19 The computational algorithm to derive the Sree Lagna longitude is as follows:
+  
+
+In this formula, the proportional distance the Moon has traversed in its current Nakshatra is converted to a percentage, projected onto the entire 360-degree zodiac, and then added to the exact degree of the Ascendant.19 The zodiacal sign housing this resulting SL coordinate becomes the starting sign for the Sudasa sequence.
+The progression sequence operates through geometric angular triads originating from the Sree Lagna. It traverses the Kendras (1st, 4th, 7th, 10th houses), followed by the Panapharas (2nd, 5th, 8th, 11th houses), and concluding with the Apoklimas (3rd, 6th, 9th, 12th houses).2 The directionality of this progression is conditional:
+* If the Sree Lagna occupies an Odd Sign (Aries, Gemini, Leo, Libra, Sagittarius, Aquarius), the sequence progresses zodiacally (forward).22
+* If the Sree Lagna occupies an Even Sign (Taurus, Cancer, Virgo, Scorpio, Capricorn, Pisces), the sequence progresses anti-zodiacally (backward).22
+* Algorithmic Override: If Saturn is positioned in the Ascendant, the counting direction is definitively forced to be zodiacal regardless of the SL sign. If Ketu is positioned in the Ascendant, it is definitively forced to be anti-zodiacal.22
+The duration computation algorithm for Sudasa assigns highly variable years derived from the spatial relationship between the Dasha sign and its ruling planet.16 The software must first identify if the active Dasha sign is Odd-footed (Aries, Taurus, Gemini, Libra, Scorpio, Sagittarius) or Even-footed (Cancer, Leo, Virgo, Capricorn, Aquarius, Pisces).16 The algorithm counts the distance from the Dasha sign to the sign occupied by its lord. If the sign is odd-footed, the count is forward; if even-footed, the count is reverse.16 The resulting count, minus 1, provides the base duration in years.16 Programmatic modifiers are then applied: if the ruling planet is exalted, 1 year is added; if debilitated, 1 year is subtracted.22 Furthermore, if the ruling planet occupies the Dasha sign itself, a flat override applies, allocating a fixed 12 years to that period.22
+7. Drig Dasha
+Drig Dasha is fundamentally rooted in the concept of Drishti (vision or aspects) within the Jaimini system. It is uniquely engineered to map the evolution of consciousness, spiritual awakenings, religious initiations, and internal realization.18 It is particularly deployed by astrological researchers to analyze the unfoldment of renunciation (Sannyasa) and Argala Raja Yogas, serving as a distinct contrast to the material focus of Chara Dasha or the longevity focus of Shoola Dasha.18
+The sequence matrix of Drig Dasha jumps according to Jaimini's unique aspectual rules. In computational logic, Jaimini aspects dictate that Movable signs aspect all Fixed signs (except the adjacent one), Fixed signs aspect all Movable signs (except the adjacent one), and Dual signs aspect all other Dual signs.24 The chronological mapping unfolds in three distinct phases:
+1. Phase 1: The sequence initiates from the 9th house from the Ascendant.25 This base period is followed immediately by the periods of the three signs that cast a Jaimini aspect onto the 9th house.26
+2. Phase 2: The sequence then leaps to the 10th house, followed sequentially by the three signs aspecting the 10th.26
+3. Phase 3: The cycle concludes with the 11th house, followed sequentially by the three signs aspecting the 11th.26
+The internal reckoning order within the aspected triad is determined by the footing of the base house: if the 9th/10th/11th house is an odd-footed sign, the triad is traversed in a forward direction; if even-footed, the triad is traversed in a backward direction.26
+Regarding the computation of durations, there has been historical debate regarding whether to use the "count to lord" method or fixed years. However, authoritative interpretations of Parashara's canonical rules dictate that the durations in Drig Dasha are uniform and rigidly fixed based entirely on the modality of the active sign being evaluated.23 For programming purposes, the array maps as follows:
+* Movable Signs (Chara): 7 years.23
+* Fixed Signs (Sthira): 8 years.23
+* Dual Signs (Dwisvabhava): 9 years.23
+8. Niryana Shoola Dasha
+While the standard Shoola Dasha assesses general bodily peril and illness, the Niryana Shoola Dasha is a granular system utilized to track the exact motion of Praana (the vital life force) and is heavily leveraged by Jaimini scholars for predicting the incontrovertible timing of physical death.18
+Niryana Shoola is distinctly different from regular Shoola in both its astronomical starting node and its deterministic scope. While standard Shoola utilizes the stronger of the Ascendant or the 7th house, the prevailing algorithmic consensus for Niryana Shoola—derived from classical interpretations of Jaimini Sutra 17—stipulates that the sequence always initiates from the Ascendant.27 It should be noted for developers aiming for absolute completeness that a minor variant tradition forces the calculation to commence from the 7th house exclusively when the Ascendant is an Even sign, but the primary method utilizes the Ascendant unconditionally.27
+The sequence directionality is determined by the polarity of the initiating sign. If the Ascendant is an Odd sign, the sequence executes in a direct zodiacal order; if the Ascendant is an Even sign, the sequence executes in a converse (reverse) order.27
+Similar to standard Shoola, the macro-duration is an immutable constant of 9 years per sign.15 However, to achieve the sub-period precision required for exact event timing, the Navamsha Dasa sub-division is employed. This mathematical layer divides the 9-year block by 9, rendering highly precise 1-year operational windows for Antardashas.27 A fatal event is algorithmically predicted to transpire when the trajectory of the Praana intersects with Maraka (death-inflicting) signs or the previously defined Trishoola domains.18
+9. Padanadhamsha Dasha
+The Padanadhamsha (alternatively referred to as Pada Navamsha) Dasha is an esoteric algorithm historically obscured due to its computational density.29 It establishes a profound chronometric link between the Arudha Lagna (the tangible manifestation and social image of the self) and the Navamsha (the underlying karmic blueprint).29
+The sequence is applicable to all charts without prerequisites, but it explicitly demands the prior derivation of the Arudha Lagna and its presiding lord, known as the Pada Nath.29 The algorithm locates this specific planetary lord within the Navamsha (D-9) divisional chart. The exact Navamsha zodiacal sign occupied by the Pada Nath becomes the absolute starting node for the entire Dasha sequence.30
+The topological architecture of the Padanadhamsha sequence utilizes both triplicity (modality) and quadruplicity (odd/even polarity) to dictate six highly distinct, non-linear chronological mappings. Software must identify the starting Navamsha sign and route the sequence through one of the following arrays 30:
+1. Aries & Libra (Odd + Movable): Standard continuous direct sequence. The array progresses sequentially forward (e.g., Aries    Taurus    Gemini    Cancer...).30
+2. Cancer & Capricorn (Even + Movable): Standard continuous reverse sequence. The array progresses sequentially backward (e.g., Cancer    Gemini    Taurus    Aries...).31
+3. Leo & Aquarius (Odd + Fixed): A jumping sequence counting to every 6th sign in a direct (clockwise) direction. For Leo, the array is: Leo, Capricorn, Gemini, Scorpio, Aries, Virgo, Aquarius, Cancer, Sagittarius, Taurus, Libra, Pisces.30
+4. Taurus & Scorpio (Even + Fixed): A jumping sequence counting to every 6th sign in a reverse (anti-clockwise) direction. For Taurus, the array is: Taurus, Sagittarius, Cancer, Aquarius, Virgo, Aries, Scorpio, Gemini, Capricorn, Leo, Pisces, Libra.30
+5. Gemini & Sagittarius (Odd + Dual): Trinal jumping (1st, 5th, 9th) in a direct direction. For Gemini, the array is: Gemini, Libra, Aquarius, Cancer, Scorpio, Pisces, Leo, Sagittarius, Aries, Virgo, Capricorn, Taurus.30
+6. Virgo & Pisces (Even + Dual): Trinal jumping (1st, 5th, 9th) in a reverse direction. For Pisces, the array is: Pisces, Scorpio, Cancer, Aquarius, Libra, Gemini, Capricorn, Virgo, Taurus, Sagittarius, Leo, Aries.30
+The year allocation computation is highly dependent on counting the distance from the active Dasha sign to its planetary lord within the Navamsha chart.32 If the active sign is Odd, the algorithm counts zodiacally (forward) to the lord.32 If the active sign is Even, the algorithm counts anti-zodiacally (reversely) to the lord.32 The numerical distance equals the allocated Dasha years. Two primary overrides exist: if the lord occupies the Dasha sign itself, it receives a maximum of 12 years; if the lord occupies the 7th house directly opposite the Dasha sign, it receives 10 years.32
+10. Mandooka Dasha (The Frog Leap Dasha)
+The Sanskrit term "Mandooka" directly translates to "frog." Consequently, the Manduka Gati (frog movement) algorithm simulates leaps across the zodiac, ignoring contiguous spatial logic in favor of categorical modality grouping (Cardinal, Fixed, Dual).33
+As outlined by Dr. K.N. Rao, Mandooka Dasha is operationalized strictly when a horoscope contains four or more planets (explicitly excluding the lunar nodes Rahu and Ketu) localized within the Kendras (Quadrants: 1st, 4th, 7th, or 10th houses) measured from the Ascendant.35
+The algorithm determines the base direction and starting node by evaluating the polarity of the Ascendant.35 If the Ascendant is an Odd sign, the sequence begins from the Ascendant and progresses in a direct overarching order.35 If the Ascendant is an Even sign, the sequence begins from the 7th house and progresses in an indirect (reverse) overarching order.35
+The core mechanism of the "frog jump" involves leaping consecutively to every fourth place. This effectively groups the sequence by modality, ensuring the algorithm completes all four signs of a specific modality block before jumping to the adjacent modality block.33
+For a developer implementing this, the explicit arrays for all 12 potential starting points are defined as follows:
+Direct Order (Ascendant is Odd):
+   * Aries (Cardinal): Aries    Cancer    Libra    Capricorn (Cardinals), then Taurus    Leo    Scorpio    Aquarius (Fixed), then Gemini    Virgo    Sagittarius    Pisces (Duals).33
+   * Gemini (Dual): Gemini    Virgo    Sagittarius    Pisces (Duals), then Cancer    Libra    Capricorn    Aries (Cardinals), then Leo    Scorpio    Aquarius    Taurus (Fixed).33
+   * Leo (Fixed): Leo    Scorpio    Aquarius    Taurus (Fixed), then Virgo    Sagittarius    Pisces    Gemini (Duals), then Libra    Capricorn    Aries    Cancer (Cardinals).33
+   * Libra (Cardinal): Libra    Capricorn    Aries    Cancer (Cardinals), then Scorpio    Aquarius    Taurus    Leo (Fixed), then Sagittarius    Pisces    Gemini    Virgo (Duals).33
+   * Sagittarius (Dual): Sagittarius    Pisces    Gemini    Virgo (Duals), then Capricorn    Aries    Cancer    Libra (Cardinals), then Aquarius    Taurus    Leo    Scorpio (Fixed).33
+   * Aquarius (Fixed): Aquarius    Taurus    Leo    Scorpio (Fixed), then Pisces    Gemini    Virgo    Sagittarius (Duals), then Aries    Cancer    Libra    Capricorn (Cardinals).33
+Reverse Order (Ascendant is Even - Start from 7th House):
+      * Taurus (Fixed - Start Scorpio): Scorpio    Leo    Taurus    Aquarius (Fixed), then Libra    Cancer    Aries    Capricorn (Cardinals), then Virgo    Gemini    Pisces    Sagittarius (Duals).33
+      * Cancer (Cardinal - Start Capricorn): Capricorn    Libra    Cancer    Aries (Cardinals), then Sagittarius    Virgo    Gemini    Pisces (Duals), then Scorpio    Leo    Taurus    Aquarius (Fixed).33
+      * Virgo (Dual - Start Pisces): Pisces    Sagittarius    Virgo    Gemini (Duals), then Aquarius    Scorpio    Leo    Taurus (Fixed), then Capricorn    Libra    Cancer    Aries (Cardinals).33
+      * Scorpio (Fixed - Start Taurus): Taurus    Aquarius    Scorpio    Leo (Fixed), then Aries    Capricorn    Libra    Cancer (Cardinals), then Pisces    Sagittarius    Virgo    Gemini (Duals).33
+      * Capricorn (Cardinal - Start Cancer): Cancer    Aries    Capricorn    Libra (Cardinals), then Gemini    Pisces    Sagittarius    Virgo (Duals), then Taurus    Aquarius    Scorpio    Leo (Fixed).33
+      * Pisces (Dual - Start Virgo): Virgo    Gemini    Pisces    Sagittarius (Duals), then Leo    Taurus    Aquarius    Scorpio (Fixed), then Cancer    Aries    Capricorn    Libra (Cardinals).33
+Durations in the Mandooka Dasha are strictly determined by the modality of the operating sign, utilizing a fixed array 35:
+         * Movable (Cardinal) Signs: 7 years.35
+         * Fixed Signs: 8 years.35
+         * Dual (Common) Signs: 9 years.35
+11. Tara Dasha
+The Tara Dasha system operates under dual interpretive frameworks within classical astrological literature: a planet-based Kendradi system cited directly by Parashara in BPHS, and a widely utilized nakshatra-based Navatara cyclic system.2 To verify the computations for programming, both architectures must be understood, though the nakshatra-based system aligns precisely with the user's inquiry regarding sequential nakshatra periods.
+Variant A: The Navatara Nakshatra Cycle This variant bypasses the irregular 120-year Vimshottari planetary allotments entirely.38 The 27 nakshatras of the zodiac are divided algorithmically into nine categorical Taras representing qualitative states of experience: Janma (Birth), Sampat (Wealth), Vipat (Danger), Kshema (Well-being), Pratyak (Obstacles), Sadhana (Achievement), Naidhana (Death/Transformation), Mitra (Friend), and Parama Mitra (Great Friend).38
+The sequence moves linearly starting from the Janma Tara, which corresponds to the specific nakshatra occupied by the Moon at the time of birth.39 Unlike Vimshottari where planets carry differing durational weights, in the Navatara Tara Dasha, every Tara represents a discrete chronological block of exactly 9 years.40 The sequence iterates through all nine categories, rendering a total overarching cycle that runs for 81 years before resetting back to the Janma Tara.40 This system specifically filters chronological periods by their qualitative inherent nature. For example, the third sequence block, Vipat, spanning years 18 through 27 of the cycle, structurally guarantees an era of systemic obstacles and danger regardless of the presiding planetary lord.38
+Variant B: The Kendradi Planetary Sequence (BPHS Canonical Rule) For complete programmatic coverage, the alternate BPHS conditional variant must be noted. This variant is recommended exclusively when planetary bodies occupy the Kendras (1st, 4th, 7th, 10th houses) of the natal chart.2 The sequence does not follow the standard nakshatra order. Instead, the Dasha is initiated by the absolute mathematically strongest planet located within a Kendra.2 The sequence progresses sequentially through the remaining planets in the Kendras based on descending strength.2 Upon exhausting the Kendras, the sequence cascades to planets residing in the Panapharas (succedent houses), again sequenced by descending strength, and finally concludes with planets in the Apoklimas (cadent houses).2 The fractional balance at birth (Tara Lagna) is derived by converting the unexpired Vimshottari balance of the natal planet into proportional days, dividing by the total Vimshottari period, and incrementing the quotient to determine the exact starting operational node.42
+By embedding these eleven intricate computational frameworks into an astrological architecture, a developer moves beyond generalized timing systems into the realm of highly specific, geometrically triggered chronometry capable of isolating longevity, spiritual evolution, and deeply localized karmic shifts.

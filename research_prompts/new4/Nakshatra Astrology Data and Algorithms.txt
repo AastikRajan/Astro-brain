@@ -1,0 +1,1081 @@
+﻿Computational Framework and Algorithmic Matrices of Nakshatra-Based Sidereal Astrology
+The sidereal zodiac, the mathematical foundation of Vedic computational astrology, diverges from the tropical system by anchoring its coordinates to fixed galactic points rather than the shifting vernal equinox. Within this framework, the ecliptic is not merely divided into twelve macro-regions (zodiac signs) but is fundamentally structured around twenty-seven distinct lunar mansions, known as Nakshatras. Each Nakshatra spans an exact arc of 13 degrees and 20 minutes (13°20') of the 360-degree celestial sphere.1 This granular subdivision allows for highly specific algorithmic calculations regarding psychological temperament, biological compatibility, karmic trajectory, and electional timing. The Nakshatra framework serves as the core database from which all major predictive and compatibility algorithms—including the Vimshottari Dasha timing system, the Ashta-Koota synastry matrix, and daily Muhurta (electional) optimizations—are derived.2
+1. The Fundamental Nakshatra Database
+To utilize the computational algorithms of sidereal astrology, a complete and foundational dataset must be established. The twenty-seven Nakshatras are not homogeneous; each possesses a specific multi-dimensional architecture characterized by planetary rulership, physiological mapping, elemental alignment (Tattva), energetic frequency (Guna), and neuro-biological caste (Varna).3 The planetary rulership follows a strict, repeating 120-year mathematical sequence (Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury), which dictates the unfolding of human life cycles based on the precise degree of the Moon at birth.1
+The following primary data matrix provides the complete lookup table required for all subsequent algorithms.
+Nakshatra
+	Start / End Degrees
+	Ruler
+	Deity
+	Gana
+	Yoni (Animal)
+	Nadi
+	Tattva
+	Varna
+	Guna
+	Body Part
+	Direction
+	Gender
+	Ashwini
+	0°00' - 13°20' Aries
+	Ketu
+	Ashwini Kumars
+	Deva
+	Horse (M)
+	Adi
+	Earth
+	Vaishya
+	Sattva
+	Upper foot
+	East
+	Male
+	Bharani
+	13°20' - 26°40' Aries
+	Venus
+	Yama
+	Manushya
+	Elephant (M)
+	Madhya
+	Earth
+	Shudra
+	Rajas
+	Lower foot
+	East
+	Female
+	Krittika
+	26°40' Ari - 10°00' Tau
+	Sun
+	Agni
+	Rakshasa
+	Sheep (F)
+	Antya
+	Earth
+	Brahmin
+	Tamas
+	Head
+	East
+	Female
+	Rohini
+	10°00' - 23°20' Taurus
+	Moon
+	Brahma
+	Manushya
+	Serpent (M)
+	Antya
+	Earth
+	Kshatriya
+	Rajas
+	Forehead
+	East
+	Female
+	Mrigashira
+	23°20' Tau - 6°40' Gem
+	Mars
+	Soma
+	Deva
+	Serpent (F)
+	Madhya
+	Earth
+	Farmer
+	Sattva
+	Eyebrows
+	East
+	Male
+	Ardra
+	6°40' - 20°00' Gemini
+	Rahu
+	Rudra
+	Manushya
+	Dog (M)
+	Adi
+	Water
+	Butcher
+	Tamas
+	Eyes
+	Southeast
+	Male
+	Punarvasu
+	20°00' Gem - 3°20' Can
+	Jupiter
+	Aditi
+	Deva
+	Cat (M)
+	Adi
+	Water
+	Vaishya
+	Sattva
+	Nose
+	Southeast
+	Male
+	Pushya
+	3°20' - 16°40' Cancer
+	Saturn
+	Brihaspati
+	Deva
+	Sheep (M)
+	Madhya
+	Water
+	Kshatriya
+	Sattva
+	Face
+	Southeast
+	Male
+	Ashlesha
+	16°40' - 30°00' Cancer
+	Mercury
+	Nagas
+	Rakshasa
+	Cat (F)
+	Antya
+	Water
+	Butcher
+	Tamas
+	Ears
+	South
+	Female
+	Magha
+	0°00' - 13°20' Leo
+	Ketu
+	Pitris
+	Rakshasa
+	Rat (M)
+	Antya
+	Water
+	Shudra
+	Tamas
+	Lips/Chin
+	South
+	Male
+	Purva Phalguni
+	13°20' - 26°40' Leo
+	Venus
+	Bhaga
+	Manushya
+	Rat (F)
+	Madhya
+	Water
+	Brahmin
+	Rajas
+	Right hand
+	South
+	Female
+	Uttara Phalguni
+	26°40' Leo - 10°00' Vir
+	Sun
+	Aryaman
+	Manushya
+	Cow (M)
+	Adi
+	Fire
+	Kshatriya
+	Rajas
+	Left hand
+	South
+	Male
+	Hasta
+	10°00' - 23°20' Virgo
+	Moon
+	Surya
+	Deva
+	Buffalo (F)
+	Adi
+	Fire
+	Vaishya
+	Sattva
+	Fingers
+	Southwest
+	Male
+	Chitra
+	23°20' Vir - 6°40' Lib
+	Mars
+	Vishvakarma
+	Rakshasa
+	Tiger (F)
+	Madhya
+	Fire
+	Artisan
+	Tamas
+	Neck
+	Southwest
+	Female
+	Swati
+	6°40' - 20°00' Libra
+	Rahu
+	Vayu
+	Deva
+	Buffalo (M)
+	Antya
+	Fire
+	Vaishya
+	Rajas
+	Chest
+	West
+	Male
+	Vishakha
+	20°00' Lib - 3°20' Sco
+	Jupiter
+	Indra/Agni
+	Rakshasa
+	Tiger (M)
+	Antya
+	Fire
+	Kshatriya
+	Rajas
+	Breasts
+	West
+	Female
+	Anuradha
+	3°20' - 16°40' Scorpio
+	Saturn
+	Mitra
+	Deva
+	Deer (F)
+	Madhya
+	Fire
+	Shudra
+	Sattva
+	Stomach
+	West
+	Male
+	Jyeshtha
+	16°40' - 30°00' Scorpio
+	Mercury
+	Indra
+	Rakshasa
+	Deer (M)
+	Adi
+	Air
+	Farmer
+	Tamas
+	Right side
+	West
+	Female
+	Moola
+	0°00' - 13°20' Sagit.
+	Ketu
+	Nirriti
+	Rakshasa
+	Dog (F)
+	Adi
+	Air
+	Butcher
+	Tamas
+	Left side
+	Northwest
+	Female
+	Purva Ashadha
+	13°20' - 26°40' Sagit.
+	Venus
+	Apas
+	Manushya
+	Monkey (M)
+	Madhya
+	Air
+	Brahmin
+	Rajas
+	Back
+	Northwest
+	Female
+	Uttara Ashadha
+	26°40' Sag - 10°00' Cap
+	Sun
+	Vishvadevas
+	Manushya
+	Mongoose (M)
+	Antya
+	Air
+	Kshatriya
+	Sattva
+	Waist
+	North
+	Male
+	Shravana
+	10°00' - 23°20' Capri.
+	Moon
+	Vishnu
+	Deva
+	Monkey (F)
+	Antya
+	Air
+	Vaishya
+	Sattva
+	Genitals
+	North
+	Male
+	Dhanishta
+	23°20' Cap - 6°40' Aqua
+	Mars
+	Vasus
+	Rakshasa
+	Lion (F)
+	Madhya
+	Space
+	Shudra
+	Tamas
+	Anus
+	North
+	Female
+	Shatabhisha
+	6°40' - 20°00' Aquarius
+	Rahu
+	Varuna
+	Rakshasa
+	Horse (F)
+	Adi
+	Space
+	Butcher
+	Tamas
+	Right thigh
+	North
+	Male
+	Purva Bhadra
+	20°00' Aqu - 3°20' Pisc
+	Jupiter
+	Aja Ekapada
+	Manushya
+	Lion (M)
+	Adi
+	Space
+	Brahmin
+	Sattva
+	Left thigh
+	North
+	Male
+	Uttara Bhadra
+	3°20' - 16°40' Pisces
+	Saturn
+	Ahir Budhnya
+	Manushya
+	Cow (F)
+	Madhya
+	Space
+	Kshatriya
+	Sattva
+	Kneecaps
+	North
+	Female
+	Revati
+	16°40' - 30°00' Pisces
+	Mercury
+	Pushan
+	Deva
+	Elephant (F)
+	Antya
+	Space
+	Shudra
+	Sattva
+	Ankles
+	North
+	Female
+	The implications of this matrix are profound. The categorization of Tattva (Element) maps the fundamental material composition of the psychological ego, moving from the densest manifestation in Earth up through Water, Fire, Air, and finally Space.3 The anatomical mapping links the celestial arc directly to physiological vulnerabilities; for instance, the Moon passing through Ardra affects the optical nerves (Eyes), while a transit through Shravana activates the reproductive anatomy (Genitals).4 This dataset forms the computational substrate required to execute the algorithms of Ashta-Koota matching, medical astrology, and electional timing.
+2. The Ashta-Koota Matching Algorithm
+The Ashta-Koota (Eight-Aspect) system is a highly rigorous, multi-layered algorithm utilized for computing biological, psychological, and karmic compatibility between two individuals prior to marriage.7 The algorithm assesses eight specific dimensions of the lunar placement, yielding a maximum total score of thirty-six mathematical points (Gunas).7 A minimum cumulative score of eighteen points is mandatory to recommend a union, with escalating scores correlating directly to the statistical probability of marital stability.8 The calculation is progressive, assessing broad spiritual constructs at the lowest mathematical weights and moving toward critical genomic and physiological variables at the highest weights.10
+2.1 Varna Koot (Weight: 1 Point)
+Varna Koot quantifies the spiritual and occupational ego compatibility between partners. It categorizes the psychological archetype into four hierarchical tiers based on the zodiac sign of the Moon: Brahmin (Water signs - driven by spiritual/intellectual pursuits), Kshatriya (Fire signs - driven by action and administration), Vaishya (Earth signs - driven by commerce and material management), and Shudra (Air signs - driven by service and specialized skills).8
+The algorithmic rule states that the intrinsic spiritual frequency of the groom must equal or exceed that of the bride. If the groom's Varna is lower in the hierarchy, the point is zeroed due to theoretical ego friction.13
+Bride ↓ / Groom →
+	Brahmin (Water)
+	Kshatriya (Fire)
+	Vaishya (Earth)
+	Shudra (Air)
+	Brahmin
+	1
+	0
+	0
+	0
+	Kshatriya
+	1
+	1
+	0
+	0
+	Vaishya
+	1
+	1
+	1
+	0
+	Shudra
+	1
+	1
+	1
+	1
+	2.2 Vashya Koot (Weight: 2 Points)
+Vashya Koot measures the magnetic control, dominance, and subconscious influence that partners exert over one another.10 The zodiac is segmented into five bio-psychological groups reflecting primary instinctual drives: Chatushpada (Quadrupeds: Aries, Taurus, Sagittarius second half, Capricorn first half), Nara (Human: Gemini, Virgo, Libra, Aquarius, Sagittarius first half), Jalachara (Aquatic: Cancer, Pisces, Capricorn second half), Vanachara (Wild Beast: Leo), and Keeta (Insect/Reptile: Scorpio).13 The matrix scores relational ease versus primal resistance.
+Bride ↓ / Groom →
+	Chatushpada (Quadruped)
+	Nara (Human)
+	Jalachara (Water)
+	Vanachara (Leo)
+	Keeta (Scorpio)
+	Chatushpada
+	2
+	0
+	0
+	0.5
+	0
+	Nara
+	1
+	2
+	1
+	0.5
+	1
+	Jalachara
+	0.5
+	1
+	2
+	1
+	1
+	Vanachara
+	0
+	0
+	0
+	2
+	0
+	Keeta
+	1
+	1
+	1
+	0
+	2
+	2.3 Tara Koot (Weight: 3 Points)
+Tara Koot evaluates mutual destiny, well-being, and longevity via a modulo mathematical operation determining the relative distance between the natal Nakshatras.9
+The calculation requires counting the inclusive distance from the bride's Nakshatra to the groom's Nakshatra, and conversely, from the groom's to the bride's.13
+*   *   (Note: If the modulo remainder evaluates to 0, it is treated as the integer 9.)
+The algorithmic logic assesses the parity of the remainders:
+   * If both modulo remainders are even integers: 3 Points (Excellent health compatibility)
+   * If one remainder is even and the other is odd: 1.5 Points (Moderate compatibility)
+   * If both modulo remainders are odd integers: 0 Points (Destructive destiny vector).13
+2.4 Yoni Koot (Weight: 4 Points)
+Yoni Koot serves as the algorithm for physical and sexual compatibility, utilizing fourteen animal archetypes mapped across the twenty-seven Nakshatras.16 This calculation reflects instinctual mating behaviors, anatomical resonance, and biological libido. The mapping incorporates gender polarities, categorizing specific Nakshatras as male or female representations of the animal.16
+The scoring operates on a gradient of natural evolutionary empathy: Same species (4 points - 91% physical satisfaction), Friendly species (3 points - 78%), Neutral species (2 points - 65%), Unfriendly species (1 point - 48%), and Sworn Mortal Enemies (0 points - 28%, resulting in "Yoni Dosha").16 Extreme enemy vectors include predator-prey dynamics and territorial rivals, such as the Cat/Rat, Snake/Mongoose, and Elephant/Lion axes.16
+Bride/Groom
+	Horse
+	Elephant
+	Sheep
+	Serpent
+	Dog
+	Cat
+	Rat
+	Cow
+	Buffalo
+	Tiger
+	Deer
+	Monkey
+	Mongoose
+	Lion
+	Horse
+	4
+	2
+	2
+	3
+	2
+	2
+	2
+	1
+	0
+	1
+	3
+	3
+	2
+	1
+	Elephant
+	2
+	4
+	3
+	3
+	2
+	2
+	2
+	2
+	3
+	1
+	2
+	3
+	2
+	0
+	Sheep
+	2
+	3
+	4
+	2
+	1
+	2
+	1
+	3
+	3
+	1
+	2
+	0
+	3
+	1
+	Serpent
+	3
+	3
+	2
+	4
+	2
+	1
+	1
+	1
+	1
+	2
+	2
+	2
+	0
+	2
+	Dog
+	2
+	2
+	1
+	2
+	4
+	2
+	1
+	2
+	2
+	1
+	0
+	2
+	1
+	1
+	Cat
+	2
+	2
+	2
+	1
+	2
+	4
+	0
+	2
+	2
+	1
+	3
+	3
+	2
+	1
+	Rat
+	2
+	2
+	1
+	1
+	1
+	0
+	4
+	2
+	2
+	2
+	2
+	2
+	1
+	2
+	Cow
+	1
+	2
+	3
+	1
+	2
+	2
+	2
+	4
+	3
+	0
+	3
+	2
+	2
+	1
+	Buffalo
+	0
+	3
+	3
+	1
+	2
+	2
+	2
+	3
+	4
+	1
+	2
+	2
+	2
+	1
+	Tiger
+	1
+	1
+	1
+	2
+	1
+	1
+	2
+	0
+	1
+	4
+	1
+	1
+	2
+	1
+	Deer
+	3
+	2
+	2
+	2
+	0
+	3
+	2
+	3
+	2
+	1
+	4
+	2
+	2
+	1
+	Monkey
+	3
+	3
+	0
+	2
+	2
+	3
+	2
+	2
+	2
+	1
+	2
+	4
+	3
+	2
+	Mongoose
+	2
+	2
+	3
+	0
+	1
+	2
+	1
+	2
+	2
+	2
+	2
+	3
+	4
+	2
+	Lion
+	1
+	0
+	1
+	2
+	1
+	1
+	2
+	1
+	1
+	1
+	1
+	2
+	2
+	4
+	2.5 Graha Maitri (Weight: 5 Points)
+Graha Maitri evaluates the neurological and emotional synchrony between partners by assessing the natural relationships of their respective Moon sign lords.20 The algorithm relies on the planetary friendship framework inherent to Vedic astrology, where specific celestial bodies exhibit resonant (friendly), dissonant (inimical), or neutral frequencies toward one another.22
+To compute the score, the planetary relationship must be evaluated bilaterally based on the following lookup matrix 22:
+   * Sun: Friends (Moon, Mars, Jupiter); Neutral (Mercury); Enemies (Venus, Saturn).
+   * Moon: Friends (Sun, Mercury); Neutral (Mars, Jupiter, Venus, Saturn); Enemies (None).
+   * Mars: Friends (Sun, Moon, Jupiter); Neutral (Venus, Saturn); Enemies (Mercury).
+   * Mercury: Friends (Sun, Venus); Neutral (Mars, Jupiter, Saturn); Enemies (Moon).
+   * Jupiter: Friends (Sun, Moon, Mars); Neutral (Saturn); Enemies (Mercury, Venus).
+   * Venus: Friends (Mercury, Saturn); Neutral (Mars, Jupiter); Enemies (Sun, Moon).
+   * Saturn: Friends (Mercury, Venus); Neutral (Jupiter); Enemies (Sun, Moon, Mars).
+Using these definitions, the Graha Maitri score is assigned as follows 20:
+Planetary Cross-Relationship
+	Match Points
+	Psychological Interpretation
+	Friend + Friend
+	5
+	Optimal emotional resonance and mutual empathy
+	Friend + Neutral
+	4
+	Functional synergy requiring minor cognitive adjustments
+	Neutral + Neutral
+	3
+	Standard intellectual parity, functional interaction
+	Friend + Enemy
+	2
+	Friction in empathy, requires deliberate communication
+	Neutral + Enemy
+	1
+	Persistent misunderstandings and divergent priorities
+	Enemy + Enemy
+	0
+	Severe cognitive dissonance and ego clashes
+	2.6 Gana Koot (Weight: 6 Points)
+Gana Koot categorizes human behavioral temperament into three overarching psychological bands: Deva (Sattvic/Divine, indicating patience, charity, and gentle nature), Manushya (Rajasic/Human, indicating pragmatism, ambition, and dynamic action), and Rakshasa (Tamasic/Demonic, indicating intense ambition, dominance, unyielding will, and aggression).23
+The algorithmic matrix assigns 6 points for perfect temperamental resonance and penalizes severe mismatches, particularly when the delicate Deva temperament clashes with the overpowering Rakshasa archetype, leading to inevitable dominance and suppression dynamics.24
+Bride ↓ / Groom →
+	Deva (Divine)
+	Manushya (Human)
+	Rakshasa (Demonic)
+	Deva
+	6
+	6
+	0
+	Manushya
+	5
+	6
+	0
+	Rakshasa
+	1
+	0
+	6
+	2.7 Bhakoot Koot (Weight: 7 Points)
+Bhakoot calculates the geometrical distance between the two Moon signs, which directly influences the material architecture of the relationship, encompassing financial prosperity, health, and family expansion.26 Specific angular positions create severe energetic interference patterns known as Bhakoot Dosha, resulting in an immediate 0-point score.28
+The mathematical exceptions that trigger a zero are:
+   1. Shadashtaka (6/8 Axis): Indicates chronic health failures, animosity, and potential mortality.29
+   2. Nav-Pancham (5/9 Axis): Indicates issues with progeny, reproductive health, and intense ego conflicts.29
+   3. Dwi-Dwadash (2/12 Axis): Indicates extreme financial hemorrhage, poverty, and isolation.29 All other geometric arrangements yield the full 7 points.31
+Bride ↓ / Groom →
+	Ari
+	Tau
+	Gem
+	Can
+	Leo
+	Vir
+	Lib
+	Sco
+	Sag
+	Cap
+	Aqu
+	Pis
+	Aries
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	Taurus
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	Gemini
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	Cancer
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	Leo
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	Virgo
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	Libra
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	Scorpio
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	Sagittarius
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	Capricorn
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	Aquarius
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	Pisces
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	Exception Protocol: A Bhakoot Dosha is automatically canceled (reinstating the points or negating the malefic effects) if the ruling planets of both signs are friends (e.g., Aries and Scorpio are in a 6/8 alignment, but both are ruled by Mars, nullifying the destruction).30
+2.8 Nadi Koot (Weight: 8 Points)
+The most heavily weighted parameter, Nadi Koot, assesses the fundamental biological and genetic resonance between partners based on the Ayurvedic humors (Doshas): Vata (Adi Nadi - nervous system/air), Pitta (Madhya Nadi - metabolism/fire), and Kapha (Antya Nadi - immunity/water).32
+The primary rule is purely binary: partners must possess different Nadis to ensure genetic diversity and robust physiological health for both themselves and their offspring. If the Nadis differ, the full 8 points are awarded. If the partners possess the exact same Nadi, the algorithm outputs a zero, resulting in a severe Nadi Dosha.32 The implication is that combining two identical biological blueprints amplifies recessive genetic flaws and immunological weaknesses, posing severe risks to progeny.33
+3. Nadi Dosha Exceptions: The Complete List of Cancellations
+While a same-Nadi pairing triggers an automatic mathematical failure in the basic Ashtakoota matrix, advanced computational astrology relies on algorithmic exceptions. These exceptions identify specific astronomical instances where the micro-placements of the Moon create sufficient genetic and bio-energetic divergence to safely override the macro-level Nadi collision.35
+When evaluating a chart, Nadi Dosha is completely nullified if any of the following parameters are satisfied:
+   1. Same Rashi, Different Nakshatra: If both partners possess the exact same Moon sign (Rashi) but their natal Moons are stationed in different Nakshatras within that sign, the genomic variance is deemed sufficient, and the dosha is mathematically canceled.36
+   2. Same Nakshatra, Different Rashi: If both individuals are born under the exact same Nakshatra, but their precise lunar degrees cause them to occupy different Moon signs (this occurs specifically at the boundaries of signs where a Nakshatra bridges two Rashis, such as Krittika spanning Aries and Taurus), the structural shift in the Rashi neutralizes the dosha.35
+   3. Different Padas (Quarters) of the Same Nakshatra: The most precise cancellation occurs at the micro-divisional level. A Nakshatra consists of four Padas, each measuring 3°20'. If the couple shares the exact same Nakshatra but their natal Moons occupy different Padas, the angular and harmonic separation generates enough energetic friction to cancel the dosha.35
+   4. Exempt Nakshatras: Classical treatises specifically define a cohort of Nakshatras possessing unique planetary architectures that inherently immunize them against Nadi Dosha. If either partner's Moon occupies Rohini, Mrigashira, Ardra, Krittika, Pushya, Jyeshtha, Magha, Vishakha, Shravana, Revati, or Uttara Bhadrapada, the Nadi collision is ignored.35
+   5. Cross-Nakshatra Synergistic Pairs: Certain specific pairings of Nakshatras, despite sharing the same Nadi, form mathematically perfect harmonic chords that cancel the malefic effects. These explicit pairs are: Krittika–Rohini, Ardra–Punarvasu, Uttara Phalguni–Hasta, Purva Bhadrapada–Shatabhisha, and Uttarashadha–Shravana.35
+   6. Gotra Divergence: Outside of pure celestial mechanics, the biological reality of lineage (Gotra) is evaluated. If the partners belong to distinct Gotras (ancient genetic lineages), the biological similarity is minimized, vastly reducing the potency of the Dosha.39
+4. Rajju (Rope) Compatibility: The South Indian Five-Body Part System
+Operating parallel to the North Indian Ashtakoota, the South Indian Dashakoota (Ten-Aspect) system introduces Rajju Porutham, generally regarded as the most absolute and uncompromising metric for evaluating the longevity of the marital bond and the physiological survival of the spouse.40 Rajju maps the entire sequence of the twenty-seven Nakshatras onto the anatomy of a cosmic human figure, creating a five-tiered bio-energetic structure.41
+The Rajju Mapping Matrix
+The Nakshatras are categorically assigned to the following anatomical zones:
+   1. Shira (Head) Rajju: Ashwini, Ardra, Punarvasu, Hasta, Jyeshtha, Shravana, Revati.41
+   2. Kantha (Neck) Rajju: Bharani, Pushya, Magha, Chitra, Anuradha, Dhanishta, Uttara Bhadrapada.41
+   3. Nabhi/Udara (Navel/Middle) Rajju: Krittika, Ashlesha, Purva Phalguni, Swati, Vishakha, Shatabhisha, Purva Bhadrapada.41
+   4. Kati/Ooru (Waist/Thigh) Rajju: Rohini, Mrigashira, Uttara Phalguni, Uttarashada.41
+   5. Pada (Foot) Rajju: Moola, Ashlesha, Magha, Jyeshtha, Revati, Ashwini. (Note: Classical texts sometimes overlap Foot Rajju constellations depending on the specific tradition, but Moola is universally the anchor).41
+Computational Rules and Consequences
+The fundamental algorithm of Rajju matching is one of absolute avoidance: if both partners' natal Moons fall into the exact same Rajju anatomical group, the resulting energetic friction creates a severe vulnerability in that specific domain of their shared life.41
+   * Shared Shira (Head): High statistical risk to the husband's physical longevity.41
+   * Shared Kantha (Neck): Substantial risk to the wife's health and longevity.41
+   * Shared Nabhi (Navel): Severe complications regarding fertility, progeny health, and miscarriages.41
+   * Shared Kati (Waist): Prolonged financial instability, systemic poverty, and loss of material security.41
+   * Shared Pada (Foot): Perpetual physical separation of the couple, often driven by involuntary wanderlust or occupational mandates.41
+Rajju Cancellations
+Despite its strictness, the Rajju algorithm permits specific harmonic cancellations:
+   * Aarohana and Avarohana (Ascending/Descending): The energetic flow of the Nakshatras alternates sequentially between an outward, ascending phase and an inward, descending phase. If both partners occupy the same Rajju group, but one partner's Nakshatra is ascending while the other's is descending, the opposing directional vectors neutralize the static collision, making the match viable.41
+   * Rashi Lord Friendship: If the Moon signs of both individuals are ruled by the identical planetary body, or by planets with absolute mathematical friendship (e.g., Sun and Moon), the underlying emotional synchronization acts as a dampener to the Rajju friction.41
+   * Different Padas: As with Nadi Dosha, angular separation through different Padas within the same Rajju provides partial mitigation of the collision.41
+5. Vedha (Obstruction) Nakshatras: Mutually Exclusive Pairs
+In the mechanics of synastry, Vedha (meaning "piercing" or "obstruction") identifies specific pairs of Nakshatras that sit on highly antagonistic geometric and planetary axes.40 The energetic waveforms generated by these specific pairings are mutually destructive, resulting in constant interference patterns. Consequently, unions between individuals possessing these pairs are strictly forbidden, as the resulting static reliably paralyzes psychological growth and material harmony.43
+The Complete Matrix of Vedha Pairs: The algorithm pairs specific constellations that theoretically "strike" or "block" one another. These are constant and non-negotiable within the system 43:
+   * Ashwini    Jyeshtha
+   * Bharani    Anuradha
+   * Krittika    Vishakha
+   * Rohini    Swati
+   * Ardra    Shravana
+   * Punarvasu    Uttara Ashadha
+   * Pushya    Purva Ashadha
+   * Ashlesha    Moola
+   * Magha    Revati
+   * Purva Phalguni    Uttara Bhadrapada
+   * Uttara Phalguni    Purva Bhadrapada
+   * Hasta    Shatabhisha
+   * Mrigashira    Dhanishta
+The structural mechanism behind these obstructions often correlates to diametrically opposed planetary temperaments; for instance, the impulsive, Ketu-driven energy of Ashwini is completely obstructed by the calculating, hyper-analytical, Mercury-driven energy of Jyeshtha.
+6. Stree Deergha: The Minimum Distance Vector
+Stree Deergha is a vector-based measurement utilized to verify the long-term prosperity, emotional welfare, and financial security of the female partner within the union.40
+The algorithm requires calculating the forward orbital sequence from the female's birth Nakshatra to the male's birth Nakshatra. The standard mathematical rule mandates that the male's constellation must be positioned more than fifteen stars away from the female's constellation.43 The theoretical mechanism posits that cosmic energy flows directionally through the sidereal zodiac; an expansive distance allows the masculine energetic footprint adequate celestial space to ground itself and mature before interfacing with the feminine sphere. A distance shorter than fifteen stars suggests that the masculine energy will overwhelm or consume the feminine resources.43
+Cancellation Metrics: Modern computational models frequently bypass a Stree Deergha failure if the couple exhibits a highly synchronized Rashi Koota (harmonious Moon signs) and robust Graha Maitri (planetary friendship), indicating that internal cognitive alignment can adequately substitute for spatial separation.43
+7. Nakshatra Gandanta: The Three Junctional Danger Zones
+The concept of Gandanta—translating to a "spiritual or karmic knot"—identifies the most volatile, unstable coordinates within the 360-degree zodiac. These knots occur precisely at the three junction points where the end of a Water sign (Cancer, Scorpio, Pisces) collides with the beginning of a Fire sign (Leo, Sagittarius, Aries).46 Because the sequence of the 27 Nakshatras and the 12 Rashis terminate and restart simultaneously at these exact coordinates, the resulting gap represents a void of extreme phase transition, acting as an energetic black hole.46
+The Exact Degrees of the Three Gandanta Zones
+The Gandanta affliction occupies a total of just six degrees across the entire zodiac. The precise coordinates are:
+      1. Junction 1 (Pisces to Aries): The transition from the 4th Pada of Revati (26°40' - 30°00' Pisces) to the 1st Pada of Ashwini (0°00' - 3°20' Aries).46
+      2. Junction 2 (Cancer to Leo): The transition from the 4th Pada of Ashlesha (26°40' - 30°00' Cancer) to the 1st Pada of Magha (0°00' - 3°20' Leo).46
+      3. Junction 3 (Scorpio to Sagittarius): The transition from the 4th Pada of Jyeshtha (26°40' - 30°00' Scorpio) to the 1st Pada of Moola (0°00' - 3°20' Sagittarius).46
+Severity Grading and Multi-Factor Analysis
+The intensity of the Gandanta affliction scales exponentially depending on the proximity to the absolute 0°/30° boundary.46 The computational model maps the severity as follows:
+      * Core (10/10 Severity): 0°00' to 0°48' from the edge. This represents a 12% probability of lifelong structural instability without profound remediation.46
+      * Inner (8/10 Severity): 0°48' to 1°40' from the edge. Afflicts the major planetary Dashas.
+      * Middle (6/10 Severity): 1°40' to 2°30' from the edge. Predicts localized, periodic turbulence.46
+      * Outer (4/10 Severity): 2°30' to 3°20' from the edge. Exhibits milder, manageable effects.46
+Predictions and Navamsha Implications
+Births occurring within these coordinates predict a soul burdened by complex, unresolved karmic debts from prior existences. The Jyeshtha-Moola junction is historically considered the sharpest and most dangerous knot, initiating profound early-life adversities and necessitating radical spiritual transformation.46 The Ashlesha-Magha junction specifically carries predictive warnings regarding danger to the parents' wealth and physical safety.50
+Computationally, the severity is verified using the Navamsha (D-9) divisional chart. Because the final three degrees of a Water sign map to a Pisces Navamsha, and the first three degrees of a Fire sign map to an Aries Navamsha, a planet in Gandanta is experiencing a "Double Gandanta"—suffering dissolution in the D-1 chart and profound disorientation in the D-9 chart simultaneously.46
+8. Pushya Nakshatra: The Paradox of Electional Supremacy
+In the realm of Muhurta (Electional Astrology), the eighth lunar mansion, Pushya (3°20' - 16°40' Cancer), occupies a position of unparalleled supremacy, yet it is bound by a severe, highly specific prohibition.51
+Pushya translates to "the nourisher," symbolized by the milk-yielding udder of a cow, representing ultimate care, abundance, and the preservation of life.51 Its unique power derives from a complex planetary paradox: the constellation is ruled by the restrictive, disciplined planet Saturn, while its presiding deity is Brihaspati (Jupiter), the planet of boundless wisdom, expansion, and divine grace.51
+Electional Supremacy: The synthesis of Saturnine structural discipline and Jupiterian wisdom renders Pushya universally auspicious for almost all constructive human endeavors. It is the premier algorithm for scheduling the commencement of education, massive financial investments, real estate acquisition, healing protocols, and the inauguration of public works.51 Classical texts assert that the mathematical presence of the Moon in Pushya possesses the autonomous power to neutralize, modify, and overpower virtually all other malefic planetary yogas occurring simultaneously in the sky.52
+The Prohibition on Marriage: Despite possessing the highest aggregate power in electional mechanics, Pushya is universally forbidden for the specific act of marriage.52 The rationale is deeply embedded in the archetype of Brihaspati. Brihaspati serves as the ultimate guru, an ascetic teacher and priest. The energetic frequency required for a successful marriage is highly Rajasic—demanding passion, mutual compromise, earthly attachment, and horizontal equality.56 The Jupiterian energy of Pushya induces an ascetic environment characterized by a "teacher-student" dynamic. This creates inherent superiority complexes, philosophical detachment, and an environment entirely hostile to the romantic vulnerability and physical intimacy required to sustain a marital bond.55
+9. Maha Nakshatras and Tikshna Nakshatras in Electional Planning
+Electional astrology operates by categorizing the twenty-seven Nakshatras into specific behavioral frequencies. These categories strictly dictate which human activities will synergize with the cosmos and which will be met with immediate systemic resistance.2
+The Maha Nakshatras (The Great Stars)
+In specific Southern astrological lineages, four constellations are classified as Maha Nakshatras: Pushya, Magha, Anuradha, and Mrigashira.60 The mathematical implication of these stars in synastry is profound. If either partner is born under a Maha Nakshatra, the presence of this highly elevated karmic energy is traditionally believed to act as an algorithmic override, bypassing the necessity of strict Koota matching. The underlying assumption is that these stars carry a macro-level evolutionary purpose that supersedes minor biological or psychological incompatibilities.61
+Tikshna (Sharp/Cruel) Nakshatras
+Conversely, the Tikshna (Sharp, Dreadful, or Cruel) Nakshatras—Moola, Jyeshtha, Ardra, and Ashlesha—emit a highly destructive, purifying frequency.58
+      * Forbidden Actions: Any activity requiring growth, synthesis, stability, or creation (e.g., weddings, launching businesses, signing treaties, planting crops) is strictly forbidden under these stars. The archetypal energy (such as the teardrop of Ardra or the clinging, venomous nature of Ashlesha) guarantees suffering, dissolution, and catastrophic failure of the enterprise.58
+      * Prescribed Actions: These frequencies must be utilized surgically for acts of dismantling. They are the mathematically optimized moments for filing divorce proceedings, initiating warfare, undertaking demolitions, executing punishments, engaging in aggressive litigation, or performing exorcisms and severe esoteric rituals.2
+The Complete Electional Categorization Matrix
+58
+
+
+Classification
+	Core Nature
+	Nakshatras Included
+	Prescribed Electional Activities
+	Sthira (Dhruva)
+	Fixed / Stable
+	Rohini, U. Phalguni, U. Ashadha, U. Bhadrapada
+	Planting orchards, buying property, laying foundations, long-term capital investments.58
+	Chara
+	Movable / Swift
+	Punarvasu, Swati, Shravana, Dhanishta, Shatabhisha
+	Purchasing vehicles, gardening, travel, dynamic financial transactions.58
+	Mridu (Maitra)
+	Tender / Soft
+	Chitra, Anuradha, Mrigashira, Revati
+	Learning fine arts, wearing new apparel, romantic unions, forming friendships.58
+	Ugra
+	Fierce / Violent
+	Bharani, Magha, P. Phalguni, P. Ashadha, P. Bhadrapada
+	Demolishing structures, igniting fires, confrontation, assertiveness, aggressive tactics.58
+	Tikshna
+	Sharp / Cruel
+	Moola, Jyeshtha, Ardra, Ashlesha
+	Divorce, exorcism, severe punishment, esoteric rituals, destruction.2
+	Kshipra (Laghu)
+	Swift / Light
+	Ashwini, Pushya, Hasta, Abhijit (intercalary)
+	Taking medications, swift commercial transactions, short travel, rapid communications.58
+	Mishra
+	Mixed
+	Krittika, Vishakha
+	Routine worship, fire ceremonies, purchasing electronics, routine maintenance.2
+	10. Tarabala: The Daily Algorithmic Strength Cycle
+Tarabala (Star Strength) is a highly dynamic, individualized computational algorithm used to map the daily transit of the Moon against an individual's natal Moon Nakshatra.64 It determines the micro-auspiciousness of any given day for a specific person. The mathematical elegance of the Tarabala cycle lies in its modulo-9 operation, which collapses the 27 Nakshatras into a repeating 9-stage fractal cycle. This mirrors the 9-planet Vimshottari Dasha sequence, continuously shifting the environmental energy surrounding the individual.65
+The Computational Algorithm: To calculate the daily Tarabala, one must count inclusively from the individual's birth Nakshatra to the current transiting Nakshatra of the day, and subject the result to a modulo 9 operation.64
+Formula:    (Note: In modulo arithmetic for this specific application, if the remainder is 0, it is mathematically treated as 9).64
+Example Computation: If an individual's natal star is Ashwini (Index 1), and they wish to execute a major business contract on a day when the transiting Moon is in Revati (Index 27). The calculation is   . Dividing 27 by 9 yields a remainder of 0, which defaults to 9. Category 9 is Ati-Mitra (Extreme Friend), indicating the cosmic environment is highly favorable for the transaction.64 Conversely, if the transiting star is Vishakha (Index 16).   .   . Category 7 is Naidhana (Destruction), strictly prohibiting the action.64
+The 9-Category Tarabala Matrix
+64
+
+
+Modulo Result
+	Tara Name
+	Primary Meaning
+	Actionable Outcome
+	Detailed Interpretation
+	1
+	Janma
+	Coborn / Birth
+	Mixed
+	High emotional sensitivity. The planet acts as a sibling—simultaneously supportive but prone to causing friction or irritation. Volatile if afflicted.64
+	2
+	Sampat
+	Wealth / Prosperity
+	Very Good
+	Exceptionally favorable for financial influx, asset accumulation, and successful banking or commercial transactions.65
+	3
+	Vipat
+	Danger / Adversity
+	Bad
+	Precursor to unexpected crises, accidents, severe delays, and systemic obstacles. To be avoided for travel or major events.65
+	4
+	Kshema
+	Well-being / Security
+	Good
+	Generates an aura of protection, stability, and steady growth. Highly favorable for medical recovery and securing assets.65
+	5
+	Pratyak (Pratyari)
+	Opposition
+	Bad
+	Characterized by intense interpersonal conflicts, friction, blocked energy, and active opposition from competitors.64
+	6
+	Sadhaka
+	Achievement
+	Very Good
+	Optimized for the accomplishment of goals, realizing ambitions, and experiencing breakthrough moments of success.65
+	7
+	Naidhana (Vadha)
+	Destruction
+	Totally Bad
+	The most dangerous frequency. Indicates severe danger, physical risk, and complete failure. Strictly avoided for all endeavors.64
+	8
+	Mitra
+	Friend
+	Good
+	Supports collaborative success, harmonious social interactions, and general favorability across relationships.64
+	9 (or 0)
+	Ati-Mitra (Parama)
+	Extreme Friend
+	Very Good
+	Highly auspicious. Indicates deep gains, effortless progress, and absolute support from the environment for major life events.64
+	As a supplementary algorithm often used alongside Tarabala, the Panchaka method aggregates the numerical values of the Lunar Day (Tithi), Weekday (Vaara), Nakshatra, and Ascendant (Lagna) of a proposed Muhurta, dividing the sum by 9.67 Remainders of 1, 2, 4, 6, or 8 confirm the presence of systemic danger (such as Mrithyu/Death Panchaka or Agni/Fire Panchaka), adding an additional layer of mathematical scrutiny to the daily timing matrix.67
+Through these intricate matrices—ranging from the deep biological profiling of Nadi Koota to the dynamic daily oscillations of Tarabala—the Nakshatra framework demonstrates that sidereal astrology operates not as a static divinatory art, but as an exhaustive computational system mapping the intersection of celestial mechanics and human biological and psychological reality.

@@ -1,0 +1,217 @@
+﻿Computational Jyotish: Exhaustive Validation Framework and Algorithmic Edge Cases for Astrological Engines
+The development and validation of a computational astrology (Jyotish) engine necessitate a rigorous framework capable of parsing complex astronomical geometry, orbital mechanics, and multifaceted traditional Vedic algorithms. An engine's efficacy is not merely measured by its ability to calculate planetary longitudes using standard ephemerides, but by its capacity to synthesize static natal promises with the dynamic chronological triggers of Vimshottari Dashas, divisional charts (Vargas), and planetary transits (Gochara). To establish absolute computational integrity, the engine must be benchmarked against historically verified charts, specific timed life events, and extreme astronomical edge cases. The following analysis provides a comprehensive validation dataset, detailing the exact planetary variables, time-space coordinates, and chronological triggers required to calibrate an expert-level Jyotish algorithm.
+1. Benchmark Horoscopes for Base Algorithmic Validation
+The primary testing protocol requires the engine to accurately parse the birth coordinates, generate the correct ascendant (Lagna) and divisional charts, and map specific life events to their precise planetary periods (Dashas) and transits. The following ten verified charts serve as the foundational dataset for this computational validation. The engine's logic layer must flawlessly replicate the astrological deductions associated with these historical chronologies.
+1.1 The Astrological Framework of Indira Gandhi
+Parameter
+	Data
+	Date of Birth
+	November 19, 1917
+	Time of Birth
+	23:11:00 IST (Rectified to 23:12:48)
+	Location
+	Allahabad, India (25°27'34"N, 81°51'36"E)
+	Ascendant (Lagna)
+	Cancer
+	The computational engine must first validate the birth chart of Indira Gandhi, which features a Cancer Ascendant. The engine must identify the exchange (Parivartana Yoga) and the specific yoga-giving properties of Jupiter and the Moon.1 The first major validation event is her ascension to Prime Minister on January 24, 1966. The algorithm must correlate this event with the Sudarshana Chakra lagna dasha taking effect in unison with the Vimshottari Mahadasha, specifically noting the activation of the 10th house of power.1
+The second validation event is the imposition of the Emergency in 1975. The active chronology was the Saturn Mahadasha and the Mercury Antardasha.2 The computational engine must flag Saturn as a strict taskmaster and Mercury as the 12th lord from the Moon, indicating authoritative isolation and suspension of liberties. The third event is her assassination on October 31, 1984, at approximately 11:35 AM. The active period was the Saturn Mahadasha, Rahu Antardasha, and Moon Pratyantardasha.1 The computational engine must identify Saturn as the 7th lord, which functions as a Maraka (killer) planet sitting in the 9th house. Furthermore, Rahu acts as the 8th lord of death occupying the 6th house of violence and enemies, while the Moon functions as the 12th lord of loss in the 10th house. The algorithm must perfectly align these variables to predict sudden, violent demise, compounded by transiting Saturn acting as a chronobiological trigger.1
+1.2 The Astrological Framework of Amitabh Bachchan
+Parameter
+	Data
+	Date of Birth
+	October 11, 1942
+	Time of Birth
+	16:00 IST (Wartime corrected to 15:59 IST)
+	Location
+	Allahabad, India (25°26'N, 81°49'E)
+	Ascendant (Lagna)
+	Aquarius
+	For Amitabh Bachchan, the engine must accurately map the clustering of planets in the 8th house and calculate the Chitra Paksha Ayanamsha precisely at 23°03'19".3 The first major event for validation is his career breakthrough and rise to superstardom, which commenced in late 1971. The active Dasha was the onset of the Saturn Mahadasha.4 The engine must algorithmically recognize Saturn as the Lagna lord for an Aquarius ascendant, making it uniquely positioned to grant immense public adulation and enduring fame.
+The second event is the near-fatal accident he suffered on the set of the film Coolie in July 1982. The active period was the Saturn Mahadasha, Sun Antardasha, and Ketu Pratyantardasha.4 The engine must flag the Sun as the 7th lord (a primary Maraka for Aquarius) and Ketu as a variable representing sudden, unforeseen physical impact. Transiting Saturn was also active during this period. The algorithm must further validate that his recovery commenced exactly on August 9, 1982, as the Pratyantardasha shifted to Venus, which serves as the supreme benefic (Yoga Karaka) for an Aquarius ascendant.4 Finally, the engine must map his financial bankruptcy in the 1990s to the Mercury/Ketu and Mercury/Venus dashas, and his massive comeback via television in July 2000 to the highly favorable Mercury/Rahu dasha.4
+1.3 The Astrological Framework of Sachin Tendulkar
+Parameter
+	Data
+	Date of Birth
+	April 24, 1973
+	Time of Birth
+	12:54:00 IST (Rectified from 13:00)
+	Location
+	Mumbai, India (19°03'N, 72°51'E)
+	Ascendant (Lagna)
+	Cancer
+	The chart of Sachin Tendulkar requires the engine to validate complex cancellation rules, specifically the Neechabhanga Raj Yoga, which is formed by a debilitated Jupiter conjoined with an exalted Mars in the sign of Capricorn.5 The engine must correct the birth time to 12:54 IST to align the Scorpio Navamsha with the Cancer rising sign. The first validation event is his international cricket debut on November 15, 1989. The active period was the Moon Mahadasha and Ketu Antardasha.5 The algorithmic transit module must calculate transiting Saturn moving through his 6th house (Sagittarius), casting a direct aspect on the 3rd house of courage and sports, while simultaneously initiating his Sade-Sati (Saturn's transit over the natal Moon).5
+The second event is his historic World Cup victory in April 2011. The active period was the Rahu Mahadasha and Venus Antardasha.5 The engine's logic must evaluate Venus as the 11th lord of achievements in the Rashi (D-1) chart and the 10th lord of career in the Dashamsha (D-10) chart, providing a dual-confirmation variable for supreme success. The final validation event is his retirement and the awarding of the Bharat Ratna in November 2013. The active period was the Rahu Mahadasha, Venus Antardasha, and Ketu Pratyantardasha.5 Ketu occupies the 12th house of closure and retirement, while Venus ensures the exit is accompanied by ultimate state honors.
+1.4 The Astrological Framework of Steve Jobs
+Parameter
+	Data
+	Date of Birth
+	February 24, 1955
+	Time of Birth
+	19:15:00 PST
+	Location
+	San Francisco, California, USA (37°46'N, 122°25'W)
+	Ascendant (Lagna)
+	Virgo
+	The astrological engine must calculate a highly dynamic Grand Cross in the chart of Steve Jobs, involving Venus, Uranus-Jupiter, Neptune, and Mars across the Cardinal signs.6 The first validation event is the founding of Apple and his rise to technological prominence between 1976 and 1980. The active period was the Ketu Mahadasha transitioning into the Venus Mahadasha.7 The engine must flag the Uranus-Jupiter conjunction in the 10th house as the primary mathematical indicator for massive, unconventional technological innovation and corporate leadership.6
+The second event tests the engine's medical astrology module: his liver transplant surgery in April 2009. The active period was the Venus Mahadasha and Mercury Antardasha.8 For a Virgo ascendant, Mercury is the Lagna lord but also the Rogesha (lord of the 6th house of diseases), triggering intense medical intervention and hospitalization during its sub-period.9 The third event is his death from pancreatic cancer on October 5, 2011. The active period was the Moon Mahadasha and Jupiter Antardasha.6 The computational logic must identify the Moon as being posited in the 8th house of death, located in the sign of Pisces, which is ruled by Jupiter, thereby creating a direct, fatal algorithmic link between the dasha lords and the house of mortality.10
+1.5 The Astrological Framework of Narendra Modi
+Parameter
+	Data
+	Date of Birth
+	September 17, 1950
+	Time of Birth
+	11:00:00 IST
+	Location
+	Vadnagar, Gujarat, India (23°47'N, 72°38'E)
+	Ascendant (Lagna)
+	Scorpio
+	The engine must analyze the Scorpio ascendant of Narendra Modi and immediately detect the powerful Moon-Mars conjunction in the 1st house. This alignment generates a formidable Ruchaka Mahapurusha Yoga (due to Mars in its own sign in a Kendra) and a Chandra-Mangala Yoga.11 The first validation event is his election as Prime Minister of India in May 2014. The active period was the Moon Mahadasha.11 The engine must calculate that the Moon acts as the 9th lord of destiny and luck (Bhagya). Because it is placed in the Ascendant alongside the Lagna lord Mars, the algorithm must assign a 99th-percentile probability to career peaks and absolute political power during this specific chronozone.11
+The second validation event is his re-election in May 2019. The active period was the Moon Mahadasha and Ketu Antardasha.11 The engine must evaluate Ketu's placement in the 11th house of gains and victory. Simultaneously, the transit module must calculate transiting Jupiter crossing the Ascendant, activating the natal Moon-Mars conjunction through a powerful double transit phenomenon, thereby securing a mathematical guarantee of electoral triumph.11
+1.6 The Astrological Framework of Albert Einstein
+Parameter
+	Data
+	Date of Birth
+	March 14, 1879
+	Time of Birth
+	10:50:00 LMT
+	Location
+	Ulm, Germany (48°24'N, 9°59'E)
+	Ascendant (Lagna)
+	Gemini
+	For Albert Einstein, the computational engine must parse the extreme clustering of planets in the 10th house, specifically Mercury, Venus, Saturn, and the Sun. The algorithm must recognize Mercury as the Lagna lord and 4th lord of education placed in the 10th house of public visibility, signifying unparalleled intellectual output.7 The first validation event is his period of unemployment and the birth of an illegitimate child between 1900 and 1902. The active period was the Venus Mahadasha and Mars Antardasha.13 The engine must cross-reference Venus as the 12th lord of isolation and loss, and Mars as the 6th lord of troubles and the 11th lord of desires. Because Mars is placed in the 8th house of unforeseen crises and scandals, the engine must output a high probability of professional stagnation combined with private turmoil.13
+The second validation event is his Annus Mirabilis in 1905, during which he published his papers on special relativity. The active period shifted to the Venus Mahadasha and Jupiter Antardasha. The algorithmic logic must identify Jupiter as the 10th lord of career and fame. The activation of the 10th lord mathematically lifted the native out of the 8th house obscurity of the previous Mars period and thrust him into global scientific prominence.
+1.7 The Astrological Framework of Jawaharlal Nehru
+Parameter
+	Data
+	Date of Birth
+	November 14, 1889
+	Time of Birth
+	23:36:00 LMT
+	Location
+	Allahabad, India (25°27'N, 81°51'E)
+	Ascendant (Lagna)
+	Cancer
+	Jawaharlal Nehru's chart presents a critical computational edge case. The birth occurred during a Rashi Sandhi (sign boundary) for both the Ascendant and the Sun. The engine must rigorously test Ayanamsha sensitivity (comparing Lahiri, Raman, and Dulakara models) to maintain the historically verified Cancer Ascendant.14 The first validation event is his inauguration as the first Prime Minister of independent India on August 15, 1947. The active period was the Moon Mahadasha.15 The computational logic must identify the Moon as the Lagna lord, placed in its own sign in the Navamsha (D-9) and Dashamsha (D-10) charts, indicating absolute sovereignty and leadership.
+The second validation event is the Indo-China War and his subsequent health decline in 1962. The active period was the Rahu Mahadasha.15 The engine must calculate Rahu's placement in the 12th house of loss in the sign of Gemini, triggering foreign disputes, hidden enemies, and physical deterioration. The third event is his death on May 27, 1964. The active period remained the Rahu Mahadasha.15 The transit module must verify that transiting Saturn was active in a hostile geometric alignment, affirming the culmination of his longevity during a primary malefic period.
+1.8 The Astrological Framework of Princess Diana
+Parameter
+	Data
+	Date of Birth
+	July 1, 1961
+	Time of Birth
+	19:45:00 BST
+	Location
+	Sandringham, UK (52°50'N, 0°30'E)
+	Ascendant (Lagna)
+	Sagittarius
+	The engine must correctly calculate the high-latitude house cusps for Princess Diana's chart and identify the deep psychological indicators of the Moon in Aquarius opposing Mars and Pluto in the 8th house.16 The first validation event is her highly publicized marriage to Prince Charles on July 29, 1981. The progression algorithm must calculate the progressed Moon and Neptune conjunct the progressed Ascendant in Scorpio, while the event chart module must detect transit Pluto sitting exactly on her natal Ascendant.18 The second event is the finalization of her divorce in 1996. The asteroid tracking module must detect Asteroid Diana at 29° Aquarius conjunct transit Hera, mathematically repeating the natal theme of marital severance.19
+The third and most critical event is her death by a car crash in Paris on August 31, 1997. The active period was the Rahu Mahadasha.6 Transiting Saturn was in Pisces, which is the 2nd house from her natal Moon, initiating the deadly phase of Sade-Sati.16 Furthermore, the engine must validate this using the Jaimini Shoola Dasha system, which is specifically designed for death timing. With a Virgo ascendant applied in alternative models, the Capricorn Dasha and Aquarius Antardasha mathematically triggered the fatal event, compounded by transit Jupiter being heavily debilitated in Capricorn, offering zero protective geometric aspect.16
+1.9 The Astrological Framework of Rajiv Gandhi
+Parameter
+	Data
+	Date of Birth
+	August 20, 1944
+	Time of Birth
+	10:09:00 IST (Rectified)
+	Location
+	Mumbai, India (19°03'N, 72°51'E)
+	Ascendant (Lagna)
+	Virgo
+	Rajiv Gandhi's chart requires the engine to correctly apply Krishnamurti Paddhati (KP) rules for longevity. The algorithm must evaluate the specific sublords of the 1st and 8th houses to calculate an exact lifespan of 46 years, 9 months, and 1 day.22 The first validation event is his marriage to Sonia Gandhi on February 25, 1968. The active period was the Rahu Mahadasha and Jupiter Antardasha. The engine must identify Jupiter as the ruler of the 7th house of marriage.23
+The second event encompasses the death of his mother and his immediate ascension to Prime Minister on October 31, 1984. The active period was again the Rahu Mahadasha and Jupiter Antardasha.23 The engine logic must evaluate Jupiter as the 5th lord, which acts as a Maraka (killer) to the 4th house representing the mother, mathematically bridging the tragedy of maternal loss with the sudden inheritance of political power. The final event is his assassination by a bomb blast on May 21, 1991. The active period was the Rahu Mahadasha and Mercury Antardasha.23 Mercury serves as the primary Maraka lord of the 2nd house.23 The transit analysis module must detect the Mars-Moon conjunction in the Ascendant, receiving a direct aspect from Neptune, triggering a boolean flag for "violent end by explosion".22
+1.10 The Astrological Framework of Dr. B.V. Raman
+Parameter
+	Data
+	Date of Birth
+	August 8, 1912
+	Time of Birth
+	19:43:00 IST
+	Location
+	Bangalore, India (12°59'N, 77°35'E)
+	Ascendant (Lagna)
+	Aquarius (10°35')
+	Dr. B.V. Raman’s chart serves as the universal benchmark used in standard Jyotish textbooks. If a computational engine cannot replicate the exact planetary dignities and divisional charts of this specific dataset, its foundational ephemeris code is fundamentally flawed. The engine must accurately generate the 12 Bhavas: 2nd at Pisces 16°12', 3rd at Aries 18°35', up to the 12th at Capricorn 9°31'.25
+The standard analysis validation points require the engine to place Saturn in Taurus in the 3rd Bhava, specifically in the Rohini Nakshatra.25 The Moon must be flagged as Exalted in Taurus, located in the 4th Bhava.25 The engine's aspect calculation matrix must detect a precise 120° trine between Saturn and Uranus, and a strict 180° opposition between Jupiter and Saturn.25 Finally, the algorithmic output must recognize the presence of the 9th lord (Jupiter) in the 10th house (Scorpio) and trigger the logic for a powerful Dharma-Karma Adhipati Yoga, validating the native's global success in astrological publishing and education.25
+2. Marriage Timing Validation Set (BVB Study Parameters)
+Computational prediction of marriage requires parsing multiple overlapping parameters. The Bharatiya Vidya Bhavan (BVB) study, directed by K.N. Rao across 218 verified charts, established 8 specific geometric and chronobiological parameters (P1-P8) combining the Vimshottari Dasha, the Jaimini Chara Dasha, and planetary transits.26 The astrological engine must compute boolean values (True/False) for each parameter to score the probability of marriage on a given date.
+The 8 Algorithmic Parameters for Engine Validation:
+* P1: Connection of Vimshottari Dasha lords (Mahadasha, Antardasha, or Pratyantardasha) with the Lagna, the 7th House (7H), the Lagna Lord (LL), or the 7th Lord (7L) in either the D-1 or D-9 charts. This parameter applied in 100% of the cases in the study.27
+* P2: The Jaimini Chara Antardasha connecting with the Darakaraka (DK), Darakaraka Navamsha (DKN), Darapada, or Upapada Lagna. This yields a 96% accuracy rate.27
+* P3: Transiting Jupiter casting an aspect on the Vivah Saham (a mathematically derived marriage coordinate). This yields a 77% accuracy rate.27
+* P4: The double transit of Saturn and Jupiter simultaneously activating the Lagna, 7H, LL, or 7L. This yields an 85% accuracy rate.27
+* P5: The transiting Lagna Lord and the 7th Lord establishing a mutual geometric connection in the sky on the day of marriage. This yields a 98% accuracy rate.27
+* P6: Transiting Jupiter activating natal Venus (for male charts) or natal Mars (for female charts). This yields a 68% accuracy rate.27
+* P7: The Sun or a distinct cluster of planets transiting near the Lagna or the 7H on the exact date of marriage. This yields a 70% accuracy rate.27
+* P8: The transiting Lagna Lord passing through the 7H, or the transiting 7th Lord passing through the Lagna. This yields a 59% accuracy rate.27
+Validation Charts for the Engine
+The following table details five verified cases. The engine's logic layer must iterate through the ephemeral array for the specific marriage date, projecting orbital vectors onto the static natal chart to return the correct boolean values for P1 through P8.
+
+
+Native ID
+	Birth Data
+	Date of Marriage
+	Parameters Fulfilled (Engine Check)
+	Dasha / Transit Triggers
+	Case 1 (Amritsar) 26
+	Aug 28, 1941, 22:45 IST, Amritsar
+	Nov 18, 1967
+	True: P1, P2, P4, P5, P6.
+
+
+False: P3, P7, P8.
+	Transiting Saturn and Jupiter cast double aspects on the relevant houses; Transiting 7L (Sun) received an exact 10th aspect from transiting LL (Saturn) satisfying P5.26
+	Case 2 (Bhagalpur) 26
+	Apr 5, 1968, 09:25 IST, Bhagalpur
+	May 22, 1989
+	True: P1, P2, P4, P5, P6, P7, P8.
+
+
+False: P3.
+	Jupiter formed a mutual aspect with the 7L Mars; Aries was confirmed computationally as the Upapada sign. Saturn in Scorpio and Jupiter in Taurus activated the 7H.26
+	Case 3 (Delhi) 29
+	Jun 26, 1975, 07:14 IST, New Delhi
+	Exact day derived via Manu Smriti
+	True: P1, P4.
+	Venus placed in the Ascendant provided a 50% baseline probability. The D-9 Lagna is Vargottama; the 7L Saturn in D-9 confirmed marriage stability.29
+	Case 4 (Sachin Tendulkar) 5
+	Apr 24, 1973, 12:54 IST, Mumbai
+	May 19, 1995
+	True: P1, P4, P5.
+	Active Dasha: Mars MD, Saturn AD. Mars is the 5L placed in the 7H; Saturn is the 7L, perfectly satisfying the P1 core requirement.5
+	Case 5 (Rajiv Gandhi) 23
+	Aug 20, 1944, 10:09 IST, Mumbai
+	Feb 25, 1968
+	True: P1, P4.
+	Active Dasha: Rahu MD, Jupiter AD. Jupiter algorithmically rules the 7H of marriage, satisfying the P1 requirement.23
+	To successfully pass the validation suite, the computational engine must ingest the birth coordinates for Case 1 (Amritsar), project the ephemeris to November 18, 1967, and successfully output True for P5 based on the geometric aspect of Saturn onto the Sun. It must also calculate the Vivah Saham accurately, and return False for P3, proving that its spatial awareness algorithms do not generate false positives.
+3. Career Event Validation
+Validating career events requires the computational engine to pivot away from relying solely on the Rashi (D-1) chart. It must algorithmically generate and analyze the Dashamsha (D-10) chart, identify the 10th house lord, and calculate the Amatyakaraka (the planet holding the second-highest degree in any sign).
+1. Amitabh Bachchan - Superstardom (1971): The engine must correlate the onset of the Saturn Mahadasha with extreme career elevation.4 Saturn's status as the Lagna lord for an Aquarius ascendant must be mathematically weighted as a primary benefic. The financial zenith experienced in 1975 must map perfectly to the Saturn Mahadasha and Mercury Antardasha.4 The algorithm must recognize that the Lagna lord operating in its own major period acts as a supreme catalyst for public visibility.
+2. Sachin Tendulkar - International Debut (Nov 15, 1989): The engine must track the Vimshottari dasha of Moon and Ketu.5 The transit module must detect Saturn's transit through Sagittarius, which occupies the 6th house in his chart. The engine must compute Saturn's direct aspect onto the 3rd house of sports and courage, identifying it as the deterministic geometric trigger that actualized the probabilistic promise of the Dasha.5
+3. Steve Jobs - Return to Tech Dominance (1976): The engine must calculate the transition into the Venus Mahadasha following the Ketu Mahadasha.7 The algorithm must identify Uranus and Jupiter conjoined in the 10th house and flag this as a rare indicator of unconventional (Uranus) and massive (Jupiter) corporate leadership.6 The engine must score the 10th house strength at the highest possible percentile.
+4. Narendra Modi - Prime Ministerial Victory (May 2014): The engine must detect the activation of the Moon Mahadasha.11 Because the Moon serves as the 9th lord of destiny and is conjoined with the Lagna lord Mars in the 1st house, the algorithm must assign a peak probability to career elevation during this chronozone. The combination of the 1st and 9th lords constitutes a classic Dharma-Karma Adhipati Yoga, which the engine must identify without fail.11
+5. Jawaharlal Nehru - First Prime Minister (Aug 15, 1947): The engine must evaluate the Moon Mahadasha.15 The algorithm must analyze the Moon as the Lagna lord. Furthermore, it must inspect the divisional charts and identify that the Moon is placed in its own sign in both the Navamsha (D-9) and the Dashamsha (D-10) charts. This overlapping dignity in the sub-divisional charts provides the computational proof required to predict absolute national sovereignty.
+4. Health Event Validation (Medical Astrology)
+Medical astrology requires the engine to assess baseline longevity (Ayurdaya), calculate the Maraka planets (specifically the lords of the 2nd and 7th houses), and identify the Badhaka lords based on the modality of the ascendant (movable, fixed, or dual).30 Transits of slow-moving malefics (Saturn, Rahu, Ketu) over these sensitive natal degrees trigger severe health crises.
+1. Indira Gandhi - Assassination (Oct 31, 1984): The algorithm must calculate the Saturn Mahadasha, Rahu Antardasha, and Moon Pratyantardasha.1 The engine must identify Saturn as the 7th lord, which makes it a primary Maraka. Rahu must be identified as the 8th lord of death, occupying the 6th house of violence. The engine must flag this intersection of Dasha lords as a critical fatality zone, further confirmed by malefic transits on the day of the event.1
+2. Steve Jobs - Pancreatic Cancer Diagnosis (Oct 2003): The engine must map the Venus/Rahu period.33 The algorithm must correlate Venus with the pancreas (via 5th house signification), and Rahu with malignant, abnormal growths. Their geometric conjunction in the chart initiates the pathology. The subsequent liver transplant in April 2009 must be mapped to the Venus/Mercury period, where Mercury is correctly identified by the engine as the Rogesha (lord of the 6th house of diseases).8
+3. Princess Diana - Fatal Car Crash (Aug 31, 1997): The engine must calculate the activation of the Rahu Mahadasha.6 It must also generate the Jaimini Shoola Dasa, which calculates death timing. With a Virgo ascendant applied in alternative computational models, the Capricorn/Aquarius Shoola Dasa is mathematically triggered. The engine must evaluate transiting Jupiter on that date and recognize that it was heavily debilitated in Capricorn, offering zero protective geometric aspect to the native.16
+4. Rajiv Gandhi - Assassination (May 21, 1991): The engine must utilize the KP (Krishnamurti Paddhati) coordinate system to calculate the exact cusp sublords. The 1st and 8th house sublords point to a middle-longevity classification. The engine must track the Rahu Mahadasha and Mercury Antardasha, identifying Mercury as the Maraka lord of the 2nd house.23 The transit module must detect the Mars-Moon conjunction in the Ascendant on the exact day, receiving a direct aspect from Neptune, triggering a boolean flag for a violent end by explosion.22
+5. Standard Hospital Recovery Case Study: A Prashna (Horary) chart calculation acts as an excellent test for an engine's derived house logic. Given a Prashna Lagna of Pisces 11°18', the 5th house (Cancer) represents the son.34 The engine must treat Cancer as the derived Ascendant. The Moon (Lagna lord of the son) is placed in the 8th house (Aquarius) from the derived Lagna, signifying severe bodily threat. However, Jupiter in the 11th house (Taurus) provides the mathematical aspect required to predict eventual recovery. The engine must correctly output a positive prognosis based on this benefic aspect.34
+5. Standard Reference Chart for Ephemeris Calibration
+To ensure the engine's foundational ephemeris code is entirely accurate, it must perfectly replicate the chart of Dr. B.V. Raman, which is the universal benchmark used in standard Jyotish textbooks (specifically How to Judge a Horoscope).25
+The input data requires a birth date of August 8, 1912, at 19:43:00 IST, in Bangalore, India (12°59'N, 77°35'E).25 The engine must first calculate the Ascendant (Lagna) precisely at Aquarius 10°35'.25 Following this, the cusp generation algorithm must accurately position the 12 Bhavas: the 2nd cusp at Pisces 16°12', the 3rd at Aries 18°35', continuing up to the 12th cusp at Capricorn 9°31'.25
+The standard analysis validation points require the engine to place Saturn in the sign of Taurus within the 3rd Bhava, specifically pinpointing its location in the Rohini Nakshatra.25 The Moon must be calculated and flagged as Exalted in Taurus, located in the 4th Bhava.25 The engine's aspect calculation matrix must detect a precise 120° trine between Saturn and Uranus, and a strict 180° opposition between Jupiter and Saturn.25 Finally, the algorithmic output must recognize the presence of the 9th lord (Jupiter) in the 10th house (Scorpio) and trigger the logic for a powerful Dharma-Karma Adhipati Yoga. If the engine's output diverges from these coordinates by even a fraction of a degree, the underlying astronomical algorithms require recalibration.
+6. Known Computational Edge Cases & Algorithmic Stress Tests
+Standard algorithms easily parse average birth data; however, robust computational astrology engines must flawlessly handle severe astronomical and geometric edge cases to prevent software crashes or gross interpretive errors.36
+6.1 Ayanamsha Sensitivity at Rashi Sandhi (29°59')
+When a Lagna or a planet sits at 29°59' of a sign, even a 0.001-degree shift in the Ayanamsha (the calculation for the precession of the equinoxes) flips the sign, fundamentally altering the entire chart and all derived divisional charts.38 Jawaharlal Nehru's chart provides the ultimate test case, as his Ascendant and Sun sit at the exact boundaries of Cancer/Leo and Libra/Scorpio.14 The engine must allow the user to toggle smoothly between Lahiri (Chitra Paksha), Raman, and Sri Surya Siddhanta Ayanamshas.14 The algorithm must throw a "Rashi Sandhi" or "Bhava Sandhi" flag, warning the user of intense planetary vulnerability (anaretic degrees) and the necessity for manual time rectification.39
+6.2 High Latitude Ascensional Breakdown (>60°N)
+Standard quadrant house systems (such as Placidus or Koch) rely on the intersection of the ecliptic and the horizon. At latitudes above 66°N (the Arctic Circle), the mathematical formula for Ascensional Difference ($ \tan(\phi) \tan(\delta) $) exceeds 1. This causes the $ \arcsin $ function within the programming language to fail, resulting in a division by zero or an undefined geometry error.36 If a coordinate    is inputted into the engine (e.g., Murmansk, Russia at 68°58'N), the software must automatically detect the asymptotic failure of Placidus. It must default gracefully to the Equal House system (where each house is exactly 30° from the Ascendant) or the Porphyry system (trisection of the quadrants) to prevent an algorithmic crash.41
+6.3 Eclipse Birth Calculations (Syzygy)
+Births during a solar or lunar eclipse require precise topocentric (surface-level) versus geocentric (Earth-center) parallax adjustments to ensure accurate planetary placement.46 The engine must continuously measure the longitudinal distance between the Sun, the Moon, and the Lunar Nodes (Rahu/Ketu). If the algorithm detects that $ | \lambda_{\text{Sun}} - \lambda_{\text{Moon}} | \approx 0^\circ $ and $ | \lambda_{\text{Sun}} - \lambda_{\text{Node}} | < 18^\circ $, the engine must automatically trigger an "Eclipse Birth" flag, indicating a Surya or Chandra Grahan Dosha.47
+6.4 Kala Sarpa Yoga (Array Indexing)
+Kala Sarpa Yoga occurs when all seven traditional planets are hemmed between the 180-degree axis of the shadow planets, Rahu and Ketu.48 The algorithm must sort the planetary longitudes into an array and execute a directional loop from Rahu's longitude to Ketu's longitude. A benchmark chart for this is Visti Larsen (November 21, 1981, 6:06 AM, Nairobi).50 If the index count of planets within this specific 180° arc equals 7, the engine returns True for the yoga.49 Furthermore, the engine must distinguish between Kala Sarpa (all planets moving toward the tail) and Kala Amrita (all planets moving toward the head).50 The software must also strictly define True Node versus Mean Node calculations, which can differ by up to 1.5°, as this variance can move the "line of demarcation" and create false positives.49
+6.5 Multiple Neechabhanga Conditions (Cancellation of Debilitation)
+A planet positioned in its sign of debilitation (Neecha) produces negative results unless specific geometric conditions cancel the debilitation (Bhanga), turning it into a powerful Raj Yoga.53 Using Sachin Tendulkar's chart as the test case, Jupiter is calculated as debilitated in Capricorn.5 The engine must run a series of conditional checks: First, is the lord of the debilitation sign (Saturn) placed in a Kendra (1, 4, 7, 10) from the Lagna or Moon? Second, is the planet that is normally exalted in the debilitation sign (Mars is exalted in Capricorn) conjoined with the debilitated planet?.5 If True, the engine must overwrite the standard "debilitated" penalty multiplier and seamlessly apply a "Neechabhanga Raj Yoga" bonus multiplier to the planet's overall strength scoring matrix.
+By aggressively testing the computational engine against these verified longitudinal datasets, complex chronobiological Dasha triggers, and extreme spherical trigonometry edge cases, developers can ensure absolute mathematical precision and astrological fidelity.

@@ -1,0 +1,133 @@
+CORE VALIDATION: 123 PASS / 0 FAIL / 0 SKIP
+Accuracy: 100.0%  (123/123)
+Reference: AstroSage | Nehru 1889-11-14 23:26:00 Allahabad
+Timestamp: 2026-03-04T00:23:52.390787
+============================================================
+
+[PASS] Lagna sign: ours=Cancer, ref=Cancer
+[PASS] Lagna longitude: ours=117.4059, ref=117.4114, delta=0.0055 (tol=1.0)
+[PASS] Lagna degree in sign: ours=27.405900000000003, ref=27.4114, delta=0.0055 (tol=1.0)
+[PASS] SUN sign: ours=Scorpio, ref=Scorpio
+[PASS] SUN longitude: ours=210.2732, ref=210.2889, delta=0.0157 (tol=1.0)
+[PASS] SUN house: ours=5, ref=5, delta=0.0000
+[PASS] SUN nakshatra: ours=Vishakha, ref=Vishakha
+[PASS] SUN pada: ours=4, ref=4, delta=0.0000
+[PASS] MOON sign: ours=Cancer, ref=Cancer
+[PASS] MOON longitude: ours=108.042, ref=108.0533, delta=0.0113 (tol=1.0)
+[PASS] MOON house: ours=1, ref=1, delta=0.0000
+[PASS] MOON nakshatra: ours=Ashlesha, ref=Ashlesha
+[PASS] MOON pada: ours=1, ref=1, delta=0.0000
+[PASS] MARS sign: ours=Virgo, ref=Virgo
+[PASS] MARS longitude: ours=159.9831, ref=159.9939, delta=0.0108 (tol=1.0)
+[PASS] MARS house: ours=3, ref=3, delta=0.0000
+[PASS] MARS nakshatra: ours=Uttara Phalguni, ref=Uttaraphal
+[PASS] MARS pada: ours=4, ref=4, delta=0.0000
+[PASS] MERCURY sign: ours=Libra, ref=Libra
+[PASS] MERCURY longitude: ours=197.1547, ref=197.1753, delta=0.0206 (tol=1.0)
+[PASS] MERCURY house: ours=4, ref=4, delta=0.0000
+[PASS] MERCURY nakshatra: ours=Swati, ref=Swati
+[PASS] MERCURY pada: ours=4, ref=4, delta=0.0000
+[PASS] JUPITER sign: ours=Sagittarius, ref=Sagittarius
+[PASS] JUPITER longitude: ours=255.1716, ref=255.1819, delta=0.0103 (tol=1.0)
+[PASS] JUPITER house: ours=6, ref=6, delta=0.0000
+[PASS] JUPITER nakshatra: ours=Purvashadha, ref=Purvashadha
+[PASS] JUPITER pada: ours=1, ref=1, delta=0.0000
+[PASS] VENUS sign: ours=Libra, ref=Libra
+[PASS] VENUS longitude: ours=187.3668, ref=187.3844, delta=0.0176 (tol=1.0)
+[PASS] VENUS house: ours=4, ref=4, delta=0.0000
+[PASS] VENUS nakshatra: ours=Swati, ref=Swati
+[PASS] VENUS pada: ours=1, ref=1, delta=0.0000
+[PASS] SATURN sign: ours=Leo, ref=Leo
+[PASS] SATURN longitude: ours=130.7898, ref=130.7753, delta=0.0145 (tol=1.0)
+[PASS] SATURN house: ours=2, ref=2, delta=0.0000
+[PASS] SATURN nakshatra: ours=Magha, ref=Magha
+[PASS] SATURN pada: ours=4, ref=4, delta=0.0000
+[PASS] RAHU sign: ours=Gemini, ref=Gemini
+[PASS] RAHU longitude: ours=72.722, ref=72.7264, delta=0.0044 (tol=1.0)
+[PASS] RAHU house: ours=12, ref=12, delta=0.0000
+[PASS] RAHU nakshatra: ours=Ardra, ref=Ardra
+[PASS] RAHU pada: ours=2, ref=2, delta=0.0000
+[PASS] RAHU retrograde: ours=True, ref=True, delta=0.0000
+[PASS] KETU sign: ours=Sagittarius, ref=Sagittarius
+[PASS] KETU longitude: ours=252.722, ref=252.7264, delta=0.0044 (tol=1.0)
+[PASS] KETU house: ours=6, ref=6, delta=0.0000
+[PASS] KETU nakshatra: ours=Mula, ref=Mula
+[PASS] KETU pada: ours=4, ref=4, delta=0.0000
+[PASS] KETU retrograde: ours=True, ref=True, delta=0.0000
+[PASS] Dasha MERCURY start: ours=1889-11-14, ref=1889-11-14
+[PASS] Dasha MERCURY end: ours=1905-02-08, ref=1905-02-08
+[PASS] Dasha KETU start: ours=1905-02-08, ref=1905-02-08
+[PASS] Dasha KETU end: ours=1912-02-08, ref=1912-02-08
+[PASS] Dasha VENUS start: ours=1912-02-08, ref=1912-02-08
+[PASS] Dasha VENUS end: ours=1932-02-08, ref=1932-02-08
+[PASS] Dasha SUN start: ours=1932-02-08, ref=1932-02-08
+[PASS] Dasha SUN end: ours=1938-02-08, ref=1938-02-08
+[PASS] Dasha MOON start: ours=1938-02-08, ref=1938-02-08
+[PASS] Dasha MOON end: ours=1948-02-08, ref=1948-02-08
+[PASS] Dasha MARS start: ours=1948-02-08, ref=1948-02-08
+[PASS] Dasha MARS end: ours=1955-02-08, ref=1955-02-08
+[PASS] Dasha RAHU start: ours=1955-02-08, ref=1955-02-08
+[PASS] Dasha RAHU end: ours=1973-02-08, ref=1973-02-08
+[PASS] Event 1947-08-15 MD: ours=MOON, ref=MOON
+[PASS] Event 1964-05-27 MD: ours=RAHU, ref=RAHU
+[PASS] SAV sum: ours=337, ref=337, delta=0.0000 (tol=2)
+[PASS] SAV Aries: ours=27, ref=26, delta=1.0000 (tol=2)
+[PASS] SAV Taurus: ours=34, ref=35, delta=1.0000 (tol=2)
+[PASS] SAV Gemini: ours=30, ref=30, delta=0.0000 (tol=2)
+[PASS] SAV Cancer: ours=30, ref=30, delta=0.0000 (tol=2)
+[PASS] SAV Leo: ours=31, ref=31, delta=0.0000 (tol=2)
+[PASS] SAV Virgo: ours=33, ref=33, delta=0.0000 (tol=2)
+[PASS] SAV Libra: ours=30, ref=30, delta=0.0000 (tol=2)
+[PASS] SAV Scorpio: ours=22, ref=22, delta=0.0000 (tol=2)
+[PASS] SAV Sagittarius: ours=33, ref=32, delta=1.0000 (tol=2)
+[PASS] SAV Capricorn: ours=17, ref=18, delta=1.0000 (tol=2)
+[PASS] SAV Aquarius: ours=24, ref=24, delta=0.0000 (tol=2)
+[PASS] SAV Pisces: ours=26, ref=26, delta=0.0000 (tol=2)
+[PASS] Sun BAV Aries: ours=6, ref=6, delta=0.0000 (tol=1)
+[PASS] Sun BAV Taurus: ours=6, ref=6, delta=0.0000 (tol=1)
+[PASS] Sun BAV Gemini: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Sun BAV Cancer: ours=3, ref=3, delta=0.0000 (tol=1)
+[PASS] Sun BAV Leo: ours=4, ref=4, delta=0.0000 (tol=1)
+[PASS] Sun BAV Virgo: ours=7, ref=7, delta=0.0000 (tol=1)
+[PASS] Sun BAV Libra: ours=3, ref=3, delta=0.0000 (tol=1)
+[PASS] Sun BAV Scorpio: ours=2, ref=2, delta=0.0000 (tol=1)
+[PASS] Sun BAV Sagittarius: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Sun BAV Capricorn: ours=0, ref=0, delta=0.0000 (tol=1)
+[PASS] Sun BAV Aquarius: ours=3, ref=3, delta=0.0000 (tol=1)
+[PASS] Sun BAV Pisces: ours=4, ref=4, delta=0.0000 (tol=1)
+[PASS] Moon BAV Aries: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Moon BAV Taurus: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Moon BAV Gemini: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Moon BAV Cancer: ours=5, ref=5, delta=0.0000 (tol=1)
+[PASS] Moon BAV Leo: ours=3, ref=3, delta=0.0000 (tol=1)
+[PASS] Moon BAV Virgo: ours=4, ref=4, delta=0.0000 (tol=1)
+[PASS] Moon BAV Libra: ours=4, ref=4, delta=0.0000 (tol=1)
+[PASS] Moon BAV Scorpio: ours=2, ref=2, delta=0.0000 (tol=1)
+[PASS] Moon BAV Sagittarius: ours=6, ref=6, delta=0.0000 (tol=1)
+[PASS] Moon BAV Capricorn: ours=6, ref=6, delta=0.0000 (tol=1)
+[PASS] Moon BAV Aquarius: ours=3, ref=3, delta=0.0000 (tol=1)
+[PASS] Moon BAV Pisces: ours=1, ref=1, delta=0.0000 (tol=1)
+[PASS] Karaka AK: ours=MOON, ref=MOON
+[PASS] Karaka AmK: ours=MERCURY, ref=MERCURY
+[PASS] Karaka BK: ours=JUPITER, ref=JUPITER
+[PASS] Karaka MK: ours=SATURN, ref=SATURN
+[PASS] Karaka PK: ours=MARS, ref=MARS
+[PASS] Karaka GK: ours=VENUS, ref=VENUS
+[PASS] Karaka DK: ours=SUN, ref=SUN
+[PASS] Karakamsha sign: ours=Sagittarius, ref=Sagittarius
+[PASS] H1 lord: ours=MOON, ref=MOON
+[PASS] H2 lord: ours=SUN, ref=SUN
+[PASS] H3 lord: ours=MERCURY, ref=MERCURY
+[PASS] H4 lord: ours=VENUS, ref=VENUS
+[PASS] H5 lord: ours=MARS, ref=MARS
+[PASS] H6 lord: ours=JUPITER, ref=JUPITER
+[PASS] H7 lord: ours=SATURN, ref=SATURN
+[PASS] H8 lord: ours=SATURN, ref=SATURN
+[PASS] H9 lord: ours=JUPITER, ref=JUPITER
+[PASS] H10 lord: ours=MARS, ref=MARS
+[PASS] H11 lord: ours=VENUS, ref=VENUS
+[PASS] H12 lord: ours=MERCURY, ref=MERCURY
+
+============================================================
+SUMMARY: 123 PASS / 0 FAIL / 0 SKIP
+Accuracy: 100.0%

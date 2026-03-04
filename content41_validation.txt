@@ -1,0 +1,1478 @@
+
+================================================================================
+====================== VALIDATION TEST: Jawaharlal Nehru =======================
+================================================================================
+  Birth: 1889-11-14 at 23:11:00 IST
+  Place: Allahabad, India (25.4358N, 81.8463E)
+  Events to validate: 10
+  Run date: 2026-03-03 23:35:40
+
+================================================================================
+========================= SECTION 1: CHART COMPUTATION =========================
+================================================================================
+  Building chart via Swiss Ephemeris...
+  Computing static analysis...
+  Static analysis complete.
+
+  Lagna (Ascendant): Cancer (24.12°)
+  Moon Sign: Cancer (longitude: 107.92°)
+  Moon Nakshatra: Ashlesha (index 8)
+
+--------------------------------------------------------------------------------
+  PLANET POSITIONS
+--------------------------------------------------------------------------------
+  SUN         210.263°  Scorpio       H5   Nak: Vishakha       0.26° in sign
+  MOON        107.918°  Cancer        H1   Nak: Ashlesha       17.92° in sign
+  MARS        159.977°  Virgo         H3   Nak: Uttara Phalguni 9.98° in sign
+  MERCURY     197.138°  Libra         H4   Nak: Swati          17.14° in sign
+  JUPITER     255.170°  Sagittarius   H6   Nak: Purvashadha    15.17° in sign
+  VENUS       187.354°  Libra         H4   Nak: Swati          7.35° in sign
+  SATURN      130.789°  Leo           H2   Nak: Magha          10.79° in sign
+  RAHU         72.723°  Gemini        H12  Nak: Ardra          12.72° in sign [R]
+  KETU        252.723°  Sagittarius   H6   Nak: Mula           12.72° in sign [R]
+
+--------------------------------------------------------------------------------
+  HOUSE LORDS
+--------------------------------------------------------------------------------
+  H1   Cancer        Lord: MOON
+  H2   Leo           Lord: SUN
+  H3   Virgo         Lord: MERCURY
+  H4   Libra         Lord: VENUS
+  H5   Scorpio       Lord: MARS
+  H6   Sagittarius   Lord: JUPITER
+  H7   Capricorn     Lord: SATURN
+  H8   Aquarius      Lord: SATURN
+  H9   Pisces        Lord: JUPITER
+  H10  Aries         Lord: MARS
+  H11  Taurus        Lord: VENUS
+  H12  Gemini        Lord: MERCURY
+
+--------------------------------------------------------------------------------
+  VIMSHOTTARI DASHA PERIODS
+--------------------------------------------------------------------------------
+  [Dasha periods computed dynamically — see per-event analysis below]
+
+--------------------------------------------------------------------------------
+  ACTIVE YOGAS
+--------------------------------------------------------------------------------
+    1. Malavya Yoga (Pancha Mahapurusha) Grade: C        Domain: general
+    2. Ubhayachari Yoga               Grade: C        Domain: general
+    3. Uttamadi Yoga                  Grade: C        Domain: general
+    4. Maala Yoga (Nabhasa-Dala)      Grade: C        Domain: general
+    5. Nauka Yoga (Nabhasa-Akriti)    Grade: C        Domain: general
+
+--------------------------------------------------------------------------------
+  SHADBALA STRENGTH RATIOS
+--------------------------------------------------------------------------------
+  VENUS       1.58x  ███████████████ STRONG
+  MOON        1.26x  ████████████    STRONG
+  JUPITER     1.16x  ███████████     STRONG
+  SATURN      1.05x  ██████████      STRONG
+  MERCURY     1.00x  █████████       WEAK
+  SUN         0.99x  █████████       WEAK
+  MARS        0.94x  █████████       WEAK
+
+--------------------------------------------------------------------------------
+  SARVASHTAKVARGA
+--------------------------------------------------------------------------------
+  Total: 337/337
+    Ari    Tau    Gem    Can    Leo    Vir    Lib    Sco    Sag    Cap    Aqu    Pis
+     27     34     30     30     31     33     30     22     33     17     24     26
+
+--------------------------------------------------------------------------------
+  DOSHA ANALYSIS
+--------------------------------------------------------------------------------
+  Kala Sarpa Yoga: Absent — 
+  Manglik Dosha: Absent — 
+  Pitru Dosha: Absent — 
+  Combustion: Absent — 
+  Gandanta: Absent — 
+
+--------------------------------------------------------------------------------
+  LONGEVITY
+--------------------------------------------------------------------------------
+  pindayu: {'method': 'Pindayu', 'planet_details': {'SUN': {'arc_deg': 200.26, 'base_years': 21.139, 'reduction': 0.0, 'reduced_years': 21.139}, 'MOON': {'arc_deg': 74.92, 'base_years': 10.405, 'reduction': 0.0, 'reduced_years': 10.405}, 'MARS': {'arc_deg': 221.98, 'base_years': 18.498, 'reduction': 0.0, 'reduced_years': 18.498}, 'MERCURY': {'arc_deg': 32.14, 'base_years': 2.143, 'reduction': 0.333, 'reduced_years': 1.428}, 'JUPITER': {'arc_deg': 160.17, 'base_years': 13.347, 'reduction': 0.0, 'reduced_years': 13.347}, 'VENUS': {'arc_deg': 190.35, 'base_years': 22.208, 'reduction': 0.0, 'reduced_years': 22.208}, 'SATURN': {'arc_deg': 290.79, 'base_years': 32.31, 'reduction': 0.0, 'reduced_years': 32.31}}, 'total_years': 119.34, 'interpretation': 'Purna (long) — 119.3 years'}
+  amsayu: {'method': 'Amsayu', 'planet_details': {'SUN': {'arc_minutes': 12615.8, 'base_years': 3.0788, 'multiplier': 1.0, 'contribution': 3.0788, 'vargottama': False}, 'MOON': {'arc_minutes': 6475.1, 'base_years': 8.3754, 'multiplier': 3.0, 'contribution': 25.1261, 'vargottama': False}, 'MARS': {'arc_minutes': 9598.6, 'base_years': 11.993, 'multiplier': 1.0, 'contribution': 11.993, 'vargottama': False}, 'MERCURY': {'arc_minutes': 11828.3, 'base_years': 11.1415, 'multiplier': 1.0, 'contribution': 11.1415, 'vargottama': False}, 'JUPITER': {'arc_minutes': 15310.2, 'base_years': 4.5509, 'multiplier': 3.0, 'contribution': 13.6526, 'vargottama': False}, 'VENUS': {'arc_minutes': 11241.2, 'base_years': 8.2061, 'multiplier': 3.0, 'contribution': 24.6184, 'vargottama': False}, 'SATURN': {'arc_minutes': 7847.4, 'base_years': 3.2368, 'multiplier': 1.0, 'contribution': 3.2368, 'vargottama': False}, 'LAGNA': {'arc_minutes': 6847.4, 'base_years': 10.2372, 'multiplier': 1.0, 'contribution': 10.2372, 'vargottama': False}}, 'raw_total': 103.085, 'total_years': 38.18, 'interpretation': 'Madhya (medium) — 38.2 years'}
+  nisargayu: {'method': 'Nisargayu', 'planet_details': {'SATURN': {'base_years': 50.0, 'reduction': 0.0, 'reduced_years': 50.0}, 'VENUS': {'base_years': 20.0, 'reduction': 0.0, 'reduced_years': 20.0}, 'SUN': {'base_years': 20.0, 'reduction': 0.0, 'reduced_years': 20.0}, 'JUPITER': {'base_years': 18.0, 'reduction': 0.0, 'reduced_years': 18.0}, 'MERCURY': {'base_years': 9.0, 'reduction': 0.333, 'reduced_years': 6.0}, 'MARS': {'base_years': 2.0, 'reduction': 0.0, 'reduced_years': 2.0}, 'MOON': {'base_years': 1.0, 'reduction': 0.0, 'reduced_years': 1.0}}, 'total_years': 117.0, 'interpretation': 'Purna (long) — 117.0 years'}
+  three_pairs: {'pair1': {'lagna_lord': 'MOON', 'eighth_lord': 'SATURN', 'modality': 'movable'}, 'pair2': {'entity': 'Lagna vs Hora Lagna', 'modality': 'movable'}, 'pair3': {'entity': 'Moon vs Saturn', 'moon_modality': 'movable', 'saturn_modality': 'fixed', 'modality': 'movable'}, 'modality_counts': {'movable': 3, 'fixed': 0, 'dual': 0}, 'dominant_modality': 'movable', 'band': 'Alpa', 'description': 'Short life span (~32 years theoretical)'}
+  consensus_years: 91.51
+  consensus_band: Purna (long) — 91.5 years
+
+--------------------------------------------------------------------------------
+  JAIMINI CHARA KARAKAS
+--------------------------------------------------------------------------------
+  AK    Atma Karaka          MOON       17.92°
+  AmK   Amatya Karaka        MERCURY    17.14°
+  BK    Bhratri Karaka       JUPITER    15.17°
+  MK    Matri Karaka         SATURN     10.79°
+  PK    Putra Karaka         MARS       9.98°
+  GK    Gnati Karaka         VENUS      7.35°
+  DK    Dara Karaka          SUN        0.26°
+
+--------------------------------------------------------------------------------
+  FUNCTIONAL ANALYSIS
+--------------------------------------------------------------------------------
+  Lagna: Cancer
+  Yogakaraka(s): MARS
+  Functional Benefics: MOON, MARS
+  Functional Malefics: MERCURY, VENUS, SATURN
+  Marakas (H2+H7 lords): SATURN
+  Badhaka: VENUS
+
+================================================================================
+===================== SECTION 2: EVENT-BY-EVENT VALIDATION =====================
+================================================================================
+
+--------------------------------------------------------------------------------
+  EVENT: Daughter (Indira) born — 1917-11-19
+--------------------------------------------------------------------------------
+  Expected: HIGH activation of 5th house (children/progeny)
+
+  VIMSHOTTARI DASHA: VENUS / MOON / KETU
+  YOGINI DASHA: Sankata (RAHU)
+  CHARA DASHA: Aries / ?
+
+  TRANSIT PLANETS:
+    SATURN     Cancer        21.8°  H1 from Lagna  H1 from Moon
+    JUPITER    Taurus        15.1°  H11 from Lagna  H11 from Moon
+    RAHU       Sagittarius   10.6°  H6 from Lagna  H6 from Moon
+    MARS       Leo           16.0°  H2 from Lagna  H2 from Moon
+
+  DOUBLE TRANSIT (on houses [7, 2, 5, 11]): YES — Saturn activates H{11}, Jupiter activates H{11}
+  BCP ACTIVE HOUSE: H4 (age 28)
+  ANNUAL PROFECTION: H5 (Scorpio)
+  RELEVANT YOGAS: None matching domain keywords
+  ASHTAKAVARGA: H7 lord (SATURN) in Leo, SAV=31
+
+  ENGINE PREDICTION (MARRIAGE on 1917-11-19):
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (41.0%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.385
+    ashtakvarga_support            0.532
+    yoga_activation                0.200
+    kp_confirmation                0.200
+    functional_alignment           0.379
+    house_lord_strength            0.350
+    jaimini_sub                    0.460
+  Bayesian: p=30.0%, CI=[14.6%-46.9%], UNCERTAIN
+  Fuzzy: 17.6% (skfuzzy)
+    timing=0.07  transit=0.43  structural=0.30
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: beneficial | geometry=kendra_10th_from_MD
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results. | AD lord MOON is
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Aries) DENY marriage → event cannot manifest in current period even if Yogini aligns
+  Argala Mod: +0.7%
+  Aspect Transit Mod: +2.6%
+  Progression Boost: +7.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: VENUS / MOON  (Yogini: RAHU)
+  >> Supportive transits: JUPITER, MOON
+
+  ALL DOMAINS BRIEF (1917-11-19):
+    CAREER     32.5%
+    FINANCE    45.4%
+    MARRIAGE   41.0%
+    HEALTH     41.6%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: First imprisonment (civil disobedience) — 1921-12-06
+--------------------------------------------------------------------------------
+  Expected: Saturn/Rahu activation, 12th house (imprisonment)
+
+  VIMSHOTTARI DASHA: VENUS / RAHU / SUN
+  YOGINI DASHA: Pingala (SUN)
+  CHARA DASHA: Pisces / ?
+
+  TRANSIT PLANETS:
+    SATURN     Virgo         13.3°  H3 from Lagna  H3 from Moon
+    JUPITER    Virgo         21.1°  H3 from Lagna  H3 from Moon
+    RAHU       Virgo         22.3°  H3 from Lagna  H3 from Moon
+    MARS       Virgo         25.1°  H3 from Lagna  H3 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): YES — Saturn activates H{1, 10}, Jupiter activates H{10}
+  BCP ACTIVE HOUSE: H8 (age 32)
+  ANNUAL PROFECTION: H9 (Pisces)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1921-12-06):
+  DOMAIN: CAREER | Confidence: VERY LOW (24.1%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.379
+    ashtakvarga_support            0.688
+    yoga_activation                0.200
+    kp_confirmation                0.150
+    functional_alignment           0.256
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=24.0%, CI=[10.5%-39.3%], UNCERTAIN
+  Fuzzy: 15.4% (skfuzzy)
+    timing=0.05  transit=0.47  structural=0.19
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=trikona_9th_from_MD
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results. | AD lord RAHU is
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Pisces) DENY career → event cannot manifest in current period even if Yogini aligns.
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -3.1%
+  Progression Boost: +1.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: VERY LOW (20.0%)
+  >> Active dasha: VENUS / RAHU  (Yogini: SUN)
+  >> Supportive transits: SATURN, MARS
+
+  ALL DOMAINS BRIEF (1921-12-06):
+    CAREER     24.1%
+    FINANCE    38.5%
+    MARRIAGE   35.9%
+    HEALTH     41.2%
+
+  MATCH: NO — Engine shows low activation
+
+--------------------------------------------------------------------------------
+  EVENT: Father Motilal Nehru's death — 1931-02-06
+--------------------------------------------------------------------------------
+  Expected: Maraka / 4th house (mother/father) affliction, dasha of 2/7 lord
+
+  VIMSHOTTARI DASHA: VENUS / KETU / KETU
+  YOGINI DASHA: Bhadrika (MERCURY)
+  CHARA DASHA: Capricorn / ?
+
+  TRANSIT PLANETS:
+    SATURN     Sagittarius   25.0°  H6 from Lagna  H6 from Moon
+    JUPITER    Gemini        18.9°  H12 from Lagna  H12 from Moon
+    RAHU       Pisces        24.8°  H9 from Lagna  H9 from Moon
+    MARS       Cancer        10.4°  H1 from Lagna  H1 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 6, 8]): PARTIAL — Only Saturn activates H{1, 6} (Jupiter missing)
+  BCP ACTIVE HOUSE: H5 (age 41)
+  ANNUAL PROFECTION: H6 (Sagittarius)
+  RELEVANT YOGAS: None matching domain keywords
+  ASHTAKAVARGA: H1 lord (MOON) in Cancer, SAV=30
+
+  ENGINE PREDICTION (HEALTH on 1931-02-06):
+  DOMAIN: HEALTH | Confidence: LOW (44.0%)
+  Components:
+    dasha_alignment                0.305
+    transit_support                0.181
+    ashtakvarga_support            0.538
+    yoga_activation                0.050
+    kp_confirmation                0.350
+    functional_alignment           0.273
+    house_lord_strength            0.963
+    jaimini_sub                    0.460
+  Bayesian: p=32.7%, CI=[16.8%-49.9%], UNCERTAIN
+  Fuzzy: 41.1% (skfuzzy)
+    timing=0.32  transit=0.29  structural=0.36
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=neutral
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results.
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Capricorn) DENY health → event cannot manifest in current period even if Yogini alig
+  Argala Mod: -0.1%
+  Aspect Transit Mod: +3.5%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (20.0%)
+  >> Active dasha: VENUS / KETU  (Yogini: MERCURY)
+  >> Supportive transits: SATURN, MOON
+
+  ALL DOMAINS BRIEF (1931-02-06):
+    CAREER     35.1%
+    FINANCE    44.7%
+    MARRIAGE   32.1%
+    HEALTH     44.0%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: Wife Kamala Nehru's death — 1936-02-28
+--------------------------------------------------------------------------------
+  Expected: 7th lord / Venus affliction, maraka dasha
+
+  VIMSHOTTARI DASHA: SUN / MERCURY / MERCURY
+  YOGINI DASHA: Ulka (SATURN)
+  CHARA DASHA: Sagittarius / ?
+
+  TRANSIT PLANETS:
+    SATURN     Aquarius      19.3°  H8 from Lagna  H8 from Moon
+    JUPITER    Scorpio       28.8°  H5 from Lagna  H5 from Moon
+    RAHU       Sagittarius   16.9°  H6 from Lagna  H6 from Moon
+    MARS       Pisces        11.5°  H9 from Lagna  H9 from Moon
+
+  DOUBLE TRANSIT (on houses [7, 2, 5, 11]): YES — Saturn activates H{11}, Jupiter activates H{2, 5}
+  BCP ACTIVE HOUSE: H10 (age 46)
+  ANNUAL PROFECTION: H11 (Taurus)
+  RELEVANT YOGAS: None matching domain keywords
+  ASHTAKAVARGA: H7 lord (SATURN) in Leo, SAV=31
+
+  ENGINE PREDICTION (MARRIAGE on 1936-02-28):
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (28.8%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.417
+    ashtakvarga_support            0.511
+    yoga_activation                0.200
+    kp_confirmation                0.133
+    functional_alignment           0.430
+    house_lord_strength            0.350
+    jaimini_sub                    0.460
+  Bayesian: p=27.3%, CI=[13.0%-43.2%], UNCERTAIN
+  Fuzzy: 18.0% (skfuzzy)
+    timing=0.05  transit=0.45  structural=0.32
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: mixed | geometry=friction_dusthana_12th_from_MD
+    SUN lords neutral house. | SUN natural friend of Lagna lord MOON → smooth period. | SUN strong D1+D9 → grand, sustainabl
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (SUN) AND Chara (Sagittarius) DENY marriage → event cannot manifest in current period even if Yogini al
+  Argala Mod: -1.1%
+  Aspect Transit Mod: -3.5%
+  Progression Boost: +3.00%
+  Vimshopak Mod: +1.6%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: SUN / MERCURY  (Yogini: SATURN)
+  >> Supportive transits: JUPITER, MOON
+
+  ALL DOMAINS BRIEF (1936-02-28):
+    CAREER     23.6%
+    FINANCE    36.8%
+    MARRIAGE   28.8%
+    HEALTH     20.1%
+
+  MATCH: NO — Engine shows low activation
+
+--------------------------------------------------------------------------------
+  EVENT: Became Prime Minister of India — 1947-08-15
+--------------------------------------------------------------------------------
+  Expected: PEAK career — 10th house, Raja Yoga activation, Double Transit on 10H
+
+  VIMSHOTTARI DASHA: MOON / VENUS / MERCURY
+  YOGINI DASHA: Sankata (RAHU)
+  CHARA DASHA: Libra / ?
+
+  TRANSIT PLANETS:
+    SATURN     Cancer        20.5°  H1 from Lagna  H1 from Moon
+    JUPITER    Libra         25.9°  H4 from Lagna  H4 from Moon
+    RAHU       Taurus        5.1°  H11 from Lagna  H11 from Moon
+    MARS       Gemini        7.6°  H12 from Lagna  H12 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): YES — Saturn activates H{1, 11}, Jupiter activates H{1, 11, 9}
+  BCP ACTIVE HOUSE: H9 (age 57)
+  ANNUAL PROFECTION: H10 (Aries)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1947-08-15):
+  DOMAIN: CAREER | Confidence: VERY LOW (31.1%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.286
+    ashtakvarga_support            0.712
+    yoga_activation                0.200
+    kp_confirmation                0.100
+    functional_alignment           0.596
+    house_lord_strength            0.094
+    jaimini_sub                    0.400
+  Bayesian: p=36.2%, CI=[19.1%-54.4%], UNCERTAIN
+  Fuzzy: 17.9% (skfuzzy)
+    timing=0.03  transit=0.41  structural=0.31
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=kendra_4th_from_MD
+    MOON lords trikona → benefic even if natural malefic; fortune-giving. | MOON IS Lagna lord → identity-defining period. |
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (MOON) AND Chara (Libra) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +0.7%
+  Aspect Transit Mod: -1.8%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +1.2%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: VERY LOW (20.0%)
+  >> Active dasha: MOON / VENUS  (Yogini: RAHU)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  ALL DOMAINS BRIEF (1947-08-15):
+    CAREER     31.1%
+    FINANCE    39.2%
+    MARRIAGE   38.7%
+    HEALTH     57.1%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: Re-elected PM (first general election) — 1952-01-01
+--------------------------------------------------------------------------------
+  Expected: Continued career dominance
+
+  VIMSHOTTARI DASHA: MARS / MERCURY / VENUS
+  YOGINI DASHA: Sankata (RAHU)
+  CHARA DASHA: Libra / ?
+
+  TRANSIT PLANETS:
+    SATURN     Virgo         21.3°  H3 from Lagna  H3 from Moon
+    JUPITER    Pisces        12.8°  H9 from Lagna  H9 from Moon
+    RAHU       Aquarius      10.3°  H8 from Lagna  H8 from Moon
+    MARS       Virgo         27.5°  H3 from Lagna  H3 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): YES — Saturn activates H{1, 10}, Jupiter activates H{9}
+  BCP ACTIVE HOUSE: H2 (age 62)
+  ANNUAL PROFECTION: H3 (Virgo)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1952-01-01):
+  DOMAIN: CAREER | Confidence: LOW (32.0%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.579
+    ashtakvarga_support            0.688
+    yoga_activation                0.200
+    kp_confirmation                0.310
+    functional_alignment           0.755
+    house_lord_strength            0.094
+    jaimini_sub                    0.400
+  Bayesian: p=51.1%, CI=[31.8%-70.3%], UNCERTAIN
+  Fuzzy: 19.2% (skfuzzy)
+    timing=0.11  transit=0.61  structural=0.37
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=neutral
+    MARS lords trikona → benefic even if natural malefic; fortune-giving. | MARS enemy of Lagna lord MOON → friction, health
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (MARS) AND Chara (Libra) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +2.2%
+  Aspect Transit Mod: -3.8%
+  Progression Boost: +3.00%
+  Vimshopak Mod: +0.7%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: LOW (20.0%)
+  >> Active dasha: MARS / MERCURY  (Yogini: RAHU)
+  >> Supportive transits: SATURN, MARS, JUPITER
+
+  ALL DOMAINS BRIEF (1952-01-01):
+    CAREER     32.0%
+    FINANCE    46.7%
+    MARRIAGE   40.1%
+    HEALTH     24.0%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: Re-elected PM (second general election) — 1957-04-01
+--------------------------------------------------------------------------------
+  Expected: Continued career dominance
+
+  VIMSHOTTARI DASHA: RAHU / RAHU / VENUS
+  YOGINI DASHA: Pingala (SUN)
+  CHARA DASHA: Virgo / ?
+
+  TRANSIT PLANETS:
+    SATURN     Scorpio       21.0°  H5 from Lagna  H5 from Moon
+    JUPITER    Virgo         1.8°  H3 from Lagna  H3 from Moon
+    RAHU       Libra         28.7°  H4 from Lagna  H4 from Moon
+    MARS       Taurus        15.6°  H11 from Lagna  H11 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): PARTIAL — Only Jupiter activates H{10} (Saturn missing)
+  BCP ACTIVE HOUSE: H7 (age 67)
+  ANNUAL PROFECTION: H8 (Aquarius)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1957-04-01):
+  DOMAIN: CAREER | Confidence: VERY LOW (29.0%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.238
+    ashtakvarga_support            0.650
+    yoga_activation                0.200
+    kp_confirmation                0.000
+    functional_alignment           0.500
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=25.7%, CI=[11.8%-41.3%], UNCERTAIN
+  Fuzzy: 17.1% (skfuzzy)
+    timing=0.00  transit=0.36  structural=0.28
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=kendra_1th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +5.5%
+  Aspect Transit Mod: -3.6%
+  Progression Boost: +3.00%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: VERY LOW (19.9%)
+  >> Active dasha: RAHU / RAHU  (Yogini: SUN)
+  >> Supportive transits: MARS
+
+  ALL DOMAINS BRIEF (1957-04-01):
+    CAREER     29.0%
+    FINANCE    44.2%
+    MARRIAGE   39.8%
+    HEALTH     48.7%
+
+  MATCH: NO — Engine shows low activation
+
+--------------------------------------------------------------------------------
+  EVENT: Indo-China War disaster — 1962-10-20
+--------------------------------------------------------------------------------
+  Expected: Career CRISIS — Rahu dasha, 12th house loss, foreign enemy
+
+  VIMSHOTTARI DASHA: RAHU / SATURN / RAHU
+  YOGINI DASHA: Bhramari (MARS)
+  CHARA DASHA: Virgo / ?
+
+  TRANSIT PLANETS:
+    SATURN     Capricorn     11.5°  H7 from Lagna  H7 from Moon
+    JUPITER    Aquarius      9.6°  H8 from Lagna  H8 from Moon
+    RAHU       Cancer        11.2°  H1 from Lagna  H1 from Moon
+    MARS       Cancer        10.8°  H1 from Lagna  H1 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): YES — Saturn activates H{10}, Jupiter activates H{1}
+  BCP ACTIVE HOUSE: H12 (age 72)
+  ANNUAL PROFECTION: H1 (Cancer)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1962-10-20):
+  DOMAIN: CAREER | Confidence: LOW (38.9%)
+  Components:
+    dasha_alignment                0.250
+    transit_support                0.202
+    ashtakvarga_support            0.650
+    yoga_activation                0.200
+    kp_confirmation                0.200
+    functional_alignment           0.439
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=35.5%, CI=[19.2%-53.0%], UNCERTAIN
+  Fuzzy: 28.0% (skfuzzy)
+    timing=0.23  transit=0.34  structural=0.26
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +3.8%
+  Aspect Transit Mod: +3.7%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: LOW (20.0%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  ALL DOMAINS BRIEF (1962-10-20):
+    CAREER     38.9%
+    FINANCE    43.9%
+    MARRIAGE   44.9%
+    HEALTH     43.0%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: Re-elected PM (third general election) — 1962-04-01
+--------------------------------------------------------------------------------
+  Expected: Career activation despite coming crisis
+
+  VIMSHOTTARI DASHA: RAHU / SATURN / MARS
+  YOGINI DASHA: Bhramari (MARS)
+  CHARA DASHA: Virgo / ?
+
+  TRANSIT PLANETS:
+    SATURN     Capricorn     16.0°  H7 from Lagna  H7 from Moon
+    JUPITER    Aquarius      8.0°  H8 from Lagna  H8 from Moon
+    RAHU       Cancer        21.9°  H1 from Lagna  H1 from Moon
+    MARS       Aquarius      22.1°  H8 from Lagna  H8 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 10, 9, 11]): YES — Saturn activates H{10}, Jupiter activates H{1}
+  BCP ACTIVE HOUSE: H12 (age 72)
+  ANNUAL PROFECTION: H1 (Cancer)
+  RELEVANT YOGAS: Malavya Yoga (Pancha Mahapurusha)
+  ASHTAKAVARGA: H10 lord (MARS) in Virgo, SAV=33
+
+  ENGINE PREDICTION (CAREER on 1962-04-01):
+  DOMAIN: CAREER | Confidence: LOW (31.9%)
+  Components:
+    dasha_alignment                0.250
+    transit_support                0.201
+    ashtakvarga_support            0.650
+    yoga_activation                0.200
+    kp_confirmation                0.200
+    functional_alignment           0.439
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=35.5%, CI=[19.2%-53.0%], UNCERTAIN
+  Fuzzy: 28.0% (skfuzzy)
+    timing=0.23  transit=0.34  structural=0.26
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +3.8%
+  Aspect Transit Mod: -3.3%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: LOW (20.0%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  ALL DOMAINS BRIEF (1962-04-01):
+    CAREER     31.9%
+    FINANCE    44.2%
+    MARRIAGE   39.7%
+    HEALTH     36.2%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+--------------------------------------------------------------------------------
+  EVENT: Death — 1964-05-27
+--------------------------------------------------------------------------------
+  Expected: Maraka activation, 8th house transit, health collapse
+
+  VIMSHOTTARI DASHA: RAHU / MERCURY / MOON
+  YOGINI DASHA: Bhramari (MARS)
+  CHARA DASHA: Virgo / ?
+
+  TRANSIT PLANETS:
+    SATURN     Aquarius      11.4°  H8 from Lagna  H8 from Moon
+    JUPITER    Aries         17.2°  H10 from Lagna  H10 from Moon
+    RAHU       Gemini        10.2°  H12 from Lagna  H12 from Moon
+    MARS       Aries         21.1°  H10 from Lagna  H10 from Moon
+
+  DOUBLE TRANSIT (on houses [1, 6, 8]): PARTIAL — Only Saturn activates H{8, 6} (Jupiter missing)
+  BCP ACTIVE HOUSE: H2 (age 74)
+  ANNUAL PROFECTION: H3 (Virgo)
+  RELEVANT YOGAS: None matching domain keywords
+  ASHTAKAVARGA: H1 lord (MOON) in Cancer, SAV=30
+
+  ENGINE PREDICTION (HEALTH on 1964-05-27):
+  DOMAIN: HEALTH | Confidence: LOW (39.3%)
+  Components:
+    dasha_alignment                0.469
+    transit_support                0.240
+    ashtakvarga_support            0.475
+    yoga_activation                0.050
+    kp_confirmation                0.250
+    functional_alignment           0.430
+    house_lord_strength            0.963
+    jaimini_sub                    0.400
+  Bayesian: p=40.8%, CI=[23.7%-58.5%], UNCERTAIN
+  Fuzzy: 49.2% (skfuzzy)
+    timing=0.39  transit=0.31  structural=0.41
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=trikona_5th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: low (x0.60)
+    Only Vimshottari (RAHU) supports health. Chara (Virgo) and Yogini (MARS) oppose/neutral. Event can occur but with low pr
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -3.5%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (18.8%)
+  >> Active dasha: RAHU / MERCURY  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  ALL DOMAINS BRIEF (1964-05-27):
+    CAREER     23.7%
+    FINANCE    33.7%
+    MARRIAGE   29.5%
+    HEALTH     39.3%
+
+  MATCH: PARTIAL — Engine shows moderate activation
+
+================================================================================
+=============== SECTION 3: FULL DOMAIN PREDICTIONS ON KEY DATES ================
+================================================================================
+
+--------------------------------------------------------------------------------
+  Became PM of India — 1947-08-15
+--------------------------------------------------------------------------------
+  Vimshottari: MOON / VENUS / MERCURY
+  Yogini: Sankata (RAHU)
+  Chara: Libra / ?
+  SATURN: Cancer H1 from Lagna
+  JUPITER: Libra H4 from Lagna
+  RAHU: Taurus H11 from Lagna
+
+  All 4 domains:
+
+  === CAREER ===
+  DOMAIN: CAREER | Confidence: VERY LOW (31.1%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.286
+    ashtakvarga_support            0.712
+    yoga_activation                0.200
+    kp_confirmation                0.100
+    functional_alignment           0.596
+    house_lord_strength            0.094
+    jaimini_sub                    0.400
+  Bayesian: p=36.2%, CI=[19.1%-54.4%], UNCERTAIN
+  Fuzzy: 17.9% (skfuzzy)
+    timing=0.03  transit=0.41  structural=0.31
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=kendra_4th_from_MD
+    MOON lords trikona → benefic even if natural malefic; fortune-giving. | MOON IS Lagna lord → identity-defining period. |
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (MOON) AND Chara (Libra) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +0.7%
+  Aspect Transit Mod: -1.8%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +1.2%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: VERY LOW (20.0%)
+  >> Active dasha: MOON / VENUS  (Yogini: RAHU)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  === FINANCE ===
+  DOMAIN: FINANCE | Confidence: VERY LOW (39.2%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.484
+    ashtakvarga_support            0.743
+    yoga_activation                0.050
+    kp_confirmation                0.073
+    functional_alignment           0.596
+    house_lord_strength            0.606
+    jaimini_sub                    0.400
+  Bayesian: p=35.1%, CI=[18.2%-53.2%], UNCERTAIN
+  Fuzzy: 19.5% (skfuzzy)
+    timing=0.03  transit=0.56  structural=0.38
+  Promise: 33% [WEAK]
+    bhava: 0.3
+    bhavesha: 0.3
+    karaka: 0.835
+  Dasha Diagnostic: beneficial | geometry=kendra_4th_from_MD
+    MOON lords trikona → benefic even if natural malefic; fortune-giving. | MOON IS Lagna lord → identity-defining period. |
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (MOON) AND Chara (Libra) DENY finance → event cannot manifest in current period even if Yogini aligns. 
+  Argala Mod: +0.7%
+  Aspect Transit Mod: -2.7%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +1.2%
+  Badhaka: low (0.90x)
+  >> DOMAIN: FINANCE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: MOON / VENUS  (Yogini: RAHU)
+  >> Supportive transits: VENUS, MOON
+
+  === MARRIAGE ===
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (38.7%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.387
+    ashtakvarga_support            0.586
+    yoga_activation                0.200
+    kp_confirmation                0.133
+    functional_alignment           0.596
+    house_lord_strength            0.350
+    jaimini_sub                    0.400
+  Bayesian: p=36.7%, CI=[19.6%-55.0%], UNCERTAIN
+  Fuzzy: 19.4% (skfuzzy)
+    timing=0.05  transit=0.45  structural=0.38
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: beneficial | geometry=kendra_4th_from_MD
+    MOON lords trikona → benefic even if natural malefic; fortune-giving. | MOON IS Lagna lord → identity-defining period. |
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (MOON) AND Chara (Libra) DENY marriage → event cannot manifest in current period even if Yogini aligns.
+  Argala Mod: +0.7%
+  Aspect Transit Mod: +1.2%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +1.2%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: MOON / VENUS  (Yogini: RAHU)
+  >> Supportive transits: VENUS, MOON
+
+  === HEALTH ===
+  DOMAIN: HEALTH | Confidence: LOW (57.1%)
+  Components:
+    dasha_alignment                0.689
+    transit_support                0.194
+    ashtakvarga_support            0.538
+    yoga_activation                0.050
+    kp_confirmation                0.400
+    functional_alignment           0.605
+    house_lord_strength            0.963
+    jaimini_sub                    0.400
+  Bayesian: p=53.5%, CI=[34.1%-72.5%], UNCERTAIN
+  Fuzzy: 50.0% (skfuzzy)
+    timing=0.59  transit=0.30  structural=0.47
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=kendra_4th_from_MD
+    MOON lords trikona → benefic even if natural malefic; fortune-giving. | MOON IS Lagna lord → identity-defining period. |
+  Dasha Consensus: partial (x1.00)
+    2 of 3 systems support health → event manifests. Synthesis needed for conflicting system.
+  Argala Mod: +0.7%
+  Aspect Transit Mod: +1.8%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +1.2%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (45.5%)
+  >> Active dasha: MOON / VENUS  (Yogini: RAHU)
+  >> Supportive transits: MOON
+
+--------------------------------------------------------------------------------
+  China War — 1962-10-20
+--------------------------------------------------------------------------------
+  Vimshottari: RAHU / SATURN / RAHU
+  Yogini: Bhramari (MARS)
+  Chara: Virgo / ?
+  SATURN: Capricorn H7 from Lagna
+  JUPITER: Aquarius H8 from Lagna
+  RAHU: Cancer H1 from Lagna
+
+  All 4 domains:
+
+  === CAREER ===
+  DOMAIN: CAREER | Confidence: LOW (38.9%)
+  Components:
+    dasha_alignment                0.250
+    transit_support                0.202
+    ashtakvarga_support            0.650
+    yoga_activation                0.200
+    kp_confirmation                0.200
+    functional_alignment           0.439
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=35.5%, CI=[19.2%-53.0%], UNCERTAIN
+  Fuzzy: 28.0% (skfuzzy)
+    timing=0.23  transit=0.34  structural=0.26
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +3.8%
+  Aspect Transit Mod: +3.7%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: LOW (20.0%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+  === FINANCE ===
+  DOMAIN: FINANCE | Confidence: LOW (43.9%)
+  Components:
+    dasha_alignment                0.250
+    transit_support                0.415
+    ashtakvarga_support            0.685
+    yoga_activation                0.050
+    kp_confirmation                0.267
+    functional_alignment           0.439
+    house_lord_strength            0.606
+    jaimini_sub                    0.460
+  Bayesian: p=33.6%, CI=[17.6%-50.9%], UNCERTAIN
+  Fuzzy: 38.6% (skfuzzy)
+    timing=0.26  transit=0.50  structural=0.33
+  Promise: 33% [WEAK]
+    bhava: 0.3
+    bhavesha: 0.3
+    karaka: 0.835
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY finance → event cannot manifest in current period even if Yogini aligns. 
+  Argala Mod: +3.8%
+  Aspect Transit Mod: -3.3%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: FINANCE | Confidence: LOW (20.0%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Supportive transits: VENUS
+
+  === MARRIAGE ===
+  DOMAIN: MARRIAGE | Confidence: LOW (44.9%)
+  Components:
+    dasha_alignment                0.250
+    transit_support                0.353
+    ashtakvarga_support            0.527
+    yoga_activation                0.200
+    kp_confirmation                0.207
+    functional_alignment           0.439
+    house_lord_strength            0.350
+    jaimini_sub                    0.460
+  Bayesian: p=36.4%, CI=[19.9%-53.9%], UNCERTAIN
+  Fuzzy: 34.0% (skfuzzy)
+    timing=0.23  transit=0.41  structural=0.32
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY marriage → event cannot manifest in current period even if Yogini aligns.
+  Argala Mod: +3.8%
+  Aspect Transit Mod: +3.4%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: LOW (20.0%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Supportive transits: VENUS
+
+  === HEALTH ===
+  DOMAIN: HEALTH | Confidence: LOW (43.0%)
+  Components:
+    dasha_alignment                0.375
+    transit_support                0.158
+    ashtakvarga_support            0.475
+    yoga_activation                0.050
+    kp_confirmation                0.350
+    functional_alignment           0.439
+    house_lord_strength            0.963
+    jaimini_sub                    0.400
+  Bayesian: p=37.8%, CI=[21.2%-55.5%], UNCERTAIN
+  Fuzzy: 43.8% (skfuzzy)
+    timing=0.37  transit=0.25  structural=0.41
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=neutral
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: low (x0.60)
+    Only Vimshottari (RAHU) supports health. Chara (Virgo) and Yogini (MARS) oppose/neutral. Event can occur but with low pr
+  Argala Mod: +3.8%
+  Aspect Transit Mod: +4.1%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (16.6%)
+  >> Active dasha: RAHU / SATURN  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+--------------------------------------------------------------------------------
+  Death — 1964-05-27
+--------------------------------------------------------------------------------
+  Vimshottari: RAHU / MERCURY / MOON
+  Yogini: Bhramari (MARS)
+  Chara: Virgo / ?
+  SATURN: Aquarius H8 from Lagna
+  JUPITER: Aries H10 from Lagna
+  RAHU: Gemini H12 from Lagna
+
+  All 4 domains:
+
+  === CAREER ===
+  DOMAIN: CAREER | Confidence: VERY LOW (23.7%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.263
+    ashtakvarga_support            0.650
+    yoga_activation                0.200
+    kp_confirmation                0.100
+    functional_alignment           0.430
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=25.0%, CI=[11.3%-40.4%], UNCERTAIN
+  Fuzzy: 16.6% (skfuzzy)
+    timing=0.03  transit=0.38  structural=0.25
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=trikona_5th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY career → event cannot manifest in current period even if Yogini aligns. N
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -3.1%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: VERY LOW (20.0%)
+  >> Active dasha: RAHU / MERCURY  (Yogini: MARS)
+  >> Supportive transits: MERCURY
+
+  === FINANCE ===
+  DOMAIN: FINANCE | Confidence: VERY LOW (33.7%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.254
+    ashtakvarga_support            0.685
+    yoga_activation                0.050
+    kp_confirmation                0.073
+    functional_alignment           0.430
+    house_lord_strength            0.606
+    jaimini_sub                    0.460
+  Bayesian: p=21.1%, CI=[8.5%-35.8%], UNCERTAIN
+  Fuzzy: 18.1% (skfuzzy)
+    timing=0.03  transit=0.38  structural=0.32
+  Promise: 33% [WEAK]
+    bhava: 0.3
+    bhavesha: 0.3
+    karaka: 0.835
+  Dasha Diagnostic: mixed | geometry=trikona_5th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY finance → event cannot manifest in current period even if Yogini aligns. 
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -1.6%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: FINANCE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: RAHU / MERCURY  (Yogini: MARS)
+  >> Supportive transits: VENUS, MERCURY
+
+  === MARRIAGE ===
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (29.5%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.222
+    ashtakvarga_support            0.527
+    yoga_activation                0.200
+    kp_confirmation                0.133
+    functional_alignment           0.430
+    house_lord_strength            0.350
+    jaimini_sub                    0.460
+  Bayesian: p=24.0%, CI=[10.5%-39.2%], UNCERTAIN
+  Fuzzy: 17.9% (skfuzzy)
+    timing=0.05  transit=0.31  structural=0.32
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: mixed | geometry=trikona_5th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (RAHU) AND Chara (Virgo) DENY marriage → event cannot manifest in current period even if Yogini aligns.
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -1.6%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: VERY LOW (20.0%)
+  >> Active dasha: RAHU / MERCURY  (Yogini: MARS)
+  >> Supportive transits: VENUS
+
+  === HEALTH ===
+  DOMAIN: HEALTH | Confidence: LOW (39.3%)
+  Components:
+    dasha_alignment                0.469
+    transit_support                0.240
+    ashtakvarga_support            0.475
+    yoga_activation                0.050
+    kp_confirmation                0.250
+    functional_alignment           0.430
+    house_lord_strength            0.963
+    jaimini_sub                    0.400
+  Bayesian: p=40.8%, CI=[23.7%-58.5%], UNCERTAIN
+  Fuzzy: 49.2% (skfuzzy)
+    timing=0.39  transit=0.31  structural=0.41
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: mixed | geometry=trikona_5th_from_MD
+    RAHU lords neutral house. | RAHU neutral dignity. | RAHU retrograde malefic → exceptionally destabilizing; past karma re
+  Dasha Consensus: low (x0.60)
+    Only Vimshottari (RAHU) supports health. Chara (Virgo) and Yogini (MARS) oppose/neutral. Event can occur but with low pr
+  Argala Mod: +1.5%
+  Aspect Transit Mod: -3.5%
+  Progression Boost: +1.50%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (18.8%)
+  >> Active dasha: RAHU / MERCURY  (Yogini: MARS)
+  >> Active yogas: Malavya Yoga (Pancha Mahapurusha), Ubhayachari Yoga, Uttamadi Yoga, Maala Yoga (Nabhasa-Dala), Nauka Yoga (Nabhasa-Akriti)
+
+--------------------------------------------------------------------------------
+  Father's death — 1931-02-06
+--------------------------------------------------------------------------------
+  Vimshottari: VENUS / KETU / KETU
+  Yogini: Bhadrika (MERCURY)
+  Chara: Capricorn / ?
+  SATURN: Sagittarius H6 from Lagna
+  JUPITER: Gemini H12 from Lagna
+  RAHU: Pisces H9 from Lagna
+
+  All 4 domains:
+
+  === CAREER ===
+  DOMAIN: CAREER | Confidence: LOW (35.1%)
+  Components:
+    dasha_alignment                0.305
+    transit_support                0.212
+    ashtakvarga_support            0.688
+    yoga_activation                0.200
+    kp_confirmation                0.250
+    functional_alignment           0.256
+    house_lord_strength            0.094
+    jaimini_sub                    0.460
+  Bayesian: p=34.5%, CI=[18.3%-51.9%], UNCERTAIN
+  Fuzzy: 17.3% (skfuzzy)
+    timing=0.29  transit=0.35  structural=0.19
+  Promise: 100% [STRONG]
+    bhava: 0.62
+    bhavesha: 0.784
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=neutral
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results.
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Capricorn) DENY career → event cannot manifest in current period even if Yogini alig
+  Argala Mod: -0.1%
+  Aspect Transit Mod: +3.7%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: CAREER | Confidence: LOW (20.0%)
+  >> Active dasha: VENUS / KETU  (Yogini: MERCURY)
+  >> Supportive transits: SATURN, MERCURY
+
+  === FINANCE ===
+  DOMAIN: FINANCE | Confidence: LOW (44.7%)
+  Components:
+    dasha_alignment                0.305
+    transit_support                0.291
+    ashtakvarga_support            0.743
+    yoga_activation                0.050
+    kp_confirmation                0.183
+    functional_alignment           0.256
+    house_lord_strength            0.606
+    jaimini_sub                    0.460
+  Bayesian: p=26.2%, CI=[12.2%-41.8%], UNCERTAIN
+  Fuzzy: 33.5% (skfuzzy)
+    timing=0.26  transit=0.43  structural=0.26
+  Promise: 33% [WEAK]
+    bhava: 0.3
+    bhavesha: 0.3
+    karaka: 0.835
+  Dasha Diagnostic: beneficial | geometry=neutral
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results.
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Capricorn) DENY finance → event cannot manifest in current period even if Yogini ali
+  Argala Mod: -0.1%
+  Aspect Transit Mod: +0.6%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: FINANCE | Confidence: LOW (20.0%)
+  >> Active dasha: VENUS / KETU  (Yogini: MERCURY)
+  >> Supportive transits: MERCURY, MOON
+
+  === MARRIAGE ===
+  DOMAIN: MARRIAGE | Confidence: VERY LOW (32.1%)
+  Components:
+    dasha_alignment                0.000
+    transit_support                0.251
+    ashtakvarga_support            0.532
+    yoga_activation                0.200
+    kp_confirmation                0.200
+    functional_alignment           0.256
+    house_lord_strength            0.350
+    jaimini_sub                    0.535
+  Bayesian: p=28.6%, CI=[13.5%-45.2%], UNCERTAIN
+  Fuzzy: 16.7% (skfuzzy)
+    timing=0.07  transit=0.34  structural=0.26
+  Promise: 100% [STRONG]
+    bhava: 0.674
+    bhavesha: 0.829
+    karaka: 1.0
+  Dasha Diagnostic: beneficial | geometry=neutral
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results.
+  Dasha Consensus: low (x0.55)
+    Vimshottari (VENUS) doesn't favor marriage directly, but Chara (Capricorn) in house 7 partially supports. Event can occu
+  Argala Mod: -0.1%
+  Aspect Transit Mod: +1.8%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: MARRIAGE | Confidence: VERY LOW (11.8%)
+  >> Active dasha: VENUS / KETU  (Yogini: MERCURY)
+  >> Supportive transits: MOON
+
+  === HEALTH ===
+  DOMAIN: HEALTH | Confidence: LOW (44.0%)
+  Components:
+    dasha_alignment                0.305
+    transit_support                0.181
+    ashtakvarga_support            0.538
+    yoga_activation                0.050
+    kp_confirmation                0.350
+    functional_alignment           0.273
+    house_lord_strength            0.963
+    jaimini_sub                    0.460
+  Bayesian: p=32.7%, CI=[16.8%-49.9%], UNCERTAIN
+  Fuzzy: 41.1% (skfuzzy)
+    timing=0.32  transit=0.29  structural=0.36
+  Promise: 100% [STRONG]
+    bhava: 0.968
+    bhavesha: 1.0
+    karaka: 0.872
+  Dasha Diagnostic: beneficial | geometry=neutral
+    VENUS lords kendra → structural support, authority. | VENUS strong D1+D9 → grand, sustainable results.
+  Dasha Consensus: blocked (x0.15)
+    Both Vimshottari (VENUS) AND Chara (Capricorn) DENY health → event cannot manifest in current period even if Yogini alig
+  Argala Mod: -0.1%
+  Aspect Transit Mod: +3.5%
+  Progression Boost: +4.50%
+  Vimshopak Mod: +0.9%
+  Badhaka: low (0.90x)
+  >> DOMAIN: HEALTH | Confidence: LOW (20.0%)
+  >> Active dasha: VENUS / KETU  (Yogini: MERCURY)
+  >> Supportive transits: SATURN, MOON
+
+================================================================================
+==================== SECTION 4: TIMELINE ANALYSIS 1945-1950 ====================
+================================================================================
+  Month-by-month career confidence around Independence
+  1945-01      MOON/MERCURY   37.4%  ██████████████
+  1945-02      MOON/MERCURY   32.1%  ████████████
+  1945-03      MOON/MERCURY   28.7%  ███████████
+  1945-04      MOON/MERCURY   37.3%  ██████████████
+  1945-05      MOON/MERCURY   32.1%  ████████████
+  1945-06      MOON/MERCURY   37.8%  ███████████████
+  1945-07      MOON/KETU      42.5%  █████████████████
+  1945-08      MOON/KETU      41.9%  ████████████████
+  1945-09      MOON/KETU      43.0%  █████████████████
+  1945-10      MOON/KETU      42.9%  █████████████████
+  1945-11      MOON/KETU      39.6%  ███████████████
+  1945-12      MOON/KETU      40.0%  ████████████████
+  1946-01      MOON/KETU      43.2%  █████████████████
+  1946-02      MOON/VENUS     33.0%  █████████████
+  1946-03      MOON/VENUS     33.0%  █████████████
+  1946-04      MOON/VENUS     33.2%  █████████████
+  1946-05      MOON/VENUS     35.7%  ██████████████
+  1946-06      MOON/VENUS     37.0%  ██████████████
+  1946-07      MOON/VENUS     38.4%  ███████████████
+  1946-08      MOON/VENUS     30.8%  ████████████
+  1946-09      MOON/VENUS     36.8%  ██████████████
+  1946-10      MOON/VENUS     38.1%  ███████████████
+  1946-11      MOON/VENUS     30.5%  ████████████
+  1946-12      MOON/VENUS     31.4%  ████████████
+  1947-01      MOON/VENUS     35.4%  ██████████████
+  1947-02      MOON/VENUS     34.9%  █████████████
+  1947-03      MOON/VENUS     36.6%  ██████████████
+  1947-04      MOON/VENUS     30.8%  ████████████
+  1947-05      MOON/VENUS     34.4%  █████████████
+  1947-06      MOON/VENUS     35.8%  ██████████████
+  1947-07      MOON/VENUS     35.2%  ██████████████
+  1947-08      MOON/VENUS     31.1%  ████████████ <<<< INDEPENDENCE
+  1947-09      MOON/VENUS     36.8%  ██████████████
+  1947-10      MOON/SUN       31.3%  ████████████
+  1947-11      MOON/SUN       29.5%  ███████████
+  1947-12      MOON/SUN       31.7%  ████████████
+  1948-01      MOON/SUN       35.1%  ██████████████
+  1948-02      MOON/SUN       29.6%  ███████████
+  1948-03      MOON/SUN       34.3%  █████████████
+  1948-04      MARS/MARS      33.6%  █████████████
+  1948-05      MARS/MARS      35.9%  ██████████████
+  1948-06      MARS/MARS      38.0%  ███████████████
+  1948-07      MARS/MARS      42.6%  █████████████████
+  1948-08      MARS/MARS      37.4%  ██████████████
+  1948-09      MARS/RAHU      39.1%  ███████████████
+  1948-10      MARS/RAHU      39.8%  ███████████████
+  1948-11      MARS/RAHU      39.5%  ███████████████
+  1948-12      MARS/RAHU      42.1%  ████████████████
+  1949-01      MARS/RAHU      38.6%  ███████████████
+  1949-02      MARS/RAHU      32.6%  █████████████
+  1949-03      MARS/RAHU      39.1%  ███████████████
+  1949-04      MARS/RAHU      38.1%  ███████████████
+  1949-05      MARS/RAHU      33.8%  █████████████
+  1949-06      MARS/RAHU      36.9%  ██████████████
+  1949-07      MARS/RAHU      38.6%  ███████████████
+  1949-08      MARS/RAHU      39.7%  ███████████████
+  1949-09      MARS/RAHU      39.8%  ███████████████
+  1949-10      MARS/JUPITER   48.4%  ███████████████████
+  1949-11      MARS/JUPITER   49.9%  ███████████████████
+  1949-12      MARS/JUPITER   50.2%  ████████████████████
+  1950-01      MARS/JUPITER   43.6%  █████████████████
+  1950-02      MARS/JUPITER   45.1%  ██████████████████
+  1950-03      MARS/JUPITER   43.0%  █████████████████
+  1950-04      MARS/JUPITER   47.2%  ██████████████████
+  1950-05      MARS/JUPITER   42.6%  █████████████████
+  1950-06      MARS/JUPITER   44.8%  █████████████████
+  1950-07      MARS/JUPITER   51.4%  ████████████████████
+  1950-08      MARS/JUPITER   49.8%  ███████████████████
+  1950-09      MARS/SATURN    46.3%  ██████████████████
+  1950-10      MARS/SATURN    40.0%  ████████████████
+  1950-11      MARS/SATURN    45.8%  ██████████████████
+  1950-12      MARS/SATURN    44.7%  █████████████████
+
+--------------------------------------------------------------------------------
+  CAREER CONFIDENCE TIMELINE (text chart)
+--------------------------------------------------------------------------------
+  Date        Score  Chart                                             
+  ----        -----  --------------------------------------------------
+  1945-01    37.4%  |##################                                |
+  1945-02    32.1%  |################                                  |
+  1945-03    28.7%  |##############                                    |
+  1945-04    37.3%  |##################                                |
+  1945-05    32.1%  |################                                  |
+  1945-06    37.8%  |##################                                |
+  1945-07    42.5%  |#####################                             |
+  1945-08    41.9%  |####################                              |
+  1945-09    43.0%  |#####################                             |
+  1945-10    42.9%  |#####################                             |
+  1945-11    39.6%  |###################                               |
+  1945-12    40.0%  |####################                              |
+  1946-01    43.2%  |#####################                             |
+  1946-02    33.0%  |################                                  |
+  1946-03    33.0%  |################                                  |
+  1946-04    33.2%  |################                                  |
+  1946-05    35.7%  |#################                                 |
+  1946-06    37.0%  |##################                                |
+  1946-07    38.4%  |###################                               |
+  1946-08    30.8%  |###############                                   |
+  1946-09    36.8%  |##################                                |
+  1946-10    38.1%  |###################                               |
+  1946-11    30.5%  |###############                                   |
+  1946-12    31.4%  |###############                                   |
+  1947-01    35.4%  |#################                                 |
+  1947-02    34.9%  |#################                                 |
+  1947-03    36.6%  |##################                                |
+  1947-04    30.8%  |###############                                   |
+  1947-05    34.4%  |#################                                 |
+  1947-06    35.8%  |#################                                 |
+  1947-07    35.2%  |#################                                 |
+  1947-08    31.1%  |###############                                   | <--
+  1947-09    36.8%  |##################                                |
+  1947-10    31.3%  |###############                                   |
+  1947-11    29.5%  |##############                                    |
+  1947-12    31.7%  |###############                                   |
+  1948-01    35.1%  |#################                                 |
+  1948-02    29.6%  |##############                                    |
+  1948-03    34.3%  |#################                                 |
+  1948-04    33.6%  |################                                  |
+  1948-05    35.9%  |#################                                 |
+  1948-06    38.0%  |###################                               |
+  1948-07    42.6%  |#####################                             |
+  1948-08    37.4%  |##################                                |
+  1948-09    39.1%  |###################                               |
+  1948-10    39.8%  |###################                               |
+  1948-11    39.5%  |###################                               |
+  1948-12    42.1%  |#####################                             |
+  1949-01    38.6%  |###################                               |
+  1949-02    32.6%  |################                                  |
+  1949-03    39.1%  |###################                               |
+  1949-04    38.1%  |###################                               |
+  1949-05    33.8%  |################                                  |
+  1949-06    36.9%  |##################                                |
+  1949-07    38.6%  |###################                               |
+  1949-08    39.7%  |###################                               |
+  1949-09    39.8%  |###################                               |
+  1949-10    48.4%  |########################                          |
+  1949-11    49.9%  |########################                          |
+  1949-12    50.2%  |#########################                         |
+  1950-01    43.6%  |#####################                             |
+  1950-02    45.1%  |######################                            |
+  1950-03    43.0%  |#####################                             |
+  1950-04    47.2%  |#######################                           |
+  1950-05    42.6%  |#####################                             |
+  1950-06    44.8%  |######################                            |
+  1950-07    51.4%  |#########################                         |
+  1950-08    49.8%  |########################                          |
+  1950-09    46.3%  |#######################                           |
+  1950-10    40.0%  |####################                              |
+  1950-11    45.8%  |######################                            |
+  1950-12    44.7%  |######################                            |
+
+  Aug 1947 career score: 31.1%
+  Peak score in period: 51.4% on 1950-07
+  RESULT: Aug 1947 is NOT the peak — engine may not correctly identify this event
+
+================================================================================
+======================== SECTION 5: VALIDATION SUMMARY =========================
+================================================================================
+
+--------------------------------------------------------------------------------
+  EVENTS WHERE ENGINE CORRECTLY IDENTIFIED HIGH ACTIVATION
+--------------------------------------------------------------------------------
+  None
+
+--------------------------------------------------------------------------------
+  EVENTS WHERE ENGINE SHOWED PARTIAL ACTIVATION
+--------------------------------------------------------------------------------
+  ~ Daughter (Indira) born (marriage) — 41.0%
+  ~ Father Motilal Nehru's death (health) — 44.0%
+  ~ Became Prime Minister of India (career) — 31.1%
+  ~ Re-elected PM (first general election) (career) — 32.0%
+  ~ Indo-China War disaster (career) — 38.9%
+  ~ Re-elected PM (third general election) (career) — 31.9%
+  ~ Death (health) — 39.3%
+
+--------------------------------------------------------------------------------
+  EVENTS WHERE ENGINE MISSED (LOW CONFIDENCE)
+--------------------------------------------------------------------------------
+  ✗ First imprisonment (civil disobedience) (career) — 24.1%
+  ✗ Wife Kamala Nehru's death (marriage) — 28.8%
+  ✗ Re-elected PM (second general election) (career) — 29.0%
+
+--------------------------------------------------------------------------------
+  POSSIBLE REASONS FOR MISSES
+--------------------------------------------------------------------------------
+  1. Historical dates (1889-1964) — transit ephemeris accuracy may differ from modern era.
+  2. Prediction engine is tuned for CURRENT-DATE predictions; running for historical dates
+     means the dynamic transit analysis uses Swiss Ephemeris for past dates which is accurate,
+     but the Gochar scoring assumes modern context.
+  3. Nehru's chart has Rashi Sandhi (ASC/Sun near sign boundaries) — ayanamsa sensitivity
+     of ±0.5° could shift the lagna sign entirely, changing ALL house placements.
+  4. The engine uses 'promise_pct' as a hard gate — if natal promise for a domain is weak,
+     even perfectly timed dashas/transits cannot push the score above the ceiling.
+  5. Multi-dasha consensus requires Vimshottari + Chara + Yogini to agree — historical
+     periods often show BLOCKED consensus because Chara dasha computation depends on exact
+     house cusps which are ayanamsa-sensitive.
+  6. Death prediction is inherently limited — the engine deliberately avoids strong 
+     pronouncements about mortality (ethical guardrails).
+  7. Dasha periods were computed from the SWE-built chart which may differ slightly from
+     the traditionally published Nehru dasha periods in textbooks.
+
+--------------------------------------------------------------------------------
+  OVERALL VALIDATION SCORECARD
+--------------------------------------------------------------------------------
+  Total events tested:    10
+  Correct (score >= 45%): 0  (0%)
+  Partial (score 30-45%): 7  (70%)
+  Missed  (score < 30%):  3  (30%)
+  Accuracy (correct+partial): 70%
+
+================================================================================
+  Validation complete. Output saved to content41_validation.txt
+================================================================================

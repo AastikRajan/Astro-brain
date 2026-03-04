@@ -1,0 +1,573 @@
+﻿Computational Architecture and Algorithmic Interpretation Framework for Vedic Divisional Charts (D2-D60)
+The architectural formulation of a computational Vedic astrology engine utilizing the Swiss Ephemeris necessitates the implementation of precise algorithmic interpretations for the Shodashavarga (sixteen divisional charts) and extended varga systems. Within this paradigm, the primary Rashi chart (D1) establishes the foundational framework—operating as the "tree" or the primary field of manifestation—while the divisional charts act as the "branches and fruits," revealing the qualitative nuances, hidden strengths, and specific karmic vectors of isolated life domains.1 The computational logic must be programmed with the fundamental astrological axiom: a planet cannot yield results in a divisional chart that are not inherently promised in the D1 chart. However, the vargas operate as critical modifiers. A highly dignified placement in a specific divisional chart acts as a mathematical multiplier, either mitigating D1 afflictions or amplifying D1 promises to an extraordinary degree.1
+To build an accurate predictive engine, the evaluation of planetary strength across these charts requires a synthesis of mathematical dignity, harmonic resonance, and domain-specific predictive principles. The following sections detail the precise interpretive algorithms, computational checks, and predictive heuristics required for charts D2 through D60.
+The Material and Physical Divisions (First Harmonic Cycle)
+The first cycle of divisional charts, encompassing D1 through D12, mathematically governs the physical and material realities of the native, addressing the tangible assets, biological relationships, and societal footprint of the individual.3
+D2: Hora (Wealth, Assets, and Financial Trajectory)
+The D2 Hora chart evaluates the accumulation, flow, and retention of financial assets, serving as the microscopic lens for the 2nd house of the D1 chart. While traditional Parashari algorithms divide signs strictly into Cancer (ruled by the Moon) and Leo (ruled by the Sun), this binary output is overly simplistic for a modern computational engine and fails to provide nuanced financial predictions.5 For advanced wealth evaluation, the engine must implement the Kashinath Hora redistribution algorithm, which maps planets across all twelve signs based on diurnal and nocturnal strengths.5
+Evaluation of Strength and Weakness: Under the Kashinath Hora logic, the engine must first classify the zodiac into day-strong signs (Leo, Virgo, Libra, Scorpio, Aquarius, Pisces) governed by the Sun, and night-strong signs (Aries, Taurus, Gemini, Cancer, Sagittarius, Capricorn) governed by the Moon.5 The strength of a planet is determined by its alignment with these polarities. Male planets (the Sun, Mars, and Jupiter) yield highly pronounced financial success when placed in the Sun's Hora, as their active energy aligns with the generative nature of the Sun. Conversely, female planets (the Moon and Venus) and the restrictive planet Saturn prosper immensely in the Moon's Hora, which favors the conservation and emotional connection required for retaining wealth. Mercury, being neutral and adaptable, yields positive computational scores in both Horas.7
+Specific Prediction Rules: The primary source of the native's income is dictated by the strongest planet in the D2 chart, particularly the planet dominating the D2 ascendant (Lagna) or the 2nd house. The engine should output specific career and wealth-generation streams based on planetary dominance. A Sun-dominant D2 chart indicates robust income through self-employment, government contracts, and positions of high authority.8 A Moon-prominent D2 chart suggests wealth generated through public relations, emotional connections, collective resources, hospitality, or agriculture.8 A Mercury-dominant Hora points toward wealth acquired via commerce, algorithms, trading, communication, and intellectual property.8 Charts dominated by Jupiter indicate income through consulting, education, and financial expansion, while Venus-dominant charts suggest wealth from the luxury, beauty, and comfort sectors.8
+Validation and Modification of D1 Predictions: The computational engine must cross-reference the 2nd lord of the D1 chart with its placement in the D2 chart. If the D1 chart shows massive wealth potential (Dhana Yogas), but the D1 2nd lord is placed in a hostile environment or the 12th house of the D2 chart, the algorithm must predict systemic wealth depletion. The native will earn substantial amounts of money as promised by D1, but the weak D2 modifier indicates an inability to save, resulting in financial leaks and high expenses.9
+D3: Drekkana (Siblings, Courage, and Initiative)
+The D3 chart mathematically isolates the 10-degree decanates of the zodiac, mapping directly to the 3rd house of the D1 chart. It is utilized to analyze relationships with co-borns, personal courage, foundational initiative, and the native's defense mechanisms.11
+Evaluation of Strength and Weakness: The engine must evaluate the dignity of the 3rd and 11th lords of the D1 chart as they are placed within the D3 chart. Furthermore, the D3 Lagna lord and Mars (the natural karaka or significator for siblings and courage) must be analyzed.11 If the D3 Lagna lord is dignified (occupying its own sign, Moolatrikona, or exaltation) or forms a Raja Yoga within the D3, the engine computes a high probability of supportive, highly placed, and successful siblings.11 Afflictions to the 3rd house of D3 by malefics reduce the vitality and support of younger siblings, while afflictions to the 11th house of D3 damage relationships with elder siblings.11
+Specific Prediction Rules: The engine must implement specific algorithms to predict the number of siblings and the native's health vulnerabilities. To compute the sibling count, the engine can utilize two parallel algorithms. The first method requires noting the numerical zodiac sign of the D3 Lagna lord. The algorithm counts the number of signs from its current position to its Moolatrikona sign to estimate the baseline number of siblings.14 The second method requires the engine to count the exact number of planetary bodies positioned strictly between the D3 Lagna and Mars.14 For health and longevity predictions, the engine must identify the 22nd Drekkana. Computationally, this is invariably the lord of the 8th house in the D3 chart, known as the Kharesha. The algorithm must flag the Vimshottari dasha and antardasha of the Kharesha as periods of severe health crises, physical vulnerability, humiliation, or potential death.11
+Validation and Modification of D1 Predictions: The D3 chart modifies the raw D1 3rd house by revealing the subconscious drive and the actual lived reality of the sibling dynamic. If the D1 3rd house is weak, indicating a lack of courage, but the D3 Lagna and Mars are exceptionally strong, the engine must output a modification: the native possesses hidden reserves of mental stamina and will exhibit profound tactical courage when forced into high-pressure environments or conflicts.12
+D4: Chaturthamsha (Property, Real Estate, and Fortune)
+The D4 chart is a 7.5-degree harmonic division that isolates the 4th house of the D1 chart. It is the primary computational matrix for predicting net fortune, the acquisition of fixed assets, immovable property, and ancestral real estate.17
+Evaluation of Strength and Weakness: Strength within the D4 chart is determined by the dignity of the 4th lord of the D1 chart placed within D4, the strength of the D4 Lagna lord, and the condition of the natural karakas: Mars (representing raw land and real estate) and Ketu (representing built infrastructure and buildings).19 If the Atmakaraka (the planet with the highest longitude in D1) is placed in the 4th house of the D4 chart, the engine must predict that the native will reside in exceptionally large, palace-like estates.19
+Specific Prediction Rules: The engine must process timing algorithms for property acquisition and inheritance. Real estate purchases or the construction of homes are computationally triggered during the Vimshottari dasha or antardasha of the 4th lord of the D4 chart, or the 11th lord of D4 (representing gains of property).17 Transit triggers occur when Jupiter or Mars transit over favorable positions relative to the D4 ascendant or its 4th house.17 To predict inheritance, the engine must evaluate Saturn, which governs inherited karma and ancestral ties. If Saturn is placed in the 8th house of the D4 chart, aspects the 8th house by sign aspect (Jaimini), or is heavily conjunct the 8th lord, the algorithm outputs a definitive guarantee of ancestral property inheritance.19
+Validation and Modification of D1 Predictions: The D1 chart shows the psychological desire and raw financial capacity for acquiring property, but the D4 chart dictates the actual manifestation and legal retention of those assets. If D1 indicates property acquisition, but the 4th house of D4 is afflicted by the 6th lord (debt/litigation) or 8th lord (loss), the engine must predict that the native will face severe legal disputes, mortgages they cannot pay, or the eventual loss of the acquired property.20
+D5: Panchamsha (Spiritual Merit, Authority, and Judgment)
+The D5 chart isolates the dynamics of the 5th house, dealing with accumulated spiritual merit (Poorva Punya), ancestral religious lineages, intellectual authority, and the native's capacity for sound judgment.5 It is calculated by dividing each sign into five 6-degree segments.
+Evaluation of Strength and Weakness: The evaluation focuses on the dignity of Jupiter (the karaka for wisdom), the Moon (the karaka for the mind), and the 5th lord of the D1 chart as placed within the D5.23 Benefic influences on the D5 Lagna indicate a vast reservoir of past-life spiritual merit, while malefic influences indicate flawed judgment and a lack of inherited spiritual protection.24
+Specific Prediction Rules: The D5 chart indicates the exact devotional lineage or sadhana (spiritual discipline) carried over from previous incarnations. The engine should map the dominant planets in D5 to specific spiritual paths (e.g., ascetic, tantric, or yogic).23 Furthermore, the D5 is highly sensitive to predicting massive elevations in status or intellectual recognition. If the engine detects a mutual reception (Parivartana Yoga) involving the 9th and 10th lords within the D5 chart, it must trigger a prediction for recognition at the absolute highest levels of society (such as a Nobel Prize or equivalent global honor) during the concurrent dashas of those specific planets.25
+Validation and Modification of D1 Predictions: While the D1 5th house shows raw intelligence and educational capacity, the D5 validates whether that intellect possesses the underlying spiritual weight and discernment required to achieve lasting authority. A native with a strong D1 5th house but a shattered D5 chart will possess high intelligence but will suffer from catastrophic lapses in judgment, ultimately failing to convert their intellect into recognized authority or leadership.5
+D7: Saptamsha (Progeny, Creativity, and Legacy)
+The D7 chart evaluates the creation of life, biological children, long-term legacy, and the kinetic use of creative potential.26
+Evaluation of Strength and Weakness: The computational engine must execute a multi-layered check: it must assess the 5th house of D1, the 5th house from the Moon in D1, and the 5th house of the D7 chart, alongside the universal karaka for children, Jupiter.28 If malefics like Saturn, Mars, Rahu, or Ketu occupy or aspect the 5th house of the D7 chart, the algorithm mathematically outputs predictions of fertility delays, complex conception (IVF), miscarriages, or the requirement to adopt.26 A strong Dhana Yoga (wealth combination) specifically within the D7 indicates the birth of many children.29
+Specific Prediction Rules: The engine requires distinct algorithms for determining the gender, number, and timing of children. For gender prediction, the algorithm evaluates the ruling planet of the specific child. The 5th lord of D7 represents the first child, the 7th lord represents the second, the 9th lord represents the third, and so forth in a continuous progression of odd houses.30 If the designated lord is placed in an odd sign (Aries, Gemini, Leo, Libra, Sagittarius, Aquarius) within the D7, the algorithm outputs a male child. If placed in an even sign (Taurus, Cancer, Virgo, Scorpio, Capricorn, Pisces), it outputs a female child.31 To calculate the total number of children, the engine counts the number of planetary bodies situated between the 5th lord of the D7 chart and Jupiter.32 Timing of childbirth is computationally triggered when the native runs the Vimshottari dasha or antardasha of the 5th, 7th, or 9th lords of the D7 chart, or planets strongly associated with the D7 Lagna.33
+Validation and Modification of D1 Predictions: The D1 chart promises the overarching capacity to have children, but the D7 chart validates their actual survival, gender, and the psychological relationship the native will share with them. If D1 indicates progeny, but the D7 6th or 8th houses are heavily activated by the child's ruling planet, the engine must predict that the child will survive but will bring profound obstacles, karmic challenges, or suffer from severe diseases.29
+D9: Navamsha (Dharma, Marriage, and Microscopic Inner Strength)
+The Navamsha is unequivocally the most critical harmonic division in Vedic astrology. It acts as the microscopic soul of the D1 chart, detailing the native's dharma, the second half of life, and the precise mechanics of marriage and partnerships.2
+Evaluation of Strength and Weakness: The fundamental strength of a planet is ultimately decided by its placement in the D9. A planet exalted in D1 but debilitated in D9 loses its ability to sustain its positive results over time, whereas a debilitated D1 planet that is exalted or in its own sign in D9 represents a late-bloomer who overcomes immense early adversity to achieve lasting success.2
+Vargottama Rules: A planet occupying the exact same zodiac sign in both the D1 and D9 charts achieves a state of Vargottama, acquiring massive qualitative strength equivalent to being placed in its own sign.35 The computational trigger for Vargottama occurs seamlessly when a planet is placed in the 1st navamsha (0°00' - 3°20') of any movable sign, the 5th navamsha (13°20' - 16°40') of any fixed sign, or the 9th navamsha (26°40' - 30°00') of any dual sign.35
+Pushkara Navamsha Positions: Pushkara Navamshas are highly specialized, nourishing degrees within the zodiac that drastically elevate a planet's capacity to do good, effectively healing and regenerating afflicted D1 placements.34 The algorithm must check planetary longitudes against the following rigid degree boundaries. If a planet falls within these arcs, it must be assigned a maximum positive modifier for healing and fortune 34:
+Element of Sign
+	Zodiac Signs
+	Pushkara Navamsha Degree Arcs
+	Resulting Navamsha Sign
+	Fire
+	Aries, Leo, Sagittarius
+	20°00' - 23°20'
+	Libra
+	Fire
+	Aries, Leo, Sagittarius
+	26°40' - 30°00'
+	Sagittarius
+	Earth
+	Taurus, Virgo, Capricorn
+	06°40' - 10°00'
+	Pisces
+	Earth
+	Taurus, Virgo, Capricorn
+	13°20' - 16°40'
+	Taurus (Vargottama)
+	Air
+	Gemini, Libra, Aquarius
+	16°40' - 20°00'
+	Pisces
+	Air
+	Gemini, Libra, Aquarius
+	23°20' - 26°40'
+	Taurus
+	Water
+	Cancer, Scorpio, Pisces
+	00°00' - 03°20'
+	Cancer (Vargottama)
+	Water
+	Cancer, Scorpio, Pisces
+	06°40' - 10°00'
+	Virgo
+	Marriage Timing Specifics: Marriage is mathematically highly probable during the dasha or antardasha of the planet ruling the 7th house in the Navamsha chart, or planets positioned within the Navamsha 7th house.35 If the Navamsha Lagna lord is situated in a quadrant (1, 4, 7, 10) or trine (1, 5, 9), the engine predicts early or timely marriage. Conversely, if the Navamsha Lagna lord is situated in a Dusthana (6th, 8th, 12th) and conjunct severe malefics like Saturn, Mars, or Ketu, the algorithm must definitively output marriage delayed beyond the age of 30, or outright denial of marriage.35
+Navamsha Dasha Concept: For advanced predictive modeling, both Parashara and Jaimini advocate for a specialized sign-based Navamsha Dasha (also called Rasyamsaka Dasha) strictly for predicting marriage and spiritual evolution.38 Unlike Vimshottari, this is a sign-based dasha. The algorithm initiates the dasha sequence from the sign of the Navamsha Lagna. The duration of every mahadasha is universally fixed at 9 years per sign (derived from 108 total Navamshas divided by 12 signs = 9).38 The critical computational rule is the direction of the dasha: the progression moves forward (Aries, Taurus, Gemini) if the starting sign is odd, and in reverse (Taurus, Aries, Pisces) if the starting sign is even.38 Marriage is predicted when the dasha reaches the 7th house sign of the Navamsha.39
+Validation and Modification of D1 Predictions: The D9 acts as the absolute qualitative filter for the D1. While D1 shows the physical circumstances of an event (the wedding ceremony, the objective traits of the partner), the D9 shows the internal psychological reality, the soul-level compatibility, and whether the relationship will actually endure past the initial honeymoon phase.2
+D10: Dashamsha (Career, Status, and Great Fruits)
+The D10 chart maps to the 10th house of the D1 chart, explicitly detailing Mahatphalam (great achievements), societal footprint, public image, and the ultimate trajectory of the native's profession.41
+Evaluation of Strength and Weakness: The most critical computational checkpoints for evaluating career strength are the placement of the D1 10th lord within the D10 chart, and the dignity of the D10 10th lord itself.44 Saturn acts as the inherent Karaka of the D10 chart; a well-placed Saturn in D10 mathematically ensures career longevity, endurance, and the ability to sustain heavy responsibilities.45
+Specific Prediction Rules: The engine maps planetary placements in the 10th house of the D10, or the lord of the 10th house, to specific career vectors 46:
+* Sun: Administration, IAS/government roles, politics, executive leadership.
+* Moon: Public relations, caregiving, HR, fluid/variable professions.
+* Mars: Engineering, military, sports, police, surgery.
+* Mercury: IT, journalism, marketing, analytical trading, communications.
+* Jupiter: Judiciary, academia, banking, law, high-level consulting.
+* Venus: Fashion, arts, luxury markets, diplomacy, entertainment.
+* Saturn: Heavy industry, labor management, slow but steady systemic growth.
+* Rahu: Unconventional technology, foreign affairs, media, artificial intelligence.
+* Ketu: Deep research, esoteric sciences, backend development, isolation-based work.
+Career timing is triggered during the Vimshottari Mahadasha or Antardasha of planets occupying the 10th house of D10, or the exalted lords of the D10.46 If malefics (Saturn, Mars, Rahu) occupy the 10th house of D10, the engine should predict immense eventual success, but only after navigating severe workplace politics, delays, and grueling effort.47 Furthermore, the engine must distinguish between employment and entrepreneurship: if the 1st, 3rd, or 7th houses of the D10 are heavily fortified compared to the 6th house (service), the algorithm outputs a strong inclination toward independent business.45
+Validation and Modification of D1 Predictions: The D1 chart shows how the native makes money and their general daily labor, but the D10 chart modifies this by revealing the actual height of the career trajectory. A strong D1 but a weak 10th lord in D10 indicates someone who makes a good living but remains obscure, never reaching executive status or widespread public recognition.44
+D12: Dwadashamsha (Parents, Ancestry, and Lineage)
+The D12 chart decodes the karmic inheritance from the native's parents, the psychological impact of the upbringing, and the respective health and lifespans of the mother and father.49
+Evaluation of Strength and Weakness: The computational engine must evaluate the 4th house and the Moon to assess the mother, and the 9th house and the Sun to assess the father.50 The relationship of these planets to the D12 Lagna determines the harmony between the native and their parents.
+Specific Prediction Rules: The algorithm utilizes the principle of Bhavat Bhavam (derived houses) to predict parental longevity. The 8th house in D12 represents the longevity and death of the father (as it is the 12th house of loss counted from the 9th house of the father). The 3rd house in D12 represents the longevity and death of the mother (as it is the 12th house counted from the 4th house of the mother).19 Additionally, the D12 provides secondary validation for inheritance. A strong algorithmic link (conjunction or mutual aspect) between the 2nd lord and 8th lord in D12 signals inheritance from the father, while a link between the 3rd and 8th lords signals inheritance from the mother.19
+Validation and Modification of D1 Predictions: The D1 chart may show superficial difficulties with parents (e.g., 9th lord debilitated), but if the D12 chart features a deeply fortified Sun and 9th house, the engine modifies the prediction to state that while the physical relationship may be distant, the karmic inheritance and subconscious support from the father is profoundly protective and beneficial.49
+The Conscious and Subconscious Divisions (Second Harmonic Cycle)
+The second and third harmonic cycles govern the mental, emotional, and subconscious landscapes of the native.3
+D16: Shodashamsha (Vehicles, Comforts, and Accidents)
+The D16 chart acts as a highly refined sub-harmonic of the 4th house, specifically concerning Vahana (conveyances, vehicles) and Iha-loka sukha (the psychological happiness derived from worldly comforts).51
+Evaluation of Strength and Weakness: Venus is the absolute supreme Karaka for the D16 chart.51 The dignity of the 4th house of the D16, its lord, and Venus determine the ease with which the native acquires luxury vehicles and experiences general mental peace.
+Specific Prediction Rules: The algorithm must flag specific danger zones regarding travel. Vehicular accidents are predicted when harsh malefics (Mars, Rahu, Ketu) afflict the 4th house or the 4th lord of the D16 chart, particularly during their respective planetary periods.21 Conversely, the acquisition of a new vehicle is triggered during the concurrent dasha of the 4th lord (representing the asset) and the 11th lord (representing the gain) of the D16 chart.21
+Validation and Modification of D1 Predictions: The D1 chart indicates the financial capacity to buy a vehicle, but the D16 modifies this by revealing the experience of the vehicle. If D1 is strong but D16 is afflicted, the native will purchase an expensive car, but it will bring them no psychological comfort—it will constantly break down, require repairs, or be involved in accidents.52
+D20: Vimshamsha (Spiritual Progress and Meditation)
+The D20 evaluates the ultimate trajectory of the soul, Upasana (dedicated meditation), and the specific flavor of the native's religious devotion.54
+Evaluation of Strength and Weakness: The primary computational anchor is the placement of the Atmakaraka (the planet with the highest degree in D1) within the D20 chart.55 The condition of the 5th house (mantra and initiation) and the 9th house (guru and dharma) in the D20 determines the ease of spiritual progress.56
+Specific Prediction Rules: The engine can output the specific yogic path best suited for the native based on planetary dominance in the D20. If Jupiter, Ketu, and Mercury dominate the D20 Lagna or trines, the algorithm outputs a high aptitude for Jnana Yoga (the path of intellectual inquiry, Vedanta, and scriptural knowledge).54 If Venus and the Moon dominate, the algorithm outputs Bhakti Yoga (the path of unconditional devotion, chanting, and emotional surrender).54
+Validation and Modification of D1 Predictions: The D20 completely separates exoteric religion from esoteric spirituality. The D1 9th house may show a native who attends temple regularly for social reasons, but a weak D20 indicates zero actual internal spiritual progression. Conversely, a shattered D1 9th house but a brilliant D20 reveals a hidden mystic who achieves enlightenment outside of traditional religious structures.55
+D24: Chaturvimshamsha / Siddhamsha (Education and Learning)
+The D24 analyzes the cognitive assimilation of knowledge, the success of higher education, and the specific academic environment.57
+Evaluation of Strength and Weakness: The engine evaluates three core houses: the 4th house (foundational education), the 5th house (intelligence, exam performance, and college major), and the 9th house (post-graduate studies and advanced wisdom).58 Mercury (intellect) and Jupiter (wisdom) act as the primary validating karakas.
+Specific Prediction Rules: The dominant planet influencing the 5th house in the D24 chart determines the specific field of academic study.58
+* Mercury: Information technology, commerce, accounting, linguistics.
+* Jupiter: Law, philosophy, religious studies, classical teaching.
+* Sun: Political science, public administration, leadership studies. Educational breakthroughs, graduation, and exam success are computationally timed to occur during the dasha or antardasha of the D24 5th lord, or periods of Mercury and Jupiter.58
+Validation and Modification of D1 Predictions: The D24 validates whether the raw intelligence shown in D1 actually translates into formal degrees and certifications. A strong D1 Mercury but a heavily afflicted D24 (e.g., 5th lord in the 8th house) indicates a highly intelligent native who drops out of university or suffers severe interruptions in formal learning.4
+D27: Nakshatramsha / Bhamsha (Subconscious Strengths and Vulnerabilities)
+The D27 chart maps the native's subconscious physical and mental stamina, evaluating the systemic protections and raw survival instincts hardwired into the psyche.3
+Evaluation of Strength and Weakness: Mars is the primary karaka of the D27, representing the shield against vulnerability and the raw energy required to endure trauma.60 A strong D27 reduces the friction of negative experiences in life.
+Specific Prediction Rules: The engine maps the 27 mathematical divisions of the sign directly to the 27 Nakshatras.60 The algorithm must calculate the specific Nakshatra that the D27 Lagna, D27 Moon, and D27 Saturn fall into. If transit malefics (Saturn, Rahu) in the real-time sky cross over these specific D27-mapped Nakshatras, the engine must flag a period of severe psychological vulnerability or physical exposure.60 An exalted Moon placed in a quadrant of the D27 guarantees immense mental fortitude, allowing the native to remain emotionally unbroken during crises.3
+Validation and Modification of D1 Predictions: The D27 reveals the hidden structural integrity of the native not visible in D1. A native with a seemingly weak D1 ascendant but a fortified D27 will possess shocking resilience and an uncanny ability to survive physical or emotional attacks.3
+D30: Trimsamsha (Evils, Misfortunes, and Karmic Diseases)
+The D30 acts as the ultimate shadow chart (Papa Purusha), revealing inherent flaws, past-life karmic debts, and the specific vectors through which impending calamities, diseases, and punishments will strike.62
+Evaluation of Strength and Weakness: The Trimsamsha requires a highly unique computational setup. The luminaries (Sun and Moon) and the nodes (Rahu and Ketu) own no divisions here, as the D30 deals strictly with the shadowy manifestations of the five physical elements. The 30 degrees of a sign are distributed unequally among the five classical planets: Mars (Agni/Fire), Saturn (Vayu/Air), Jupiter (Akash/Ether), Mercury (Prithvi/Earth), and Venus (Jala/Water).62
+* For Odd Signs: Mars (0°-5°), Saturn (5°-10°), Jupiter (10°-18°), Mercury (18°-25°), Venus (25°-30°).64
+* For Even Signs: The sequence strictly reverses: Venus (0°-5°), Mercury (5°-12°), Jupiter (12°-20°), Saturn (20°-25°), Mars (25°-30°).64
+Specific Prediction Rules (Misfortune Types): The algorithm maps the 8th lord of the D30 chart, and planets in the 8th house, to determine the exact nature of un-natural calamities, diseases, or the mode of death 66:
+* Mars: Triggers misfortune through weapons, surgical errors, conflict, and fire.65
+* Saturn: Triggers misfortune through vehicular accidents, severe delays, and prolonged debilitating diseases.67
+* Jupiter: Triggers misfortune through religious conflicts, altitude issues, or issues with law/virtue.67
+* Mercury: Triggers misfortune through trade disputes, intellectual property theft, and financial ruin.67
+* Venus: Triggers misfortune through scandal, excessive indulgence, or venereal diseases.67
+Male vs Female Chart Differences: Classical texts like Hora Sara uniquely apply D30 to evaluate female morality, chastity, and marital fortune, reflecting the socio-cultural context of the era. In a computational context for a female nativity, if the D30 Lagna or D30 Moon falls in Jupiter's Trimsamsha, the engine outputs predictions of a highly virtuous, wealthy, and devoted partner.67 If it falls in Saturn's Trimsamsha, the algorithm flags potential marital friction, an independent/rebellious nature, or potential tragedy regarding the husband.68 If it falls in Mars's Trimsamsha, it indicates an aggressive, self-willed nature and potential loss of children.68 For both genders, the transit of Rahu over the D30 Lagna computationally triggers a high-alert flag for sudden, catastrophic life events.66
+Validation and Modification of D1 Predictions: The D30 chart modifies the D1 by highlighting the exact vector through which the curses of the 6th, 8th, and 12th houses manifest. If a planet is strong in D1 but falls in an afflicted D30 house, that planet's period will bring material success paired with intense mental agony, scandal, or sudden tragedy.63
+The Super-Conscious and Supra-Conscious Divisions
+The highest harmonics (D40, D45, D60) represent the deepest, most ethereal layers of inherited karma and subconscious programming. They require pinpoint birth time accuracy to compute correctly.3
+D40: Khavedamsha (Auspicious / Inauspicious Effects & Maternal Karma)
+The D40 chart governs the ethereal layer of general fortune, subtle luck, and specific karmic debts or blessings inherited through the maternal lineage (mother's ancestors).69
+Prediction Rules and Validation: The D40 reveals why certain individuals possess "unexplainable luck" or face "persistent challenges" that defy D1 logic.70 The engine must specifically evaluate Saturn in the D40. Saturn's placement here maps the exact karmic debts, curses, and disciplinary requirements inherited from the maternal ancestors.70 If the ruling planet of a specific D1 life event (e.g., the 7th lord for marriage) is placed in a hostile D40 environment, the algorithm must predict that the event will be inexplicably delayed by deep-seated ancestral blockages.70
+D45: Akshavedamsha (General Character & Paternal Karma)
+The D45 chart governs ethical conduct, high fortune, the core structural morality of the native, and karmic traits inherited through the paternal lineage (father's ancestors).69
+Prediction Rules and Validation: The chart evaluates whether the native possesses the moral foundation to sustain their D1 successes. Afflictions in the D45 by Rahu or Ketu suggest deep-seated character flaws, ethical blind spots, or paternal ancestral curses that will eventually disrupt current-life achievements. The D45 modifies D1 by ensuring that a native with massive D1 Raja Yogas actually possesses the character required not to self-destruct.71
+D60: Shashtiamsha (Past Life Karma and Ultimate Override)
+Parashara declares the D60 to be the "supreme" divisional chart, superseding even the Navamsha for the final validation of any prediction. It represents Sanchita Karma—the total accumulated karma from all past incarnations.73 Because the D60 Lagna shifts approximately every 2 minutes, its computational validity relies entirely on a highly rectified birth time.48
+Specific Prediction Rules and Validation: The D60 acts as the ultimate algorithmic override for the D1 chart. If a planet is powerfully exalted in D1 but is placed in a malefic (Krura) Shashtiamsha deity, the engine must predict that the planet's material results will ultimately collapse, be poisoned by past-life debt, or lead to a tragic fall from grace.74 Conversely, a planet that is debilitated and struggling in D1, but occupies a highly benefic (Saumya) Shashtiamsha (like Amrita or Deva), will unexpectedly yield massive, unexplainable success due to past-life spiritual reserves.73 The 3rd house of the D60 also indicates the exact nature of the native's death in their immediate past life, explaining innate phobias in the current life.76
+The 60 Shashtiamsha Deities Lookup Table
+Computational Note for the Engine: The algorithm must determine if the planet is placed in an Odd Sign (Aries, Gemini, Leo, Libra, Sagittarius, Aquarius) or an Even Sign (Taurus, Cancer, Virgo, Scorpio, Capricorn, Pisces). For odd signs, count from 1 to 60 as listed below. For even signs, the sequence strictly reverses (count 60 down to 1). Therefore, a degree arc that maps to a Krura (Malefic) deity in an odd sign maps to a Saumya (Benefic) deity in an even sign.77 Each amsha represents an arc of exactly 0°30' (thirty arc minutes).
+Amsha Index
+	Degree Arc
+	Deity Name (Odd Signs)
+	Meaning / Subconscious Effect
+	Nature
+	1
+	00°00' - 00°30'
+	Ghora
+	Terrible, fearsome, violent karmic echoes
+	Krura (Malefic)
+	2
+	00°30' - 01°00'
+	Rakshasa
+	Demonic, harmful actions against others
+	Krura
+	3
+	01°00' - 01°30'
+	Deva
+	Divine, spiritual grace, righteous path
+	Saumya (Benefic)
+	4
+	01°30' - 02°00'
+	Kubera
+	God of Wealth, immense financial merit
+	Saumya
+	5
+	02°00' - 02°30'
+	Yaksha
+	Celestial caretaker, benevolent protection
+	Saumya
+	6
+	02°30' - 03°00'
+	Kinnara
+	Celestial musician, artistic pleasure
+	Saumya
+	7
+	03°00' - 03°30'
+	Bhrashta
+	Corrupt, deviated from the moral path
+	Krura
+	8
+	03°30' - 04°00'
+	Kulaghna
+	Destroyer of lineage, family curses
+	Krura
+	9
+	04°00' - 04°30'
+	Garala
+	Poison, toxicity, deeply painful karma
+	Krura
+	10
+	04°30' - 05°00'
+	Vahni
+	Fire, destructive burns, uncontrollable anger
+	Krura
+	11
+	05°00' - 05°30'
+	Maya
+	Illusion, deceit, living a lie, hidden truths
+	Krura
+	12
+	05°30' - 06°00'
+	Purishaka
+	Unsettled soul, dirty, lacking peace
+	Krura
+	13
+	06°00' - 06°30'
+	Apampathi
+	Lord of Waters (Varuna), emotional depth
+	Saumya
+	14
+	06°30' - 07°00'
+	Marutwan
+	God of Air, high mobility, swift success
+	Saumya
+	15
+	07°00' - 07°30'
+	Kaala
+	Time personified, cold destruction, delays
+	Krura
+	16
+	07°30' - 08°00'
+	Sarpa
+	Serpent, binding material ties, obsessions
+	Krura
+	17
+	08°00' - 08°30'
+	Amrita
+	Nectar, profound rejuvenation and healing
+	Saumya
+	18
+	08°30' - 09°00'
+	Indu
+	Moon, vivid imagination, mental peace
+	Saumya
+	19
+	09°00' - 09°30'
+	Mridu
+	Soft, tender, gentle approach to life
+	Saumya
+	20
+	09°30' - 10°00'
+	Komala
+	Delicate, fragile, highly sensitive
+	Saumya
+	21
+	10°00' - 10°30'
+	Heramba
+	Ganesha, remover of massive obstacles
+	Saumya
+	22
+	10°30' - 11°00'
+	Brahma
+	Creator, expansion, intellectual birth
+	Saumya
+	23
+	11°00' - 11°30'
+	Vishnu
+	Sustainer, ultimate divine protection
+	Saumya
+	24
+	11°30' - 12°00'
+	Maheshwara
+	Destroyer, liberation from material bonds
+	Saumya
+	25
+	12°00' - 12°30'
+	Deva
+	Divine light, follower of Dharma
+	Saumya
+	26
+	12°30' - 13°00'
+	Ardra
+	Moist, powerful protection of life force
+	Saumya
+	27
+	13°00' - 13°30'
+	Kalinasa
+	Destroyer of strife, highly auspicious
+	Saumya
+	28
+	13°30' - 14°00'
+	Kshiteesa
+	Horizon, ruler of earth, new beginnings
+	Saumya
+	29
+	14°00' - 14°30'
+	Kamalakar
+	Reclining Vishnu, the moment of creation
+	Saumya
+	30
+	14°30' - 15°00'
+	Gulika
+	Destructive, severe delays, deep toxicity
+	Krura
+	31
+	15°00' - 15°30'
+	Mrityu
+	Death, sudden endings, violent shifts
+	Krura
+	32
+	15°30' - 16°00'
+	Kaala
+	Time, strict karmic delivery, lack of emotion
+	Krura
+	33
+	16°00' - 16°30'
+	Davagni
+	Forest fire, mass loss of resources
+	Krura
+	34
+	16°30' - 17°00'
+	Ghora
+	Horrible, terrifying past life experiences
+	Krura
+	35
+	17°00' - 17°30'
+	Yama
+	God of Death, severe dharmic violation debt
+	Krura
+	36
+	17°30' - 18°00'
+	Kantaka
+	Thorn, constant irritation and hidden pain
+	Krura
+	37
+	18°00' - 18°30'
+	Suddha
+	Pure, untainted, clean karmic slate
+	Saumya
+	38
+	18°30' - 19°00'
+	Amrita
+	Nectar, healing, extreme creative taste
+	Saumya
+	39
+	19°00' - 19°30'
+	Purnachandra
+	Full Moon, highly auspicious and benevolent
+	Saumya
+	40
+	19°30' - 20°00'
+	Vishadagdha
+	Consumed by poison, unresuscitated karma
+	Krura
+	41
+	20°00' - 20°30'
+	Kulanasa
+	Destruction of family structure
+	Krura
+	42
+	20°30' - 21°00'
+	Vamshakshaya
+	Destroyer of descendants and legacy
+	Krura
+	43
+	21°00' - 21°30'
+	Utpata
+	Revolutionary, unsettling, sudden chaos
+	Krura
+	44
+	21°30' - 22°00'
+	Kaala
+	Restrictive time, feeling trapped
+	Krura
+	45
+	22°00' - 22°30'
+	Saumya
+	Gentle, auspicious, highly communicative
+	Saumya
+	46
+	22°30' - 23°00'
+	Komala
+	Soft, fragile, requiring care
+	Saumya
+	47
+	23°00' - 23°30'
+	Sheetala
+	Cooling, soothing, conflict resolution
+	Saumya
+	48
+	23°30' - 24°00'
+	Karaladamshtra
+	Dangerous jutting tooth, predatory karma
+	Krura
+	49
+	24°00' - 24°30'
+	Candramukhi
+	Seductive lunar face, immense charm
+	Saumya
+	50
+	24°30' - 25°00'
+	Praveena
+	Adept, highly skilled, expert knowledge
+	Saumya
+	51
+	25°00' - 25°30'
+	Kaalpavaka
+	Destructive fire of time, purging flames
+	Krura
+	52
+	25°30' - 26°00'
+	Dhannayudha
+	Punishing weapon, bearing the brunt of law
+	Krura
+	53
+	26°00' - 26°30'
+	Nirmala
+	Clean, pure, unadulterated actions
+	Saumya
+	54
+	26°30' - 27°00'
+	Saumya
+	Gentle, pleasing, easy interactions
+	Saumya
+	55
+	27°00' - 27°30'
+	Krura
+	Cruel, ruthless, merciless actions
+	Krura
+	56
+	27°30' - 28°00'
+	Atisheetala
+	Extremely cold, isolated, detached
+	Saumya
+	57
+	28°00' - 28°30'
+	Amrita
+	Nectar, divine liquid, ultimate blessing
+	Saumya
+	58
+	28°30' - 29°00'
+	Payodhi
+	Ocean, vast depths of emotion/wealth
+	Saumya
+	59
+	29°00' - 29°30'
+	Brahmana
+	Supreme deity, high spiritual awareness
+	Saumya
+	60
+	29°30' - 30°00'
+	Chandrarekha
+	Lunar line, highly auspicious and beautiful
+	Saumya
+	(Source logic and classifications derived from Parashara and Phaladeepika: 77)
+Vimshopak Bala: The Algorithmic Planetary Scorecard
+The Vimshopak Bala system generates a normalized, quantitative algorithmic score (out of a maximum of 20 points) that mathematically evaluates a planet's overarching dignity across multiple dimensional layers.81 The final synthesized score dictates the planet's raw capacity to actualize its promises during its Vimshottari Mahadasha. The computational heuristic dictates that a net score > 15 yields wholly favorable and extraordinary results, a score between 10 and 15 yields average-to-good results requiring effort, and a score < 5 yields severe adversity, indicating the planet is completely devoid of the structural integrity needed to manifest success.82
+Varga Schemes and Computational Weights
+Sage Parashara defined four primary arrays (schemes) of vargas used to calculate the Vimshopak Bala. The mathematical weights (Swavishwa) assigned to each specific chart vary depending on the chosen resolution scheme.83 The engine should allow the user to toggle between these four schemes depending on the depth of analysis required.
+Divisional Chart
+	Shadvarga (6 Charts)
+	Sapta Varga (7 Charts)
+	Dasha Varga (10 Charts)
+	Shodasha Varga (16 Charts)
+	D1 Rashi
+	6
+	5
+	3
+	3.5
+	D2 Hora
+	2
+	2
+	1.5
+	1
+	D3 Drekkana
+	4
+	3
+	1.5
+	1
+	D4 Chaturthamsha
+	-
+	-
+	-
+	0.5
+	D7 Saptamsha
+	-
+	1
+	1.5
+	0.5
+	D9 Navamsha
+	5
+	2.5
+	1.5
+	3
+	D10 Dashamsha
+	-
+	-
+	1.5
+	0.5
+	D12 Dwadashamsha
+	2
+	4.5
+	1.5
+	0.5
+	D16 Shodashamsha
+	-
+	-
+	1.5
+	2
+	D20 Vimshamsha
+	-
+	-
+	-
+	0.5
+	D24 Chaturvimshamsha
+	-
+	-
+	-
+	0.5
+	D27 Nakshatramsha
+	-
+	-
+	-
+	0.5
+	D30 Trimsamsha
+	1
+	2
+	1.5
+	1
+	D40 Khavedamsha
+	-
+	-
+	-
+	0.5
+	D45 Akshavedamsha
+	-
+	-
+	-
+	0.5
+	D60 Shashtiamsha
+	-
+	-
+	5
+	4
+	TOTAL POINTS
+	20
+	20
+	20
+	20
+	Note: The Dasha Varga scheme is traditionally the most heavily emphasized by Parashara for standard predictive modeling, giving massive 5-point weight to the D60 past-life override.79
+Dignity Point Values (Varga Vishwa)
+To compute the final score, the fundamental weight of the chart in the selected scheme (from the table above) must be multiplied by the planet's dignity ratio percentage. In Vimshopak Bala calculation, the concepts of exaltation and debilitation are systematically absorbed into the compound friendship matrices (Panchadha Maitri), which combines permanent planetary friendships with temporary house-based friendships.81 Below are the exact standardized points assigned to the varying planetary dignities to be used in the engine's calculation logic 83:
+Dignity Level (Relationship to Sign Lord)
+	Point Value (Out of 20)
+	Percentage Yield
+	Own Sign / Moolatrikona / Exaltation
+	20
+	100%
+	Adhi Mitra (Great/Best Friend)
+	18
+	90%
+	Mitra (Friend)
+	15
+	75%
+	Sama (Neutral)
+	10
+	50%
+	Shatru (Enemy)
+	7
+	35%
+	Adhi Shatru (Great/Bitter Enemy) / Debilitation
+	5
+	25%
+	Computational Algorithm Execution: The formula executed by the engine for each planet is (Varga Vishwa × Swavishwa) ÷ 20 iterated across all charts in the chosen scheme.83 For example, if the engine executes the Dasha Varga scheme, and the Moon is located in an Adhi Mitra (Great Friend) sign in the D9 Navamsha chart:
+1. Locate the weight of D9 in the Dasha Varga scheme: 1.5 points.
+2. Locate the dignity point value for Adhi Mitra: 18 points.
+3. Compute the fractional yield: (1.5 * 18) / 20 = 1.35 points. This 1.35 point value is the specific contribution of the D9 chart to the Moon's total Vimshopak score. The engine must loop this algorithmic evaluation across all relevant charts in the active array, summing the fractional yields to output the final Vimshopak coefficient out of 20.82

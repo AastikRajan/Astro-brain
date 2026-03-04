@@ -481,4 +481,4 @@ Run the test chart. Compare output to pre-Phase-2 output. Key things to check:
 4. Health predictions show Kota Chakra influence
 5. Overall confidence values are still in reasonable range (0.10-0.90)
 
-Bring the before/after comparison to Claude for evaluation.
+Bring the before/after comparison to Claude for evaluation. 

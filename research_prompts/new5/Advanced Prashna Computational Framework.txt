@@ -1,0 +1,278 @@
+﻿Computational Frameworks for Advanced Prashna Shastra: Algorithmic Systems and Divinatory Logic
+The mathematical and symbolic architecture of Prashna Shastra, or horary astrology, represents one of the most sophisticated branches of the Jyotish tradition. Unlike natal astrology, which relies upon a static moment of birth, Prashna treats the moment of a sincere inquiry as a biological birth of a specific karma, manifesting through the "Prashna Shakti" or the power of the question itself.1 The techniques originating from the Kerala tradition, specifically those detailed in the seminal text Prashna Marga, utilize a multi-layered computational framework that integrates astronomical longitudes, numerological reductions of physical objects, phonetic mapping of human speech, and the systematic observation of environmental omens.3
+Ashtamangala Prashna: The Full Computational System
+Ashtamangala Prashna is regarded as the most comprehensive diagnostic tool in the horary tradition, typically reserved for profound systemic inquiries such as temple sanctity, ancestral curses, and life-altering familial blockages.6 The term "Ashtamangalam" refers to eight auspicious materials—traditionally including gold, a mirror, flowers, consecrated rice, fruits, betel leaves, sacred texts, and a ghee lamp—which serve to bridge the gap between the mundane and the cosmic.6
+The 108-Cell Board and House Mapping
+The foundational grid for this technique is the Ashtottaramsa or the 108-cell board. This layout is not merely a symbolic representation but a functional mapping of the D-108 divisional chart.9 The grid is constructed by dividing each of the twelve zodiac signs into nine subdivisions (Navamsas), creating a total of 108 cells (  ).
+The mapping of these cells is structured to analyze the triadic flow of karma. The board represents the totality of a soul's journey, with specific cell ranges corresponding to different lifetimes. The first through fourth houses (cells 1–36) represent the past life and ancestral roots.9 The fifth through eighth houses (cells 37–72) represent the present incarnation and current struggles.9 The ninth through twelfth houses (cells 73–108) represent the future life and the ultimate potential for spiritual liberation.9
+
+
+House/Cell Group
+	Temporal Domain
+	Karmic Significance
+	Cells 1–36 (Houses 1–4)
+	The Past
+	Ancestral influences, prarabdha karma, and past-life origins.9
+	Cells 37–72 (Houses 5–8)
+	The Present
+	Current agency, immediate obstacles, and present health.9
+	Cells 73–108 (Houses 9–12)
+	The Future
+	Next birth, spiritual progression, and moksha (liberation).9
+	In the advanced predictive logic of Ashtamangala, the twelfth house of the 108-cell board is the final arbiter of destiny. If the Atmakaraka (the planet with the highest longitude in the natal chart) is placed in the twelfth house of the D-108 board with significant strength—such as being in its own sign or exalted—it signifies that the querent is in their final birth.9
+Cowrie Shell Reduction and the Modulo-8 Algorithm
+The core of the Ashtamangala numerology involves the manipulation of 108 specially cleaned and sanctified cowrie shells.8 These shells are treated as living receptors of divine intention. The astrologer, after an initial invocation, separates the 108 shells into three distinct piles based on an intuitive gesture.8
+The computational reduction of these piles follows a strict modulo-8 algorithm:
+1. Pile Separation: The shells are placed into three positions: Left, Center, and Right.
+2. Counting Multiples of Eight: Multiples of eight (ashta) are removed from each pile until a remainder is found.
+3. The Modulo Operation: For each pile (  ), the result (  ) is calculated as   .
+4. Zero-Correction Rule: If the remainder is   , the value is assigned as   .8
+This process results in a three-digit sequence, where each digit ranges from 1 to 8. These digits are mapped to the temporal flow of the inquiry from left to right: the Left Pile represents the Past, the Center Pile represents the Present, and the Right Pile represents the Future.8
+Planetary Scoring and Interpretation Complexity
+Each of the eight possible remainders corresponds to a specific planet (graha), providing a thematic lens for the prediction. The scoring system is primarily binary—odd numbers are favorable (shubha), while even numbers are unfavorable (ashubha)—but the interpretation is modified by the sequence and specific planetary character.2
+
+
+Remainder
+	Ruling Planet
+	Quality
+	Thematic Domain
+	1
+	Sun (Surya)
+	Odd/Favorable
+	Authority, soul, vitality, father.2
+	2
+	Mars (Mangala)
+	Even/Unfavorable
+	Conflict, injury, siblings, surgery.8
+	3
+	Jupiter (Guru)
+	Odd/Favorable
+	Wisdom, expansion, children, divinity.2
+	4
+	Mercury (Budha)
+	Even/Unfavorable
+	Logic, speech, commerce, intellectual blocks.8
+	5
+	Venus (Shukra)
+	Odd/Favorable
+	Harmony, luxury, marriage, emotional flow.2
+	6
+	Saturn (Shani)
+	Even/Unfavorable
+	Discipline, suffering, delays, chronic karma.2
+	7
+	Moon (Chandra)
+	Odd/Favorable
+	Mind, mother, nurturing, fluctuating states.2
+	8
+	Rahu
+	Even/Unfavorable
+	Illusions, sudden shocks, foreign influences.8
+	The simple binary of odd/even is complicated by the Descending/Ascending Rule. For example, a sequence like 8-3-1 (Rahu, Jupiter, Sun) suggests that while the current and future states have favorable planetary rulers (Jupiter and Sun), the descending numerical order (8 to 3 to 1) indicates a decline in fortune compared to the past.8 Conversely, an ascending order (1-3-5) would signify a steady improvement in circumstances.
+The Rashiprashna Variant
+Within the larger Ashtamangala system, the Rashiprashna (or sign-based inquiry) focuses specifically on the zodiacal signs activated during the ritual. This involves the Swarna Lagna (Gold Lagna), where a piece of gold is placed within the Rasi Chakra.7 The astrologer observes not just the sign occupied by the gold, but also the orientation of the coin. If the coin is face down, tilted toward the South, or slanted, it is interpreted as a severe omen of death or decline (Arishta), regardless of the mathematical strength of the chart.8
+The Complete Step-by-Step Ashtamangala Algorithm
+   1. Sanctification: 108 cowries are bathed in sacred river water and mantras are chanted to establish "Vak Shuddhi".8
+   2. Gold Placement (Swarna Lagna): A child is asked to place a piece of gold in one of the 12 squares of the Rasi Chakra. This square becomes the focal point of the inquiry.7
+   3. Triadic Separation: The astrologer separates the 108 cowries into three piles (Left, Center, Right) while meditating on the specific question.8
+   4. Modulo Calculation: Apply    (where   ) for each pile to find the Ashtamangala digits.8
+   5. Omen Synthesis: Observe the ghee lamp flame (lean toward South = bad) and any environmental sounds.8
+   6. Tambula Math: Count the betel leaves provided by the querent. Apply the formula:   . The remainder (1-7) gives a planetary reference point used to cross-verify the Arudha.6
+   7. Final Synthesis: Combine the Ashtamangala number (Past/Present/Future), the Swarna Lagna, and the planetary strengths to prescribe remedies.6
+Aksharachakra: The Phonetic Geometry of Prashna
+Aksharachakra, or phonetic astrology, operates on the principle that the sounds uttered at the moment of inquiry are non-random vibrational signatures of the cosmic state. By mapping the first syllable (Akshara) of a question to a specific sign, the astrologer determines the Arudha (the activated sign) even without a traditional time-based chart.12
+Phoneme-to-Sign Mapping Table
+The Sanskrit alphabet (Varnamala) is categorized based on the place of articulation—Guttural, Palatal, Cerebral (Retroflex), Dental, and Labial. Each category is assigned to a specific zodiacal sign and its ruling planet.12
+
+
+Phonetic Category
+	Sound Group
+	Phonemes (Aksharas)
+	Corresponding Zodiac Sign
+	Svara (Vowels)
+	Throat/Head
+	a, ā, i, ī, u, ū, ṛ, ṝ, ḷ, e, ai, o, au 14
+	Aries (Mesha)
+	Ka-Varga
+	Guttural
+	ka, kha, ga, gha, ṅa 14
+	Gemini (Mithuna)
+	Ca-Varga
+	Palatal
+	ca, cha, ja, jha, ña 14
+	Cancer (Karkataka)
+	Ta-Varga
+	Cerebral
+	ṭa, ṭha, ḍa, ḍha, ṇa 14
+	Leo (Simha)
+	Ta-Varga
+	Dental
+	ta, tha, da, dha, na 14
+	Virgo (Kanya)
+	Pa-Varga
+	Labial
+	pa, pha, ba, bha, ma 14
+	Libra (Thula)
+	Ya-Varga
+	Semivowel
+	ya, ra, la, va 14
+	Scorpio (Vrischika)
+	Sa-Varga
+	Sibilant/H
+	śa, ṣa, sa, ha 12
+	Capricorn (Makara)
+	Determining the Arudha via Speech
+The process of using Aksharachakra requires the astrologer to isolate the very first sound that initiates the communication. For example, if a querent asks, "Is my health improving?", the first syllable is "I" (short vowel). According to the lookup table, this sound is a Svara, activating Aries (Mesha) as the Arudha Lagna.14
+This phonetic Arudha is then compared to the Udaya Lagna (the rising sign based on the time of the question). If the phonetic Arudha and the time-based Lagna are in harmony (e.g., trinal or quadrangular relationship), the question is deemed sincere and the outcome likely favorable.2 If the phonemes belong to a category ruled by a malefic planet that is poorly placed in the Prashna chart, it indicates that the querent may be hiding information or that the question itself is "mute" (mooka).18
+Nimitta Shastra: Environmental Synchronization and Omen Classification
+Nimitta Shastra is the science of interpreting spontaneous environmental cues. In the Prashna Marga, the environment is seen as a mirror of the querent's internal reality. These omens provide a validation layer that can override purely mathematical calculations.11
+Directional House Activation
+One of the most systematic applications of Nimitta is the mapping of the querent's physical position or the direction they face to the houses of the zodiac. This activates specific "life domains" based on spatial orientation.3
+
+
+Direction Faced
+	Activated Signs
+	Activated House/Domain
+	East
+	Aries, Taurus
+	Self, vitality, first house.21
+	South-East
+	Gemini
+	Communication, initiative, third house.21
+	South
+	Cancer, Leo
+	Home, status, fourth/fifth houses.21
+	South-West
+	Virgo
+	Debts, obstacles, sixth house.21
+	West
+	Libra, Scorpio
+	Partnerships, transformation, seventh/eighth houses.21
+	North-West
+	Sagittarius
+	Foreign travel, wisdom, ninth house.21
+	North
+	Capricorn, Aquarius
+	Career, gains, tenth/eleventh houses.21
+	North-East
+	Pisces
+	Loss, isolation, twelfth house.21
+	Systematic Classification and Decision Tree Logic
+Omens are classified into three primary categories, allowing them to be coded into a systematic decision tree for rapid diagnosis during a session.11
+1. Sharirika (Bodily) Omens:
+      * Twitching: If a female's left eye twitches, it is auspicious (success); if the right eye twitches, it is inauspicious (delay/failure).11
+      * Sneezing: A single sneeze before starting a task is a warning to delay; two sneezes are considered a clearing of the path.22
+      * Itching: Itching of the right hand signifies incoming wealth; left hand signifies expenses.22
+2. Drishya (Visual/Object) Omens:
+      * Broken Glass: Contrary to Western superstition, the sudden breaking of glass is often seen as the "breaking of the evil eye" (nazar), indicating a release from a negative cycle.22
+      * Ghee Lamp: If the flame leans toward the South, it indicates destruction or "yamakantaka" influence; a steady flame signifies stability.8
+      * Flowers/Fruits: Seeing blooming plants at the time of inquiry signifies Jupiterian protection and growth.3
+3. Decision Tree for Outcome Prediction:
+      * Step 1: Is the omen Sharirika, Drishya, or Shakuna?
+      * Step 2: Does it involve a planet of the "Harm House" (Badha)?
+      * Step 3: If multiple omens point toward the same result (e.g., a crow on the right shoulder AND a right-hand itch), the prediction is certain.11
+Shakuna Shastra: Bird and Animal Significations
+Shakuna Shastra specifically handles the behavior of living beings as omens. These are frequently systematized into lookup tables for practitioners.11
+
+
+Creature/Behavior
+	Astrological Mapping
+	Predicted Outcome
+	Crow on Right Shoulder
+	Solar/Jupiterian
+	Success in travel or career.11
+	Cat Crossing (Left to Right)
+	Saturnine
+	Obstructions, delays, or failure of the specific task.22
+	Dog Barking (Incessant)
+	Ketu/Mars
+	Impending illness or litigation in the household.22
+	Seeing a Brahmin/Scholar
+	Jupiter/Venus
+	Support from authority figures; divine grace.3
+	Seeing a Funeral Procession
+	Saturn/Yama
+	End of a cycle; non-recovery if asking about the sick.22
+	Falling Objects (No cause)
+	Rahu
+	Sudden shocks or betrayal by hidden enemies.11
+	The systematic use of these omens allows the astrologer to verify if the "Prashna Shakti" is clear. If a querent asks about a marriage but a cat crosses their path and a glass breaks in a "harsh" way, the astrologer may conclude that while the chart looks good, the environmental feedback suggests an underlying incompatibility.11
+Advanced Prashna Timing: Voice Signs and Multipliers
+The chronometry of Prashna differs from natal astrology in its use of "dynamic multipliers." Timing is determined by the relationship between the rising sign (Lagna), the planet ruling the Navamsa, and the specific "vocal" quality of the signs.18
+Mooka (Mute) vs. Speaking Signs
+The classification of signs as "Mute" (Mooka) or "Speaking" determines the speed and clarity with which an event will manifest.18
+Speaking (Voice/Musical) Signs:
+      * Signs: Gemini, Libra, Aquarius.18
+      * Secondary Signs: Virgo, Sagittarius.18
+      * Indication: Rapid manifestation. Information will be shared openly. Legal outcomes will be vocalized quickly. Success comes through negotiation.18
+Mooka (Mute) Signs:
+      * Signs: Cancer, Scorpio, Pisces.18
+      * Indication: Delays. Hidden or "silent" agendas. Information is withheld. Events manifest slowly and without public recognition. If the 2nd lord is in a mute sign and afflicted, the querent is likely lying or unable to express the true nature of their problem.18
+Timing Multipliers and Fructification
+Timing is calculated by identifying the planetary period (Ayana, Masa, etc.) and multiplying it by the Navamsas gained by the Lagna lord or the Karya Bhava lord.23
+
+
+Planet
+	Timing Unit (Standard)
+	Timing Unit (Advanced)
+	Sun (Surya)
+	Ayana (6 Months)
+	70 Years.21
+	Moon (Chandra)
+	Kshana/Muhurtha (48 Min)
+	1 Year.21
+	Mars (Mangala)
+	Vara (Day/Week)
+	2 Years.21
+	Mercury (Budha)
+	Rtu (Season - 2 Months)
+	9 Years.21
+	Jupiter (Guru)
+	Masa (Month)
+	18 Years.21
+	Venus (Shukra)
+	Paksha (14 Days)
+	20 Years.21
+	Saturn (Shani)
+	Varsha (Year)
+	50 Years.21
+	The Fructification Algorithm:
+      1. Locate the lord of the Lagna Navamsa.
+      2. Multiply the planet's timing unit by the number of Navamsas that lord has traversed in its current sign.23
+      3. Modify based on the Hemisphere Rule:
+      * Visible Hemisphere (Houses 7–12): The event occurs in the first half of the calculated time.23
+      * Invisible Hemisphere (Houses 1–6): The event is delayed to the latter half or beyond.23
+Rising and Setting Signs
+The direction of the sign—whether it is rising (ascending toward the MC) or setting (descending toward the IC)—further modifies the timing. A planet in a "Rising" sign indicates an event approaching the querent, while a "Setting" sign indicates an opportunity that has already passed (Separating Aspect).5
+Trisphutam: The Mathematical Index of Vitality and Validation
+Trisphutam, or the "Three-fold Longitude," is one of the most critical calculations for validating the health of the querent and the authenticity of the chart. It acts as a composite indicator of the physical (Lagna), mental (Moon), and karmic/poisonous (Gulika) states.25
+The Computational Formula
+The Trisphutam is the sum of the longitudes of the Lagna, the Moon, and Gulika (the malefic sub-planet associated with Saturn).25
+  
+
+If the sum exceeds 360 degrees, 360 is subtracted to find the point within the zodiac. This point is then mapped to its Rasi, Navamsa, and Nakshatra for analysis.25
+Sign and Navamsha Interpretation Rules
+The Trisphutam is analyzed through a system of "Zones" which represent Creation (Srishti), Sustenance (Sthiti), and Destruction (Samhara).25
+
+
+Zone Category
+	Signs/Navamsas Included
+	Meaning for Health/Future
+	Creation (Srishti)
+	Aries, Taurus, Gemini, Cancer
+	Vitality, fast recovery, expansion of life force.25
+	Sustenance (Sthiti)
+	Leo, Virgo, Libra, Scorpio
+	Stable condition, slow recovery, protection from evil.25
+	Destruction (Samhara)
+	Sagittarius, Capricorn, Aquarius, Pisces
+	Deterioration, chronic suffering, high karmic debt.25
+	Interpretation Logic:
+      * Rasi Placement: Indicates the Present state. If the Trisphuta falls in a Dual (Dvisvabhava) sign like Gemini or Pisces, the health is currently deteriorating.26
+      * Navamsha Placement: Indicates the Future state. If the Trisphuta falls in a Movable (Chara) Navamsa, the person will recover quickly.26
+      * Nakshatra Lord: The nature of the health trouble or karmic obstacle is determined by the planet ruling the Nakshatra of the Trisphutam. For example, if it falls in a Mars-ruled Nakshatra, sores or wounds are indicated; if Mercury-ruled, speech or mental blocks (Mooka) are present.25
+Validation of the Chart
+The Trisphutam is used to check the "honesty" of the inquiry. If the Trisphutam is heavily afflicted by "Nava Doshas" (nine specific planetary blemishes) or if Gulika is conjunct the Trisphuta Rasi, the entire chart is considered "poisoned." In such cases, the predictions will not manifest as expected because the querent's negative karma or lack of sincerity is clouding the divine response.25
+Synthesis of Computational Frameworks
+The integration of these six systems—Ashtamangala, Aksharachakra, Nimitta, Shakuna, Advanced Timing, and Trisphutam—creates a comprehensive divinatory engine. The Ashtamangala provides the Broad Karmic Vector (Past/Present/Future), the Aksharachakra provides the Linguistic Verification, the Nimitta/Shakuna provide Environmental Feedback, and the Trisphutam provides the Biological/Vitality Baseline.7
+By following these algorithms, the practitioner can move from a simple horary chart to a multi-dimensional diagnostic report that accounts for the querent's speech, physical presence, environment, and deepest karmic history. The use of modulo arithmetic, phonetic mapping, and zonal longitude analysis ensures that the prediction is not a matter of subjective intuition but a rigorous mathematical derivation.

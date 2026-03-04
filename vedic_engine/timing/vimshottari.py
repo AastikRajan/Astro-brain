@@ -20,12 +20,34 @@ from vedic_engine.config import (
 )
 from vedic_engine.core.coordinates import nakshatra_of
 
+try:
+    from dateutil.relativedelta import relativedelta as _relativedelta
+    _HAS_DATEUTIL = True
+except ImportError:
+    _HAS_DATEUTIL = False
+
 PLANET_LABELS = {p.name: p for p in Planet}
 DAYS_PER_YEAR = 365.25
+# Savana year (365 civil days) — used for balance-period day conversion,
+# consistent with traditional Indian Vimshottari practice.
+_SAVANA_YEAR = 365.0
 
 
-def _years_to_days(years: float) -> int:
-    return int(years * DAYS_PER_YEAR)
+def _years_to_days(years: float) -> float:
+    """Convert years to days, preserving fractional precision for timedelta."""
+    return years * DAYS_PER_YEAR
+
+
+def _add_calendar_years(base: datetime, years: int) -> datetime:
+    """Add exact calendar years (accounts for leap years correctly)."""
+    if _HAS_DATEUTIL:
+        return base + _relativedelta(years=years)
+    # Manual fallback: add years, handle Feb 29 edge case
+    try:
+        return base.replace(year=base.year + years)
+    except ValueError:
+        # Feb 29 → Feb 28 in non-leap year
+        return base.replace(year=base.year + years, day=28)
 
 
 def _birth_dasha_balance(moon_longitude: float) -> Tuple[Planet, float]:
@@ -80,12 +102,19 @@ def compute_mahadasha_periods(
     start_planet, balance_years = _birth_dasha_balance(moon_longitude)
     sequence = _dasha_sequence_from(start_planet)
 
-    current_date = birth_date
+    # Use midnight of birth date — Vimshottari dasha dates are date-level,
+    # the birth time only affects Moon longitude (already accounted for).
+    current_date = birth_date.replace(hour=0, minute=0, second=0, microsecond=0)
     periods = []
 
     for i, maha_planet in enumerate(sequence):
         duration = balance_years if i == 0 else float(VIMSHOTTARI_YEARS[maha_planet])
-        end_date = current_date + timedelta(days=_years_to_days(duration))
+        # Balance period: use Savana year (365 days) for fractional balance conversion
+        # Full periods: use calendar year addition for exact date alignment
+        if i == 0:
+            end_date = current_date + timedelta(days=duration * _SAVANA_YEAR)
+        else:
+            end_date = _add_calendar_years(current_date, int(duration))
 
         maha = {
             "level": 1,
@@ -116,7 +145,7 @@ def compute_mahadasha_periods(
     while total_days < _years_to_days(120):
         for maha_planet in sequence:
             duration = float(VIMSHOTTARI_YEARS[maha_planet])
-            end_date = current_date + timedelta(days=_years_to_days(duration))
+            end_date = _add_calendar_years(current_date, int(duration))
             maha = {
                 "level": 1,
                 "planet": maha_planet.name,

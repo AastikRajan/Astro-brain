@@ -1,0 +1,1856 @@
+﻿Classical Jyotish Computational Matrices: Algorithms, Arrays, and Astrological Mechanics
+The translation of classical Vedic astrology (Jyotish) into a programmatic environment requires the strict codification of ancient Sanskrit dictums into structured, multidimensional arrays. In classical computational astrology, determinism is modeled through rigid algorithmic rulesets that quantify relational compatibility, karmic potential, and temporal event triggers. The following analysis exhaustively details the core lookup tables required to build a functional astrological engine. The arrays provided herein are exact, unabridged, and formatted for direct translation into application logic, avoiding arbitrary summaries to preserve the computational integrity of the system.
+Alongside the structural data, a rigorous analysis of the underlying astrological mechanics is provided, delineating the causal relationships, geometric overrides, and astronomical logic that dictate how these variables interact within a broader deterministic framework.
+1. Yoni Koota: The Biological and Instinctual Resonance Array
+Yoni Koota operates as a biological compatibility algorithm within the Ashtakoota marriage matching system. Assigned a weight of 4 out of 36 points (11%), it quantifies physical harmony, sexual compatibility, and subconscious instinctual bonding.1 The algorithm groups the 27 lunar mansions (Nakshatras) into 14 distinct animal archetypes, each polarized with a specific gender representation.2
+The scoring logic functions on a rigid 0 to 4 scalar array. Identical animal pairings yield maximum physical resonance (4 points, indicating 91% satisfaction). Pairs considered naturally friendly score 3 points (78%), neutral pairs generate 2 points (65%), and unfriendly pairs yield 1 point (48%).1 Third-order analysis reveals that the 0-point pairs (e.g., Cat and Rat, Serpent and Mongoose) do not merely represent lack of attraction; they trigger a "Yoni Dosha," representing deeply ingrained predator-prey dynamics or severe territorial conflicts that fundamentally destabilize the energetic union, yielding a basal 28-38% satisfaction rate.1
+1.1 Nakshatra to Yoni Animal and Gender Mapping
+This one-dimensional array maps the index of the 27 Nakshatras to their respective animal and gender archetypes.
+Nakshatra Index
+	Nakshatra Name
+	Animal (Yoni)
+	Gender
+	1
+	Ashwini
+	Ashwa (Horse)
+	Male
+	2
+	Bharani
+	Gaja (Elephant)
+	Male
+	3
+	Krittika
+	Mesha (Sheep/Ram)
+	Female
+	4
+	Rohini
+	Sarpa (Serpent)
+	Male
+	5
+	Mrigashira
+	Sarpa (Serpent)
+	Female
+	6
+	Ardra
+	Shwan (Dog)
+	Female
+	7
+	Punarvasu
+	Marjara (Cat)
+	Female
+	8
+	Pushya
+	Mesha (Sheep/Ram)
+	Male
+	9
+	Ashlesha
+	Marjara (Cat)
+	Male
+	10
+	Magha
+	Mushaka (Rat)
+	Male
+	11
+	Purva Phalguni
+	Mushaka (Rat)
+	Female
+	12
+	Uttara Phalguni
+	Gau (Cow)
+	Male
+	13
+	Hasta
+	Mahisha (Buffalo)
+	Female
+	14
+	Chitra
+	Vyaghra (Tiger)
+	Female
+	15
+	Swati
+	Mahisha (Buffalo)
+	Male
+	16
+	Vishakha
+	Vyaghra (Tiger)
+	Male
+	17
+	Anuradha
+	Mriga (Deer)
+	Female
+	18
+	Jyeshtha
+	Mriga (Deer)
+	Male
+	19
+	Mula
+	Shwan (Dog)
+	Male
+	20
+	Purva Ashadha
+	Vanara (Monkey)
+	Male
+	21
+	Uttara Ashadha
+	Nakula (Mongoose)
+	Male
+	22
+	Shravana
+	Vanara (Monkey)
+	Female
+	23
+	Dhanishta
+	Simha (Lion)
+	Female
+	24
+	Shatabhisha
+	Ashwa (Horse)
+	Female
+	25
+	Purva Bhadrapada
+	Simha (Lion)
+	Male
+	26
+	Uttara Bhadrapada
+	Gau (Cow)
+	Female
+	27
+	Revati
+	Gaja (Elephant)
+	Female
+	1.2 Yoni Koota 14x14 Compatibility Matrix
+The following symmetric 14x14 matrix dictates the precise score for every possible animal combination.4 This represents the core lookup table for the Yoni Koota calculation.
+Animal
+	Ashwa (Horse)
+	Gaja (Elephant)
+	Mesha (Ram)
+	Sarpa (Serpent)
+	Shwan (Dog)
+	Marjara (Cat)
+	Mushaka (Rat)
+	Gau (Cow)
+	Mahisha (Buffalo)
+	Vyaghra (Tiger)
+	Mriga (Deer)
+	Vanara (Monkey)
+	Nakula (Mongoose)
+	Simha (Lion)
+	Ashwa (Horse)
+	4
+	2
+	2
+	3
+	2
+	2
+	2
+	1
+	0
+	1
+	3
+	2
+	2
+	1
+	Gaja (Elephant)
+	2
+	4
+	3
+	3
+	2
+	2
+	2
+	2
+	3
+	1
+	2
+	3
+	2
+	0
+	Mesha (Ram)
+	2
+	3
+	4
+	2
+	1
+	2
+	1
+	3
+	2
+	1
+	2
+	0
+	2
+	1
+	Sarpa (Serpent)
+	3
+	3
+	2
+	4
+	2
+	1
+	1
+	1
+	2
+	2
+	2
+	2
+	0
+	2
+	Shwan (Dog)
+	2
+	2
+	1
+	2
+	4
+	2
+	1
+	2
+	2
+	1
+	0
+	2
+	2
+	1
+	Marjara (Cat)
+	2
+	2
+	2
+	1
+	2
+	4
+	0
+	2
+	2
+	1
+	2
+	3
+	1
+	1
+	Mushaka (Rat)
+	2
+	2
+	1
+	1
+	1
+	0
+	4
+	2
+	2
+	2
+	2
+	2
+	1
+	2
+	Gau (Cow)
+	1
+	2
+	3
+	1
+	2
+	2
+	2
+	4
+	2
+	0
+	3
+	2
+	2
+	1
+	Mahisha (Buffalo)
+	0
+	3
+	2
+	2
+	2
+	2
+	2
+	2
+	4
+	1
+	2
+	2
+	2
+	1
+	Vyaghra (Tiger)
+	1
+	1
+	1
+	2
+	1
+	1
+	2
+	0
+	1
+	4
+	1
+	2
+	1
+	1
+	Mriga (Deer)
+	3
+	2
+	2
+	2
+	0
+	2
+	2
+	3
+	2
+	1
+	4
+	2
+	2
+	1
+	Vanara (Monkey)
+	2
+	3
+	0
+	2
+	2
+	3
+	2
+	2
+	2
+	2
+	2
+	4
+	2
+	1
+	Nakula (Mongoose)
+	2
+	2
+	2
+	0
+	2
+	1
+	1
+	2
+	2
+	1
+	2
+	2
+	4
+	2
+	Simha (Lion)
+	1
+	0
+	1
+	2
+	1
+	1
+	2
+	1
+	1
+	1
+	1
+	1
+	2
+	4
+	2. Vashya Koota: The Magnetic Dominion Array
+Vashya Koota calculates the magnetic control and amenability between two individuals, providing insight into inherent power dynamics and hierarchical harmony within the relationship.6 The 12 Moon signs are grouped into five categorical archetypes.6 A maximum of 2 points is awarded for complete compatibility.6 When coding this logic, it is essential to account for the split nature of Capricorn and Sagittarius.
+2.1 Zodiac Sign to Vashya Category Mapping
+Zodiac Sign
+	Vashya Category
+	Aries
+	Chatushpad (Quadruped)
+	Taurus
+	Chatushpad (Quadruped)
+	Gemini
+	Manav / Nara (Human)
+	Cancer
+	Jalachara (Water-dweller)
+	Leo
+	Vanachara (Wild Beast)
+	Virgo
+	Manav / Nara (Human)
+	Libra
+	Manav / Nara (Human)
+	Scorpio
+	Keeta (Insect)
+	Sagittarius (0° to 15°)
+	Manav / Nara (Human)
+	Sagittarius (15° to 30°)
+	Chatushpad (Quadruped)
+	Capricorn (0° to 15°)
+	Chatushpad (Quadruped)
+	Capricorn (15° to 30°)
+	Jalachara (Water-dweller)
+	Aquarius
+	Manav / Nara (Human)
+	Pisces
+	Jalachara (Water-dweller)
+	2.2 5x5 Vashya Compatibility Matrix
+The matrix calculates scores based on the specific interaction between the Bride's and Groom's lunar categories.6 The logic evaluates the inherent dominance of the categories (e.g., humans control quadrupeds, but wild beasts consume humans).
+Bride ↓ \ Groom →
+	Chatushpad
+	Manav
+	Jalachara
+	Vanachara
+	Keeta
+	Chatushpad
+	2
+	0
+	0
+	0.5
+	0
+	Manav
+	1
+	2
+	1
+	0.5
+	1
+	Jalachara
+	0.5
+	1
+	2
+	1
+	1
+	Vanachara
+	0
+	0
+	0
+	2
+	0
+	Keeta
+	1
+	1
+	1
+	0
+	2
+	3. Bhakoot Koota: Lunar Geometry and Prosperity Algorithm
+Bhakoot (Rasi Koota) assesses the geometric and spatial relationship between the natal Moon signs of the prospective couple. Securing a pivotal 7 points out of the 36-point system, it correlates heavily with long-term financial stability, physical health, and relational longevity.9 The algorithm categorizes certain spatial relationships (1/1, 1/7, 3/11, 4/10) as auspicious, granting 7 points.9 Conversely, angular distances of 2/12, 5/9, and 6/8 trigger "Bhakoot Dosha," yielding 0 points.9
+The 6/8 axis generates the most profound instability; one partner's moon sits in the 8th house (transformation, sudden crisis) of the other, establishing a vector of continuous energetic drain and financial turbulence.10
+3.1 12x12 Bhakoot Compatibility Score Matrix
+This array dictates the base score prior to the execution of any cancellation logic.9
+Bride ↓ \ Groom →
+	Aries
+	Taurus
+	Gemini
+	Cancer
+	Leo
+	Virgo
+	Libra
+	Scorpio
+	Sagittarius
+	Capricorn
+	Aquarius
+	Pisces
+	Aries
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	Taurus
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	Gemini
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	Cancer
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	Leo
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	Virgo
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	7
+	Libra
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	0
+	Scorpio
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	0
+	Sagittarius
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	7
+	Capricorn
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	7
+	Aquarius
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	0
+	Pisces
+	0
+	7
+	7
+	0
+	0
+	7
+	0
+	0
+	7
+	7
+	0
+	7
+	3.2 Bhakoot Dosha Exception and Cancellation Logic
+Astrological computational models must implement sub-routines to check for geometric overrides. A Dosha is nullified (restoring functional compatibility and overriding the 0-point penalty) if specific underlying planetary dispositors exhibit resonant frequencies.9
+Exception
+	Condition for Cancellation of Bhakoot Dosha
+	1
+	The Rashi (Moon sign) Lord is the exact same planet for both individuals (e.g., Aries/Scorpio ruled by Mars; Taurus/Libra ruled by Venus).
+	2
+	The Rashi Lords of the two individuals are natural mutual friends according to classical planetary friendship arrays (e.g., Sun and Jupiter, Moon and Mercury).
+	3
+	The couple shares the same Rashi but possesses different Nakshatras within that sign.
+	4
+	The Navamsha (D9) Ascendant Lords of the two individuals are either the exact same planet or are natural mutual friends.
+	5
+	The Bride's Moon sign is positioned exactly 5th from the Groom's Moon sign (overriding the 5/9 axis penalty due to natural trine friendship).
+	6
+	The Nakshatras (birth stars) of the partners are identical, or the lords of those Nakshatras are mutually friendly.
+	4. The Shashtiamsha (D60) Karmic Granularity Array
+The Shashtiamsha (D60) chart represents the highest resolution divisional architecture in standard Jyotish. Each 30-degree zodiac sign is partitioned into 60 discrete segments of 30 arc-minutes (0.5 degrees).14 Because the Ascendant of the D60 chart shifts approximately every 2 minutes of clock time, this array maps past-life Sanchita Karma—the deeply aggregated causal seeds from previous incarnations—bypassing superficial psychological markers entirely.14
+Sage Parashara establishes the absolute supremacy of the D60, assigning it the highest Vimshopaka Bala weight (4 points out of 20) in the Shadvarga scheme.15 The programmatic generation of the D60 requires bifurcated logic: odd signs (Aries, Gemini, Leo, Libra, Sagittarius, Aquarius) sequence the deities in direct order (1 to 60), while even signs (Taurus, Cancer, Virgo, Scorpio, Capricorn, Pisces) sequence them in strict reverse order (60 down to 1).15 Furthermore, segments categorized as "Krura" (malefic/inauspicious) in odd signs invert their polarity to become "Soumya" (benefic/auspicious) in even signs.15
+4.1 Shashtiamsha Table: Odd Signs (Direct Order 1-60)
+Index
+	Name
+	Nature
+	Ruling Deity
+	Brief Effect / Signification
+	1
+	Ghora
+	Malefic
+	Ghora
+	Terrible; intense karmic struggles; teacher of Vedas.
+	2
+	Rakshasa
+	Malefic
+	Rakshasa
+	Demonic nature; service provider or bound to servitude.
+	3
+	Deva
+	Benefic
+	Deva
+	Divine blessings; innate purity and goodness.
+	4
+	Kubera
+	Benefic
+	Kubera
+	God of Wealth; immense material acquisition.
+	5
+	Yaksha
+	Benefic
+	Yaksha
+	Celestial beings; guardian of treasures and secrets.
+	6
+	Kinnara
+	Neutral
+	Kinnara
+	Genderqueer expression; high artistic and musical talents.
+	7
+	Bhrasta
+	Malefic
+	Bhrasta
+	Corrupt; fall from grace or deviation from standard paths.
+	8
+	Kulaghna
+	Malefic
+	Kulaghna
+	Destroyer of lineage; commits acts against family honor.
+	9
+	Garala
+	Malefic
+	Garala
+	Poison; exposure to toxic environments or lingering illnesses.
+	10
+	Agni
+	Malefic
+	Agni
+	Fire; aggressive destruction, purification, high metabolic energy.
+	11
+	Maya
+	Malefic
+	Maya
+	Illusion; deceit, entanglement in worldly traps.
+	12
+	Purish
+	Benefic
+	Purish
+	Lord of a place; grounded authority, territorial ownership.
+	13
+	Apampati
+	Benefic
+	Apampati
+	God of waters; emotional depth, adaptability, fluid intelligence.
+	14
+	Marut
+	Benefic
+	Marut
+	God of Air; swift movement, restlessness, traveler.
+	15
+	Kaal
+	Malefic
+	Kaal
+	God of Time/Death; strict karmic reckoning, destruction.
+	16
+	Sarp/Ahi
+	Malefic
+	Sarpa
+	Serpents; hidden dangers, intense regeneration, Kundalini.
+	17
+	Amrit
+	Benefic
+	Amrit
+	Nectar; immortality, healing, absolute beneficence.
+	18
+	Indu
+	Benefic
+	Indu
+	Moon; gentleness, maternal care, profound mental peace.
+	19
+	Mridu
+	Benefic
+	Mridu
+	Tender; soft-spoken, kind-hearted nature.
+	20
+	Komala
+	Benefic
+	Komala
+	Gentle; refined aesthetic and graceful approach to life.
+	21
+	Heramb
+	Benefic
+	Heramb
+	Ganesha; unhindered success, remover of obstacles.
+	22
+	Brahma
+	Benefic
+	Brahma
+	Creator; high intellect, foundational beginnings, origins.
+	23
+	Vishnu
+	Benefic
+	Vishnu
+	Sustainer; preservation of wealth, adherence to dharma.
+	24
+	Mahesh
+	Malefic
+	Mahesh
+	Shiva; radical endings, deconstruction for rebirth.
+	25
+	Deva
+	Benefic
+	Deva
+	Gods; divine intervention, piety, righteous living.
+	26
+	Ardra
+	Malefic
+	Ardra
+	Dry/Tear; sorrow leading to extreme focus and empathy.
+	27
+	Kalinash
+	Benefic
+	Kalinash
+	End of strife; destroyer of negative forces, peacemaker.
+	28
+	Kshitish
+	Benefic
+	Kshitish
+	Lord of Sky (Indra); rulership, vast dominion, leadership.
+	29
+	Kamlakara
+	Benefic
+	Kamlakara
+	Lord of Lotus; purity emerging from murky environments.
+	30
+	Gulika
+	Malefic
+	Gulika
+	Son of Saturn; deep karmic blocks, relentless delays.
+	31
+	Mrityu
+	Malefic
+	Mrityu
+	Death; absolute finality, transition, end of cycles.
+	32
+	Kaal
+	Malefic
+	Kaal
+	Time; relentless decay, strict discipline, temporal limits.
+	33
+	Davagni
+	Malefic
+	Davagni
+	Forest fire; sudden, uncontrollable destruction or expansion.
+	34
+	Ghora
+	Malefic
+	Ghora
+	Terrible; fierce challenges requiring immense grit to survive.
+	35
+	Yama
+	Malefic
+	Yama
+	Lord of Death; rigid justice, unavoidable karmic consequences.
+	36
+	Kantaka
+	Neutral
+	Kantaka
+	Thorn; constant, nagging irritations or sharp intellect.
+	37
+	Sudha
+	Neutral
+	Sudha
+	Nectar; sweet speech, soothing presence, but can dilute focus.
+	38
+	Amrita
+	Neutral
+	Amrita
+	Immortal essence; profound healing abilities, endurance.
+	39
+	Purnachandra
+	Malefic
+	Purnachandra
+	Full Moon; emotional overwhelming, lunacy, public exposure.
+	40
+	Vishdagdha
+	Malefic
+	Vishdagdha
+	Consumed by poison; toxicity ruining endeavors, burnout.
+	41
+	Kulnash
+	Neutral
+	Kulnash
+	Destruction of family; alienation from roots, independence.
+	42
+	Vanshakshaya
+	Malefic
+	Vanshakshaya
+	End of lineage; lack of progeny, breaking of generational ties.
+	43
+	Utpaat
+	Neutral
+	Utpaat
+	Calamity; sudden cosmic disturbances, upheavals, innovation.
+	44
+	Kaal
+	Malefic
+	Kaal
+	Time's end; terminal constraints, pressure, deadlines.
+	45
+	Soumya
+	Benefic
+	Soumya
+	Gentle; highly auspicious, balanced nature, diplomatic.
+	46
+	Komala
+	Benefic
+	Komala
+	Gentle; emotional vulnerability, grace, yielding nature.
+	47
+	Sheetala
+	Benefic
+	Sheetala
+	Cold; calm composure under extreme pressure, detachment.
+	48
+	Drinshtakaral
+	Malefic
+	Drinshtakaral
+	Fearsome teeth; aggressive, destructive force, savage defense.
+	49
+	Indumukh
+	Benefic
+	Indumukh
+	Moon-faced; attractive, serene, charismatic, visually pleasing.
+	50
+	Praveena
+	Benefic
+	Praveena
+	Proficient; high skill, mastery in endeavors, expert.
+	51
+	Kalagni
+	Malefic
+	Kalagni
+	Fire of time; apocalyptic endings, burning away past sins.
+	52
+	Dandayudh
+	Malefic
+	Dandayudh
+	Weapon of punishment; facing legal or karmic penalties.
+	53
+	Nirmala
+	Benefic
+	Nirmala
+	Clear; pristine purity of intent and action, flawless execution.
+	54
+	Soumya
+	Benefic
+	Soumya
+	Gentle; peaceful resolutions, diplomacy, soft power.
+	55
+	Krura
+	Malefic
+	Krura
+	Ruthless; cruel actions dictated by necessity or malice.
+	56
+	Atisheetala
+	Malefic
+	Atisheetala
+	Extremely cold; emotional detachment, freezing of assets.
+	57
+	Sudha
+	Benefic
+	Sudha
+	Nectar; highly educated, acting as a teacher or guide.
+	58
+	Payodhi
+	Malefic
+	Payodhi
+	Sea; overwhelming emotions, acting as a leader/head.
+	59
+	Bhramana
+	Benefic
+	Bhramana
+	Wandering; receiving charity, positive travel, seeking truth.
+	60
+	Chandrarekha
+	Malefic
+	Chandrarekha
+	Line of Moon; successful analyst, professional success, fluctuating luck.
+	4.2 Shashtiamsha Table: Even Signs (Reverse Order 60-1)
+Note: The programmatic implementation for even signs requires reversing both the index mapping and the qualitative nature of the deity (Malefic becomes Benefic, and vice versa).
+Index
+	Name
+	Nature
+	Ruling Deity
+	Brief Effect / Signification
+	1
+	Chandrarekha
+	Benefic
+	Chandrarekha
+	Line of Moon; intuitive insights, stable professional success.
+	2
+	Bhramana
+	Malefic
+	Bhramana
+	Wandering; aimless travel, loss of direction, homelessness.
+	3
+	Payodhi
+	Benefic
+	Payodhi
+	Sea; deep reservoirs of knowledge, emotional stability.
+	4
+	Sudha
+	Malefic
+	Sudha
+	Nectar; diluted impacts, sycophancy, false promises.
+	5
+	Atisheetala
+	Benefic
+	Atisheetala
+	Extremely cold; cool-headed strategy, preservation, patience.
+	6
+	Krura
+	Benefic
+	Krura
+	Ruthless; assertive protection, destroying enemies justifiably.
+	7
+	Soumya
+	Malefic
+	Soumya
+	Gentle; overly passive, easily manipulated, lack of drive.
+	8
+	Nirmala
+	Malefic
+	Nirmala
+	Clear; hidden flaws, apparent clarity masking underlying danger.
+	9
+	Dandayudh
+	Benefic
+	Dandayudh
+	Weapon of punishment; wielding authority justly, penalizing wrongdoers.
+	10
+	Kalagni
+	Benefic
+	Kalagni
+	Fire of time; purifying fire, burning away past sins constructively.
+	11
+	Praveena
+	Malefic
+	Praveena
+	Proficient; misused intelligence, manipulative skill, fraud.
+	12
+	Indumukh
+	Malefic
+	Indumukh
+	Moon-faced; deceptive charm, superficial attraction masking deceit.
+	13
+	Drinshtakaral
+	Benefic
+	Drinshtakaral
+	Fearsome teeth; fierce protection of dependents, warding off evil.
+	14
+	Sheetala
+	Malefic
+	Sheetala
+	Cold; emotional freezing, lack of empathy, social isolation.
+	15
+	Komala
+	Malefic
+	Komala
+	Gentle; extreme fragility, inability to withstand hardship.
+	16
+	Soumya
+	Malefic
+	Soumya
+	Gentle; lethargy, avoiding necessary confrontation.
+	17
+	Kaal
+	Benefic
+	Kaal
+	Time; perfect timing, mastering temporal cycles, longevity.
+	18
+	Utpaat
+	Benefic
+	Utpaat
+	Calamity; positive disruptions, sudden technological leaps.
+	19
+	Vanshakshaya
+	Benefic
+	Vanshakshaya
+	End of lineage; breaking generational curses, liberation from family karma.
+	20
+	Kulnash
+	Benefic
+	Kulnash
+	Destruction of family; independence from toxic family structures.
+	21
+	Vishdagdha
+	Benefic
+	Vishdagdha
+	Consumed by poison; immunity to toxicity, surviving hostile environments.
+	22
+	Purnachandra
+	Benefic
+	Purnachandra
+	Full Moon; complete mental illumination, vast public fame.
+	23
+	Amrita
+	Malefic
+	Amrita
+	Immortal essence; stagnation, inability to change, false healing.
+	24
+	Sudha
+	Malefic
+	Sudha
+	Nectar; toxic positivity, sweet but harmful associations.
+	25
+	Kantaka
+	Benefic
+	Kantaka
+	Thorn; sharp intellect, penetrating through complex obstacles.
+	26
+	Yama
+	Benefic
+	Yama
+	Lord of Death; righteousness, strict adherence to dharma.
+	27
+	Ghora
+	Benefic
+	Ghora
+	Terrible; fierce determination achieving impossible goals.
+	28
+	Davagni
+	Benefic
+	Davagni
+	Forest fire; rapid, positive expansion, burning old paradigms.
+	29
+	Kaal
+	Benefic
+	Kaal
+	Time; timely deliverance, structured growth, longevity.
+	30
+	Mrityu
+	Benefic
+	Mrityu
+	Death; profound transformation, death of the ego, spiritual rebirth.
+	31
+	Gulika
+	Benefic
+	Gulika
+	Son of Saturn; discipline achieved through necessary hardship.
+	32
+	Kamlakara
+	Malefic
+	Kamlakara
+	Lord of Lotus; entanglement in material beauty, superficiality.
+	33
+	Kshitish
+	Malefic
+	Kshitish
+	Lord of Sky (Indra); tyranny, abuse of power, excessive pride.
+	34
+	Kalinash
+	Malefic
+	Kalinash
+	End of strife; inability to resolve conflicts, prolonged warfare.
+	35
+	Ardra
+	Benefic
+	Ardra
+	Dry/Tear; productive sorrow, deep empathy gained through pain.
+	36
+	Deva
+	Malefic
+	Deva
+	Gods; over-reliance on luck, spiritual pride, neglecting practical duties.
+	37
+	Mahesh
+	Benefic
+	Mahesh
+	Shiva; necessary deconstruction allowing for healthy rebirth.
+	38
+	Vishnu
+	Malefic
+	Vishnu
+	Sustainer; stagnant preservation, resisting necessary evolution.
+	39
+	Brahma
+	Malefic
+	Brahma
+	Creator; misdirected creation, building on flawed foundations.
+	40
+	Heramb
+	Malefic
+	Heramb
+	Ganesha; stubborn obstacles, completely blocked paths.
+	41
+	Komala
+	Malefic
+	Komala
+	Gentle; physical or mental weakness leading to failure.
+	42
+	Mridu
+	Malefic
+	Mridu
+	Tender; too soft, easily conquered by aggressive forces.
+	43
+	Indu
+	Malefic
+	Indu
+	Moon; mental instability, wildly fluctuating moods.
+	44
+	Amrit
+	Malefic
+	Amrit
+	Nectar; over-indulgence, lack of urgency, lethargy.
+	45
+	Sarp/Ahi
+	Benefic
+	Sarpa
+	Serpents; Kundalini awakening, profound mystical wisdom.
+	46
+	Kaal
+	Benefic
+	Kaal
+	Time; mastery over deadlines, understanding historical cycles.
+	47
+	Marut
+	Malefic
+	Marut
+	God of Air; scattered energy, inability to focus, anxiety.
+	48
+	Apampati
+	Malefic
+	Apampati
+	God of waters; drowning in emotional debt, instability.
+	49
+	Purish
+	Malefic
+	Purish
+	Lord of a place; loss of territory, displacement, exile.
+	50
+	Maya
+	Benefic
+	Maya
+	Illusion; successfully navigating illusions, worldly mastery.
+	51
+	Agni
+	Benefic
+	Agni
+	Fire; high metabolic energy, dynamic action, decisive leadership.
+	52
+	Garala
+	Benefic
+	Garala
+	Poison; medicinal use of toxins, pharmacological breakthroughs.
+	53
+	Kulaghna
+	Benefic
+	Kulaghna
+	Destroyer of lineage; pioneer breaking away from backward traditions.
+	54
+	Bhrasta
+	Benefic
+	Bhrasta
+	Corrupt; unconventional success operating outside the rules.
+	55
+	Kinnara
+	Malefic
+	Kinnara
+	Genderqueer expression; marginalization, severe identity crises.
+	56
+	Yaksha
+	Malefic
+	Yaksha
+	Celestial beings; hoarding wealth, material paranoia.
+	57
+	Kubera
+	Malefic
+	Kubera
+	God of Wealth; intense greed, self-destruction through materialism.
+	58
+	Deva
+	Malefic
+	Deva
+	Gods; dangerous naivety in a corrupt world.
+	59
+	Rakshasa
+	Benefic
+	Rakshasa
+	Demonic nature; fierce ambition driving monumental success.
+	60
+	Ghora
+	Benefic
+	Ghora
+	Terrible; ultimate intensity leading to massive breakthroughs.
+	5. The Bhrigu Sutras 108 Planetary Matrix
+Attributed to the sage Maharishi Bhrigu, the Bhrigu Sutras establish the foundational axioms for planetary delineations within the twelve astrological houses (bhavas).16 In the context of a computational engine, these 108 combinations (9 planets × 12 houses) act as the primary predictive layer before aspects, transits, or divisional modifiers are applied. The algorithm utilizes the inherent strength, dignity, and natural significations (karakatwas) of the planets to generate highly deterministic event trajectories—such as precise ages for the acquisition of conveyances or the onset of specific physiological ailments.18
+The following array synthesizes the classical Bhrigu delineations into the exact requested 108-row format, providing a complete predictive baseline for coding interpretations.
+PLANET
+	HOUSE
+	Prediction
+	Sun
+	1
+	The native is ambitious, proud, and magnanimous with innate leadership qualities; however, they are prone to eye and heart disorders if afflicted.
+	Sun
+	2
+	Indicates financial fluctuations, a potential for harsh or authoritative speech, and vulnerability to diseases of the face or right eye.
+	Sun
+	3
+	Highly courageous and victorious over enemies, but this placement often indicates the loss, absence, or friction with younger brothers.
+	Sun
+	4
+	Causes deprivation of mental peace and potential loss of inherited property; indicates physical vulnerabilities in the heart or chest.
+	Sun
+	5
+	Grants a highly intelligent and authoritative intellect, but indicates delays, distress, or loss regarding the first-born child.
+	Sun
+	6
+	Ensures absolute triumph over enemies, strong digestion, and wealth, but creates potential issues or conflicts with maternal uncles.
+	Sun
+	7
+	Creates friction in marriage due to ego, points to a proud or arrogant spouse, and causes potential delays in settling down.
+	Sun
+	8
+	Suggests a shortened longevity if afflicted, eye diseases, and sudden financial losses or unexpected inheritances.
+	Sun
+	9
+	The native is spiritual, religious, and lucky, but faces the potential early loss of, or ideological separation from, the father.
+	Sun
+	10
+	Extremely auspicious placement; grants immense administrative power, fame, government recognition, and massive career success.
+	Sun
+	11
+	Brings immense wealth, fulfillment of major life desires, and association with high-ranking, powerful individuals.
+	Sun
+	12
+	Indicates a wandering nature and heavy expenses on noble causes, but potential for hidden enemies and left eye visual defects.
+	Moon
+	1
+	The native possesses a handsome appearance, extreme emotional sensitivity, a vivid imagination, and a deep love for travel.
+	Moon
+	2
+	Grants a handsome face, high education, and allows the native to attain professional success or command respect by the 18th year.
+	Moon
+	3
+	The native is fond of siblings, quietly courageous, and maintains strong vitality alongside a fertile creative output.
+	Moon
+	4
+	Ensures supreme domestic happiness, the early acquisition of vehicles, and a deep, lifelong attachment to the mother.
+	Moon
+	5
+	Blesses the native with intelligent children, a sharp and receptive intellect, and notable success in speculative investments.
+	Moon
+	6
+	Indicates a weak constitution in childhood, chronic stomach ailments, and ongoing psychological troubles from hidden enemies.
+	Moon
+	7
+	The native attracts a beautiful, emotional spouse, finds success in foreign trade, and experiences strong sensual desires.
+	Moon
+	8
+	Creates a vulnerability to water, deep psychological anxiety, and a shortened longevity if heavily afflicted by malefics.
+	Moon
+	9
+	The native is deeply religious, highly fortunate, naturally charitable, and benefits greatly from long-distance travel.
+	Moon
+	10
+	Guarantees career success in public life, widespread popularity, and wealth accumulation through trade or public service.
+	Moon
+	11
+	Provides a continuous influx of wealth, blesses the native with beautiful daughters, and creates a vast, supportive social network.
+	Moon
+	12
+	Drives expenditures on physical comforts, creates a tendency toward isolation, and indicates potential visual defects in the left eye.
+	Mars
+	1
+	The native is courageous and assertive but highly prone to physical scars, impulsive actions, and hot-tempered behavior.
+	Mars
+	2
+	Causes harsh speech, the accumulation of wealth through aggressive or questionable means, and potential for facial injuries.
+	Mars
+	3
+	Grants exceptional physical courage and athletic ability, but invariably causes friction, danger, or loss to younger siblings.
+	Mars
+	4
+	Creates deep domestic unrest, the loss of ancestral property, and potential heart, chest, or blood-related ailments.
+	Mars
+	5
+	Yields an aggressive intellect and highly competitive nature, but causes distress, surgical interventions, or loss regarding children.
+	Mars
+	6
+	The native is a supreme conqueror of enemies and diseases, highly competitive, and remarkably successful in litigation.
+	Mars
+	7
+	Creates Manglik Dosha; indicates an aggressive spouse, severe marital friction, and a high potential for separation or divorce.
+	Mars
+	8
+	Leads to eye diseases, rheumatic pains, urinary issues, and sudden, accident-prone events that can shorten longevity.
+	Mars
+	9
+	The native is an independent thinker who clashes with father or gurus, creating their own luck through sheer force of will.
+	Mars
+	10
+	Highly successful in technical, military, or executive professions; the native commands immense authority and acts decisively.
+	Mars
+	11
+	Brings sudden and substantial financial gains, the acquisition of real estate property, and powerful, influential friends.
+	Mars
+	12
+	Causes severe financial losses, secret enemies, sleep disturbances, and a strong potential for hospitalization or imprisonment.
+	Mercury
+	1
+	The native retains a youthful appearance, is highly articulate, deeply intellectual, and mathematically or analytically gifted.
+	Mercury
+	2
+	Exceptionally eloquent and wealthy, finding massive success in commerce, writing, banking, or speaking professions.
+	Mercury
+	3
+	Possesses excellent communication skills, supportive siblings, and finds distinct success in publishing or journalism.
+	Mercury
+	4
+	Highly learned; the native acquires wealth and conveyances by the 16th year and enjoys profound, unshakeable mental peace.
+	Mercury
+	5
+	Highly intelligent, skilled in mantras, blessed with brilliant children, and naturally acts as an advisor to leaders.
+	Mercury
+	6
+	Prone to nervous system disorders and skin diseases, but intellectually outmaneuvers all enemies and competitors.
+	Mercury
+	7
+	Marries an intelligent, youthful spouse and finds immense success in business partnerships, trade, and negotiations.
+	Mercury
+	8
+	Grants a long life, deep interest in occult sciences, and brings unexpected gains through inheritances or hidden wealth.
+	Mercury
+	9
+	Extremely learned and scientifically minded; the native frequently undertakes long journeys for higher education.
+	Mercury
+	10
+	Possesses a powerful intellect; speaks less but performs massive deeds, attaining king-like authority and immense success.
+	Mercury
+	11
+	Wealthy and kind-hearted, the native is blessed with children and immense financial gains after the age of 21.
+	Mercury
+	12
+	Learned and generous, but if afflicted, suffers from an unstable mind, nervous anxiety, and high expenditures.
+	Jupiter
+	1
+	Grants a magnetic personality, highly moral character, a physically robust body, and protection from thousands of doshas.
+	Jupiter
+	2
+	Brings immense wealth, truthful speech, an excellent family life, and high success as a teacher, banker, or advisor.
+	Jupiter
+	3
+	Fosters a philosophical mindset and good relationships with siblings, but the native may lack immense physical courage.
+	Jupiter
+	4
+	Ensures supreme domestic comforts, high education, large properties, and a deeply peaceful, harmonious home life.
+	Jupiter
+	5
+	Highly virtuous with a brilliant intellect; finds success in investments and is blessed with obedient, successful children.
+	Jupiter
+	6
+	Achieves victory through diplomacy and is protected from severe illnesses, but may face potential liver or digestive issues.
+	Jupiter
+	7
+	Attracts a highly cultured, religious, and faithful spouse, and finds great success in long-term joint ventures.
+	Jupiter
+	8
+	Indicates a peaceful death, long life, and deep, profound knowledge of astrology, metaphysics, or the occult.
+	Jupiter
+	9
+	Grants supreme luck; the native is deeply spiritual, highly educated, and exceptionally fortunate regarding the father.
+	Jupiter
+	10
+	Produces powerful Raja Yogas and Dhana Yogas; brings immense wealth, deep respect, and praiseworthy public conduct.
+	Jupiter
+	11
+	Learned and wealthy, experiencing massive financial gains and the acquisition of luxury conveyances by the 32nd year.
+	Jupiter
+	12
+	Drives heavy expenditure on spiritual charities; the native becomes highly detached and attains Moksha or a peaceful afterlife.
+	Venus
+	1
+	The native is extremely attractive, charismatic, fond of luxury, and possesses highly refined artistic and aesthetic tastes.
+	Venus
+	2
+	Grants a melodious voice, immense wealth, a fondness for gourmet food, and a highly harmonious family life.
+	Venus
+	3
+	Indicates artistic siblings, success in creative communications, and a deep fondness for short, pleasurable travels.
+	Venus
+	4
+	Ensures absolute luxury, beautiful homes, multiple high-end vehicles, and deep happiness derived from the mother.
+	Venus
+	5
+	Highly creative and romantic; blessed with beautiful daughters, and possesses a deep lover for music and the arts.
+	Venus
+	6
+	Prone to reproductive or kidney issues, and frequently encounters friction with women or in romantic relationships.
+	Venus
+	7
+	Extremely passionate; attracts a beautiful spouse and enjoys a highly sensual, fulfilling, and harmonious marital life.
+	Venus
+	8
+	Brings unexpected gains through marriage or inheritance, ensures a long life, but indicates potential for secret affairs.
+	Venus
+	9
+	Highly fortunate; loves long-distance luxury travel and possesses a refined, aesthetic approach to spirituality.
+	Venus
+	10
+	Suggests a career in arts, luxury, or entertainment; the native becomes immensely popular and beloved by the public.
+	Venus
+	11
+	Generates supreme financial gains, the rapid accumulation of luxury items, and a vast network of female friends.
+	Venus
+	12
+	Enjoys intense bed pleasures, spends heavily on luxuries, and frequently seeks comfort and romance in foreign lands.
+	Saturn
+	1
+	Imparts a tall, thin physique, a melancholy disposition, delayed success, and a highly disciplined, serious nature.
+	Saturn
+	2
+	Extremely rich if ruling good houses, but if afflicted, the native is poor with harsh speech and an afflicted face.
+	Saturn
+	3
+	Causes the loss of younger brothers or having no brothers; the native earns a livelihood through heavy or undesirable trades.
+	Saturn
+	4
+	Indicates separation from the mother, a severe lack of domestic peace, and intense delays or obstacles in acquiring property.
+	Saturn
+	5
+	Causes significant delays in childbirth, grants a slow but profound intellect, and leads to a melancholic romantic life.
+	Saturn
+	6
+	Crushes enemies through sheer endurance; immune to many diseases but highly prone to chronic, slow-moving ailments.
+	Saturn
+	7
+	Forces a delayed marriage, attracts an older or highly mature spouse, and indicates a cold but dutiful marital life.
+	Saturn
+	8
+	Grants an exceptionally long life, but the native's path may be filled with slow struggles and chronic health issues.
+	Saturn
+	9
+	Detached from orthodox religion, seeks deep philosophical truth, and faces severe delays in luck and higher education.
+	Saturn
+	10
+	Indicates a slow but steady rise to immense power; massive success in heavy industries, labor management, or politics.
+	Saturn
+	11
+	Brings slow but massive accumulation of wealth, older or mature friends, and the ultimate fulfillment of long-term desires.
+	Saturn
+	12
+	Threatens confinement, heavy expenditures, potential for imprisonment, but offers ultimate success far from the birthplace.
+	Rahu
+	1
+	Generates an unconventional personality; the native is highly ambitious, manipulative, and prone to sudden life changes.
+	Rahu
+	2
+	Causes sudden financial spikes and crashes, unorthodox dietary habits, and deceitful or foreign-influenced speech.
+	Rahu
+	3
+	Grants immense courage and destroys enemies effortlessly, but is highly detrimental to the survival of younger siblings.
+	Rahu
+	4
+	Creates massive domestic chaos, deep psychological unrest, and leads to an unnatural or foreign home environment.
+	Rahu
+	5
+	Yields a highly obsessive intellect; brings gains through massive speculation but causes extreme distress regarding children.
+	Rahu
+	6
+	Ensures supreme victory over enemies and massive success in foreign lands, but causes strange, undiagnosable physical ailments.
+	Rahu
+	7
+	Leads to an unconventional marriage, often to a foreign spouse, and creates highly volatile business partnerships.
+	Rahu
+	8
+	Triggers sudden, mysterious transformations, undiagnosable diseases, and massive gains from illicit or hidden sources.
+	Rahu
+	9
+	Causes the rejection of traditional religion in favor of bizarre philosophies; brings luck through foreign travel or foreigners.
+	Rahu
+	10
+	Imparts extreme ambition; the native achieves a sudden rise to power through manipulation and unconventional career paths.
+	Rahu
+	11
+	Generates massive, sudden wealth accumulation through unorthodox means and establishes a diverse, powerful network.
+	Rahu
+	12
+	Indicates foreign residence, bizarre dreams, severe sleep disorders, and immense hidden or unexplainable expenses.
+	Ketu
+	1
+	The native is deeply spiritual, introverted, highly intuitive, but heavily prone to physical weakness or a lack of direction.
+	Ketu
+	2
+	Causes detachment from wealth, sharp or highly critical speech, and a strong potential for sudden financial losses.
+	Ketu
+	3
+	Courageous but entirely detached from outcomes; frequently breaks ties with siblings, neighbors, or immediate peers.
+	Ketu
+	4
+	Leads to the loss of property, emotional detachment from the mother, and highly unsettling, transient domestic environments.
+	Ketu
+	5
+	Grants a spiritual intellect and past-life karmic burdens regarding children; causes sudden, absolute losses in speculation.
+	Ketu
+	6
+	Brings strange, undiagnosable diseases, but allows the native to intuitively outmaneuver enemies without direct conflict.
+	Ketu
+	7
+	Creates extreme detachment from marriage, attracts a highly spiritual or sickly spouse, and results in broken partnerships.
+	Ketu
+	8
+	Fosters a deep interest in occult mysteries, triggers sudden surgical interventions, and grants intense intuitive flashes.
+	Ketu
+	9
+	Leads to deeply orthodox or highly mystical spirituality, numerous pilgrimages, and inevitable separation from the father.
+	Ketu
+	10
+	Causes sudden career changes, utter detachment from fame, and leads to a chaotic or highly spiritual public life.
+	Ketu
+	11
+	Generates a complete disinterest in social networking, brings sudden but unfulfilling financial gains, and spiritual friends.
+	Ketu
+	12
+	The ultimate planetary placement for Moksha (liberation), granting profound psychic phenomena and extreme physical isolation.
+	6. The 16 Tajika Yogas: The Relational Calculus of Varshaphala
+The Tajika system, employed primarily in Varshaphala (annual horoscopy) and Prashna (horary astrology), abandons the standard Parashari sign-based aspects in favor of 16 highly specific geometric operators known as "Yogas".19 These relational operators calculate the exact timing, energetic flow, and manifestation of physical events.
+Computational analysis of Tajika Yogas relies on rigid Deeptamshas (orbs of influence) for each planet: Sun 15°, Moon 12°, Mars 8°, Mercury 7°, Jupiter 9°, Venus 7°, and Saturn 9°.19 The algorithm must also strictly monitor planetary velocity, following the hierarchy from fastest to slowest: Moon, Mercury, Venus, Sun, Mars, Jupiter, Saturn.19 An aspect only mathematically completes if the faster planet applies to the slower planet within the designated orb.
+6.1 Complete Array of 16 Tajika Yogas
+The following array details the name, formation rule, and deterministic predictive effect of all 16 Tajika Yogas.19
+Name
+	Formation Rule
+	Predictive Effect
+	1. Ikkaval / Iqbal
+	All seven planets are positioned strictly in Kendra (1, 4, 7, 10) and Panaphara (2, 5, 8, 11) houses.
+	Highly Positive; brings immense gains in business, a rise in status, massive wealth, and overall good luck during the year.
+	2. Induvara
+	All seven planets are positioned strictly in Apoklima (3, 6, 9, 12) houses.
+	Negative; indicates misfortune, failure of objectives, loss of status, sickness, and deep disappointments.
+	3. Ithasala / Muthasil
+	A faster-moving planet is behind a slower-moving planet, both are in mutual Tajika aspect, and their degrees overlap within their combined orb (Deeptamsha).
+	Highly Positive; indicates the successful fulfillment, bridging, and physical manifestation of the desired event.
+	4. Easarapha / Musaripha
+	A faster-moving planet is mathematically ahead of a slower-moving planet by 1 degree or more, moving out of orb.
+	Negative; a separative aspect indicating failure, missed opportunities, and moving away from success.
+	5. Nakta
+	No mutual aspect exists between two primary planets, but a faster third planet sits between them, forming aspects with both.
+	Positive; success is achieved through the active assistance or bridging action of a third party (a messenger or junior).
+	6. Yamaya
+	No mutual aspect exists between two primary planets, but a slower third planet sits between them, forming aspects with both.
+	Positive; light is transferred via the slower planet, indicating success through an older, established, or senior mediator.
+	7. Manau / Manahoo
+	Two planets are within Ithasala orb, but a malefic planet (Mars or Saturn) is located exactly between their degrees.
+	Negative; the expected success is violently destroyed or blocked at the last minute by an external enemy or circumstance.
+	8. Kamboola
+	An Ithasala yoga forms between the Ascendant lord and House lord, while the Moon also forms an Ithasala with either of them.
+	Highly Positive; the Moon acts as a powerful catalyst, guaranteeing success, joy, and smooth, high-quality execution.
+	9. Gairi-Kamboola
+	Similar to Kamboola, but the Moon is debilitated, combust, or heavily afflicted while forming the bridging Ithasala.
+	Neutral/Negative; the event may technically happen, but it brings deep sorrow, extreme stress, or a pyrrhic victory.
+	10. Khallasara
+	The Ascendant lord and House lord are completely void of course—not forming Ithasala with the Moon or any other planet.
+	Negative; indicates complete stagnation, a severe lack of energy, and the absolute failure of the objective.
+	11. Rudda
+	An Ithasala is forming, but the faster applying planet is combust, retrograde, or highly afflicted by a malefic.
+	Negative; the endeavor is obstructed, annulled, or violently rejected right before completion.
+	12. Duhphali Kuttha
+	A slow-moving planet is exalted or in its own sign, but the faster planet approaching it is debilitated or in an enemy sign.
+	Negative; despite good foundations, the execution is fundamentally flawed, leading to failure and disappointment.
+	13. Duthotha-Davira
+	Both planets are weak or afflicted, but one forms a secondary Ithasala with a third exalted or exceptionally strong planet.
+	Positive; a seemingly doomed situation is suddenly and miraculously rescued by a powerful external benefactor.
+	14. Tambira
+	A faster planet at the very end of a sign (29°+) is about to enter the next sign to form an Ithasala with a slower planet.
+	Positive; delayed success that manifests precisely when a major geographical shift, relocation, or phase change occurs.
+	15. Kuttha
+	The Ascendant is aspected by a planet located in a Kendra or Panaphara that is also in its own or exalted sign.
+	Highly Positive; guarantees immense personal power, protection, elevation of status, and fulfillment of deep desires.
+	16. Durupha
+	A planet in the 6th, 8th, or 12th house is debilitated/combust and forms an Ithasala with another similarly afflicted planet.
+	Highly Negative; massive disaster, total ruin, severe health crises, imprisonment, and absolute powerlessness.
+	7. Tajika Sahams: The Mathematical Sensitive Points
+Derived from the Arabic astrological tradition (Arabic Parts), Tajika Sahams are mathematically calculated sensitive points plotted across the 360-degree zodiac. These points act as temporal triggers, pinpointing specific life events within a given annual cycle.25 The standard algorithm for derivation is Point A - Point B + Ascendant. However, a crucial geometric correction exists: if the Ascendant does not fall spatially between Point A and Point B, an additional 30 degrees must be programmatically added to the result to finalize the Saham's longitude.28
+Furthermore, due to the inversion of planetary power between diurnal and nocturnal hours, the algorithm reverses Point A and Point B depending on whether the birth occurred during the day or night.25
+7.1 Complete Array of 50 Tajika Sahams (Neelakanthi System)
+The following 50-row array provides the full mathematical formulas required to calculate each domain-specific Saham, accounting for the day/night inversion.26
+Saham Name (Domain)
+	Day Formula
+	Night Formula
+	1. Punya (Fortune/Luck)
+	Moon - Sun + Asc
+	Sun - Moon + Asc
+	2. Vidya (Education)
+	Sun - Moon + Asc
+	Moon - Sun + Asc
+	3. Yasa (Fame)
+	Jupiter - Punya Saham + Asc
+	Punya Saham - Jupiter + Asc
+	4. Mahatmya (Greatness)
+	Punya Saham - Mars + Asc
+	Mars - Punya Saham + Asc
+	5. Gaurava (Respect)
+	Jupiter - Moon + Asc
+	Moon - Jupiter + Asc
+	6. Karma (Work/Profession)
+	Mars - Mercury + Asc
+	Mercury - Mars + Asc
+	7. Artha (Money/Wealth)
+	House 2 Cusp - House 2 Lord + Asc
+	House 2 Lord - House 2 Cusp + Asc
+	8. Vanijya (Trade/Commerce)
+	Mars - Sun + Asc
+	Sun - Mars + Asc
+	9. Siddhi (Success/Achievement)
+	Punya Saham - Sun + Asc
+	Sun - Punya Saham + Asc
+	10. Samarth (Ability/Enterprise)
+	Mars - Ascendant Lord + Asc
+	Ascendant Lord - Mars + Asc
+	11. Bhrata (Siblings)
+	Jupiter - Saturn + Asc
+	Saturn - Jupiter + Asc
+	12. Rajya (Kingdom/Authority)
+	Saturn - Sun + Asc
+	Sun - Saturn + Asc
+	13. Taata (Father)
+	Sun - Saturn + Asc
+	Saturn - Sun + Asc
+	14. Mata (Mother)
+	Moon - Venus + Asc
+	Venus - Moon + Asc
+	15. Suta (Children)
+	Jupiter - Moon + Asc
+	Moon - Jupiter + Asc
+	16. Jeevita (Life/Longevity)
+	Saturn - Jupiter + Asc
+	Jupiter - Saturn + Asc
+	17. Ambu (Water/Travel)
+	Cancer 15° - Moon + Asc
+	Moon - Cancer 15° + Asc
+	18. Kama (Desire/Lust)
+	Venus - Ascendant + Asc
+	Ascendant - Venus + Asc
+	19. Mandya (Sluggishness)
+	Saturn - Moon + Asc
+	Moon - Saturn + Asc
+	20. Manmatha (Sexual Passion)
+	Ascendant - Moon + Asc
+	Moon - Ascendant + Asc
+	21. Kali (Strife/Conflict)
+	Jupiter - Mars + Asc
+	Mars - Jupiter + Asc
+	22. Kshama (Forgiveness)
+	Jupiter - Mars + Asc
+	Mars - Jupiter + Asc
+	23. Shastra (Weapons/Surgery)
+	Jupiter - Saturn + Asc
+	Saturn - Jupiter + Asc
+	24. Bandhu (Relatives)
+	Mercury - Moon + Asc
+	Moon - Mercury + Asc
+	25. Bandhaka (Captivity)
+	Venus - Moon + Asc
+	Moon - Venus + Asc
+	26. Mrityu (Death)
+	House 8 Cusp - Moon + Asc
+	Moon - House 8 Cusp + Asc
+	27. Paradesa (Foreign Travel)
+	House 9 Cusp - House 9 Lord + Asc
+	House 9 Lord - House 9 Cusp + Asc
+	28. Dhana (Material Wealth)
+	Venus - Mercury + Asc
+	Mercury - Venus + Asc
+	29. Anya Dara (Adultery/Affairs)
+	Venus - Sun + Asc
+	Sun - Venus + Asc
+	30. Anya Karma (Alternative Work)
+	Mercury - Saturn + Asc
+	Saturn - Mercury + Asc
+	31. Vyapara (Business Operations)
+	Mars - Saturn + Asc
+	Saturn - Mars + Asc
+	32. Satru (Enemy)
+	Mars - Saturn + Asc
+	Saturn - Mars + Asc
+	33. Daridra (Poverty)
+	Jupiter - Mercury + Asc
+	Mercury - Jupiter + Asc
+	34. Bandhana (Imprisonment)
+	Punya Saham - Saturn + Asc
+	Saturn - Punya Saham + Asc
+	35. Roga (Disease)
+	Ascendant - Moon + Asc
+	Moon - Ascendant + Asc
+	36. Apamrityu (Unnatural Death)
+	House 8 Cusp - Mars + Asc
+	Mars - House 8 Cusp + Asc
+	37. Vivaha (Marriage)
+	Venus - Saturn + Asc
+	Saturn - Venus + Asc
+	38. Santapa (Sorrow)
+	Saturn - Moon + Asc
+	Moon - Saturn + Asc
+	39. Sraddha (Devotion)
+	Venus - Mercury + Asc
+	Mercury - Venus + Asc
+	40. Preeti (Love/Affection)
+	Venus - Moon + Asc
+	Moon - Venus + Asc
+	41. Bala (Strength/Power)
+	Mars - Moon + Asc
+	Moon - Mars + Asc
+	42. Tanu (Physical Body)
+	Ascendant - Moon + Asc
+	Moon - Ascendant + Asc
+	43. Jadya (Dullness/Stupor)
+	Mars - Mercury + Asc
+	Mercury - Mars + Asc
+	44. Paniya Patana (Fall in Water)
+	Cancer 15° - Saturn + Asc
+	Saturn - Cancer 15° + Asc
+	45. Shaurya (Bravery)
+	Mars - Saturn + Asc
+	Saturn - Mars + Asc
+	46. Upaya (Strategy/Method)
+	Jupiter - Mercury + Asc
+	Mercury - Jupiter + Asc
+	47. Guru (Teacher/Guide)
+	Sun - Jupiter + Asc
+	Jupiter - Sun + Asc
+	48. Ambu Patha (Sea Voyage)
+	Cancer 15° - Mars + Asc
+	Mars - Cancer 15° + Asc
+	49. Dharma (Righteousness)
+	Moon - Mercury + Asc
+	Mercury - Moon + Asc
+	50. Karma Siddhi (Action Fulfillment)
+	Sun - Mercury + Asc
+	Mercury - Sun + Asc
+	8. The Nakshatra-Surgical Body Mapping Array
+Medical astrology (Ayurjyotish) utilizes a strict contraindication algorithm known as the Nara Chakra (human body projection onto the zodiac). This system dictates that surgical procedures must never be performed on a specific body part when the Moon is transiting the Nakshatra that rules that exact anatomical region.31
+The underlying bio-energetic logic states that the lunar transit actively pulls blood, fluids, and energetic prana to that specific cellular region. Therefore, incisions or surgeries performed during this window face highly elevated risks of severe hemorrhage, massive swelling, infection, and significantly delayed healing.31 The following 27-row array maps the sidereal constellations to human anatomy, providing the requisite logic for a medical timing module.31
+8.1 Complete 27-Nakshatra Anatomical Mapping Array
+Nakshatra Index
+	Nakshatra
+	Anatomical Region / Body Part Ruled (Surgery Strictly Forbidden During Lunar Transit)
+	1
+	Ashwini
+	Knees, top of the feet.
+	2
+	Bharani
+	Head, bottom of the feet.
+	3
+	Krittika
+	Waist, hip joints, crown of the head.
+	4
+	Rohini
+	Legs, forehead, ankles, shins, calves of the legs.
+	5
+	Mrigashira
+	Eyes, eyebrows.
+	6
+	Ardra
+	Hair, eyes, back and front side of the head (brain's controlling mechanism).
+	7
+	Punarvasu
+	Fingers, nose.
+	8
+	Pushya
+	Mouth, face (facial expressions), bone joints, elbows.
+	9
+	Ashlesha
+	Nails, knuckles, kneecaps, ears.
+	10
+	Magha
+	Nose, lips, chin.
+	11
+	Purva Phalguni
+	Sexual organs, lips, right hand.
+	12
+	Uttara Phalguni
+	Sexual organs, left hand.
+	13
+	Hasta
+	Hands.
+	14
+	Chitra
+	Forehead, neck.
+	15
+	Swati
+	Teeth, chest, respiratory and breathing process.
+	16
+	Vishakha
+	Upper limbs, arms, breasts.
+	17
+	Anuradha
+	Astral fires in the body, heart, breasts, stomach, womb.
+	18
+	Jyeshtha
+	Tongue, neck, right side of the torso.
+	19
+	Mula
+	Both feet, left side of the torso, back.
+	20
+	Purva Ashadha
+	Both thighs.
+	21
+	Uttara Ashadha
+	Both thighs, waist.
+	22
+	Shravana
+	Ears, sexual organs, physical gait.
+	23
+	Dhanishta
+	Back, anus.
+	24
+	Shatabhisha
+	Both sides of the chin, jaw, right thigh.
+	25
+	Purva Bhadrapada
+	Two sides of the body, ribs, abdomen, sides of legs, left thigh, soles of feet.
+	26
+	Uttara Bhadrapada
+	Two sides of the body, sides of legs, shins, soles of feet.
+	27
+	Revati
+	Armpits, abdomen, groin.

@@ -280,6 +280,141 @@ try:
 except ImportError:
     _SCIENCE_AVAILABLE = False
 
+# ── Phase 4: Classical Doshas ────────────────────────────────────
+try:
+    from vedic_engine.analysis.doshas import (
+        detect_kala_sarpa, detect_manglik_dosha, detect_pitru_dosha,
+        compute_combustion, compute_gandanta_detailed, compute_trisphutam,
+        is_pushkara_navamsha, is_pushkara_bhaga, is_abhijit_nakshatra,
+    )
+    _DOSHAS_AVAILABLE = True
+except ImportError:
+    _DOSHAS_AVAILABLE = False
+
+# ── Phase 4: Varga Interpretations ──────────────────────────────
+try:
+    from vedic_engine.core.varga_interpretations import (
+        analyze_d60_full, analyze_d30, compute_all_sapta_varga,
+        compute_all_dasha_varga, analyze_kashinath_hora,
+        is_vargottama as vi_is_vargottama,
+    )
+    _VARGA_INTERP_AVAILABLE = True
+except ImportError:
+    _VARGA_INTERP_AVAILABLE = False
+
+# ── Phase 4: Extended Nakshatra Analysis ─────────────────────────
+try:
+    from vedic_engine.analysis.nakshatra_extended import (
+        get_nakshatra_classification, compute_tarabala_extended,
+        compute_panchaka,
+    )
+    _NAKSHATRA_EXT_AVAILABLE = True
+except ImportError:
+    _NAKSHATRA_EXT_AVAILABLE = False
+
+# ── Phase 4: Muhurta Extended ────────────────────────────────────
+try:
+    from vedic_engine.timing.muhurta_extended import (
+        compute_panchanga_shuddhi, compute_hora,
+        compute_abhijit_muhurta, compute_all_inauspicious_windows,
+        classify_tithi, get_vara_element,
+    )
+    _MUHURTA_EXT_AVAILABLE = True
+except ImportError:
+    _MUHURTA_EXT_AVAILABLE = False
+
+# ── Phase 4: Medical Extended ────────────────────────────────────
+try:
+    from vedic_engine.analysis.medical_extended import (
+        identify_marakas, detect_arishta_yoga, check_arishta_cancellation,
+        check_disease_yogas, detect_psychiatric_yogas,
+        compute_beeja_sphuta, compute_kshetra_sphuta,
+        get_triple_map, assess_dasha_disease_risk,
+    )
+    _MEDICAL_EXT_AVAILABLE = True
+except ImportError:
+    _MEDICAL_EXT_AVAILABLE = False
+
+# ── Phase 4: Advanced Dashas ─────────────────────────────────────
+try:
+    from vedic_engine.timing.advanced_dashas import (
+        compute_sudarshana_balance, compute_sudarshana_dasha_sequence,
+        compute_patyayini_dasha, compute_ashtaka_dasha,
+    )
+    _ADV_DASHAS_AVAILABLE = True
+except ImportError:
+    _ADV_DASHAS_AVAILABLE = False
+
+# ── Phase 4: Advanced Techniques ─────────────────────────────────
+try:
+    from vedic_engine.analysis.advanced_techniques import (
+        lookup_bhrigu_all_planets, compute_nadi_amsa as compute_nadi_amsa_150,
+        compute_chaturthamsha, compute_parashari_drekkana,
+        compute_parivritta_drekkana, compute_somnath_drekkana,
+        compute_ashtamsha, check_neechabhanga_extended,
+        check_saptha_shalaka_vedha, check_theft_litigation,
+        check_travel_relocation, check_competition_success,
+        check_jataka_tatva_arishta,
+    )
+    _ADV_TECH_AVAILABLE = True
+except ImportError:
+    _ADV_TECH_AVAILABLE = False
+
+# ── Phase 5: Tithi Pravesh ───────────────────────────────────────
+try:
+    from vedic_engine.timing.tithi_pravesh import compute_tithi_pravesh
+    _TITHI_PRAVESH_AVAILABLE = True
+except ImportError:
+    _TITHI_PRAVESH_AVAILABLE = False
+
+# ── Phase 5: Pancha Pakshi ───────────────────────────────────────
+try:
+    from vedic_engine.timing.pancha_pakshi import compute_pancha_pakshi
+    _PANCHA_PAKSHI_AVAILABLE = True
+except ImportError:
+    _PANCHA_PAKSHI_AVAILABLE = False
+
+# ── Phase 5: Lal Kitab ──────────────────────────────────────────
+try:
+    from vedic_engine.analysis.lal_kitab import compute_all_lalkitab
+    _LALKITAB_AVAILABLE = True
+except ImportError:
+    _LALKITAB_AVAILABLE = False
+
+# ── Phase 5: Advanced Prashna ────────────────────────────────────
+try:
+    from vedic_engine.prashna.prashna_advanced import compute_all_advanced_prashna
+    _ADV_PRASHNA_AVAILABLE = True
+except ImportError:
+    _ADV_PRASHNA_AVAILABLE = False
+
+# ── Phase 5: Lookup Tables (Compatibility) ──────────────────────
+try:
+    from vedic_engine.data.lookup_tables import (
+        compute_all_compatibility, check_surgical_contraindication,
+        compute_extended_saham, EXTENDED_SAHAMS, TAJIKA_YOGA_DEFINITIONS,
+        NARA_CHAKRA,
+    )
+    _LOOKUP_TABLES_AVAILABLE = True
+except ImportError:
+    _LOOKUP_TABLES_AVAILABLE = False
+
+# ── Phase 5: Rare Dashas ────────────────────────────────────────
+try:
+    from vedic_engine.timing.rare_dashas import compute_all_rare_dashas
+    _RARE_DASHAS_AVAILABLE = True
+except ImportError:
+    _RARE_DASHAS_AVAILABLE = False
+
+# ── Phase 5: Advanced Yogas ─────────────────────────────────────
+try:
+    from vedic_engine.analysis.advanced_yogas import (
+        compute_all_advanced_yogas, compute_jaimini_longevity,
+    )
+    _ADV_YOGAS_AVAILABLE = True
+except ImportError:
+    _ADV_YOGAS_AVAILABLE = False
+
 
 # ─── Domain definitions (KP-corrected) ──────────────────────────
 DOMAIN_HOUSES = {
@@ -1003,6 +1138,574 @@ class PredictionEngine:
             except Exception:
                 pass
 
+        # ══════════════════════════════════════════════════════════
+        # Phase 4: Classical Doshas & Advanced Computations
+        # ALL results → _p4_computed dict → merged into static["computed"]
+        # ══════════════════════════════════════════════════════════
+        _p4_computed: Dict[str, Any] = {}
+
+        # ── 4.1 Doshas ─────────────────────────────────────────────
+        if _DOSHAS_AVAILABLE:
+            try:
+                _rahu_h = planet_houses.get("RAHU", 1)
+                _ketu_lon = planet_lons.get("KETU", (rahu_lon + 180) % 360)
+                # Only 7 classical planets for KSY check
+                _seven_lons = {p: l for p, l in planet_lons.items()
+                               if p not in ("RAHU", "KETU")}
+                _p4_computed["kala_sarpa"] = detect_kala_sarpa(
+                    _seven_lons, rahu_lon, _ketu_lon, _rahu_h)
+            except Exception:
+                _p4_computed["kala_sarpa"] = {}
+
+            try:
+                _mars_h = planet_houses.get("MARS", 1)
+                _mars_sign = planet_signs.get("MARS", 0)
+                _moon_h = planet_houses.get("MOON", 1)
+                _venus_h = planet_houses.get("VENUS", 1)
+                _jup_h_m = planet_houses.get("JUPITER", 1)
+                # Mars house from Moon (1-based offset)
+                _mars_from_moon = ((_mars_h - _moon_h) % 12) + 1
+                _venus_sign = planet_signs.get("VENUS", 0)
+                _mars_from_venus = ((_mars_h - _venus_h) % 12) + 1
+                _kendra_set = {1, 4, 7, 10}
+                _jup_asp_mars = asp_map.get("JUPITER", {}).get("MARS", False) if isinstance(asp_map, dict) else False
+                _age_static = max(0, int((datetime.now() - birth_dt).days / 365.25))
+                _p4_computed["manglik"] = detect_manglik_dosha(
+                    mars_house_lagna=_mars_h,
+                    mars_house_moon=_mars_from_moon,
+                    mars_house_venus=_mars_from_venus,
+                    mars_sign=_mars_sign,
+                    mars_is_retrograde=retrogrades.get("MARS", False),
+                    mars_aspected_by_jupiter=bool(_jup_asp_mars),
+                    mars_conjunct_jupiter=(_jup_h_m == _mars_h),
+                    jupiter_in_kendra=(_jup_h_m in _kendra_set),
+                    venus_in_kendra=(_venus_h in _kendra_set),
+                    rahu_in_kendra=(planet_houses.get("RAHU", 0) in _kendra_set),
+                    lagna_sign=lagna_sign,
+                    age_years=_age_static,
+                )
+            except Exception:
+                _p4_computed["manglik"] = {}
+
+            try:
+                _p4_computed["pitru_dosha"] = detect_pitru_dosha(
+                    planet_houses, planet_signs, planet_lons, lagna_sign, asp_map)
+            except Exception:
+                _p4_computed["pitru_dosha"] = {}
+
+            try:
+                _p4_computed["combustion"] = compute_combustion(
+                    planet_lons, sun_lon, retrogrades)
+            except Exception:
+                _p4_computed["combustion"] = {}
+
+            try:
+                _gandanta_all: Dict[str, Any] = {}
+                for _gp, _gl in planet_lons.items():
+                    _gandanta_all[_gp] = compute_gandanta_detailed(_gl, _gp)
+                _gandanta_all["LAGNA"] = compute_gandanta_detailed(
+                    chart.lagna_degree, "LAGNA")
+                _p4_computed["gandanta"] = _gandanta_all
+            except Exception:
+                _p4_computed["gandanta"] = {}
+
+            try:
+                _gulika_lon = 0.0
+                _sp_pts = special_pts if isinstance(special_pts, dict) else {}
+                _gul = _sp_pts.get("gulika") or _sp_pts.get("GULIKA")
+                if isinstance(_gul, dict):
+                    _gulika_lon = _gul.get("longitude", 0.0)
+                elif isinstance(_gul, (int, float)):
+                    _gulika_lon = float(_gul)
+                _p4_computed["trisphutam"] = compute_trisphutam(
+                    chart.lagna_degree, moon_lon, _gulika_lon)
+            except Exception:
+                _p4_computed["trisphutam"] = {}
+
+            try:
+                _pushkara: Dict[str, Any] = {}
+                for _pp, _pl in planet_lons.items():
+                    _pushkara[_pp] = {
+                        "navamsha": is_pushkara_navamsha(_pl),
+                        "bhaga": is_pushkara_bhaga(_pl),
+                    }
+                _p4_computed["pushkara"] = _pushkara
+            except Exception:
+                _p4_computed["pushkara"] = {}
+
+        # ── 4.2 Varga Interpretations ──────────────────────────────
+        if _VARGA_INTERP_AVAILABLE:
+            try:
+                _p4_computed["d60_analysis"] = analyze_d60_full(planet_lons)
+            except Exception:
+                _p4_computed["d60_analysis"] = {}
+            try:
+                _p4_computed["d30_analysis"] = analyze_d30(planet_lons)
+            except Exception:
+                _p4_computed["d30_analysis"] = {}
+            try:
+                _p4_computed["sapta_varga"] = compute_all_sapta_varga(planet_lons)
+            except Exception:
+                _p4_computed["sapta_varga"] = {}
+            try:
+                _p4_computed["dasha_varga"] = compute_all_dasha_varga(planet_lons)
+            except Exception:
+                _p4_computed["dasha_varga"] = {}
+            try:
+                _hora_results: Dict[str, Any] = {}
+                for _hp, _hl in planet_lons.items():
+                    if _hp in ("RAHU", "KETU"):
+                        continue
+                    _d2s = int((_hl % 30) / 15)  # 0=first half, 1=second half
+                    _hora_results[_hp] = analyze_kashinath_hora(_hp, _d2s)
+                _p4_computed["kashinath_hora"] = _hora_results
+            except Exception:
+                _p4_computed["kashinath_hora"] = {}
+            try:
+                _vargottama_map: Dict[str, Any] = {}
+                for _vp, _vl in planet_lons.items():
+                    _vargottama_map[_vp] = vi_is_vargottama(_vl)
+                _p4_computed["vargottama_status"] = _vargottama_map
+            except Exception:
+                _p4_computed["vargottama_status"] = {}
+
+        # ── 4.3 Extended Nakshatra ─────────────────────────────────
+        if _NAKSHATRA_EXT_AVAILABLE:
+            try:
+                _moon_nak = int(moon_lon / (360.0 / 27))
+                _p4_computed["moon_nakshatra_class"] = get_nakshatra_classification(_moon_nak)
+            except Exception:
+                _p4_computed["moon_nakshatra_class"] = {}
+            try:
+                _moon_nak = int(moon_lon / (360.0 / 27))
+                _p4_computed["tarabala"] = compute_tarabala_extended(_moon_nak, _moon_nak)
+            except Exception:
+                _p4_computed["tarabala"] = {}
+            try:
+                _moon_nak = int(moon_lon / (360.0 / 27))
+                _birth_tithi_p = int(((moon_lon - sun_lon) % 360) / 12) + 1
+                _birth_wday_p = (birth_dt.weekday() + 1) % 7
+                _p4_computed["panchaka"] = compute_panchaka(
+                    nakshatra_idx=_moon_nak,
+                    tithi_number=_birth_tithi_p,
+                    weekday=_birth_wday_p,
+                )
+            except Exception:
+                _p4_computed["panchaka"] = {}
+
+        # ── 4.4 Muhurta Extended ───────────────────────────────────
+        if _MUHURTA_EXT_AVAILABLE:
+            try:
+                _birth_tithi_m = int(((moon_lon - sun_lon) % 360) / 12) + 1
+                _birth_wday_m = (birth_dt.weekday() + 1) % 7
+                _moon_nak_m = int(moon_lon / (360.0 / 27))
+                # Yoga number: simplified (sun_lon + moon_lon) / 13°20'
+                _yoga_num = int(((sun_lon + moon_lon) % 360) / (800.0 / 60)) + 1
+                _yoga_num = min(_yoga_num, 27)
+                # Karana number
+                _karana_num = int(((moon_lon - sun_lon) % 360) / 6.0) + 1
+                _karana_num = min(_karana_num, 60)
+                _p4_computed["panchanga_shuddhi"] = compute_panchanga_shuddhi(
+                    tithi_number=_birth_tithi_m,
+                    vedic_weekday=_birth_wday_m,
+                    nakshatra_idx=_moon_nak_m,
+                    yoga_number=_yoga_num,
+                    karana_number=_karana_num,
+                )
+            except Exception:
+                _p4_computed["panchanga_shuddhi"] = {}
+            try:
+                _p4_computed["birth_tithi_class"] = classify_tithi(
+                    int(((moon_lon - sun_lon) % 360) / 12) + 1)
+            except Exception:
+                _p4_computed["birth_tithi_class"] = {}
+            try:
+                _p4_computed["birth_vara_element"] = get_vara_element(
+                    (birth_dt.weekday() + 1) % 7)
+            except Exception:
+                _p4_computed["birth_vara_element"] = {}
+
+        # ── 4.5 Medical Extended ───────────────────────────────────
+        if _MEDICAL_EXT_AVAILABLE:
+            try:
+                _lagna_name_p4 = SIGN_NAMES_LIST[lagna_sign % 12]
+                _p4_computed["marakas"] = identify_marakas(
+                    _lagna_name_p4, planet_houses)
+            except Exception:
+                _p4_computed["marakas"] = {}
+            try:
+                _moon_h_p4 = planet_houses.get("MOON", 1)
+                # Aspects on Moon from asp_map
+                _moon_asp_from: List[str] = []
+                _moon_adj: List[str] = []
+                if isinstance(asp_map, dict):
+                    for _ap, _targets in asp_map.items():
+                        if isinstance(_targets, dict) and _targets.get("MOON"):
+                            _moon_asp_from.append(_ap)
+                        elif isinstance(_targets, list) and "MOON" in _targets:
+                            _moon_asp_from.append(_ap)
+                # Planets in houses adjacent to Moon
+                for _ap2, _ah2 in planet_houses.items():
+                    if _ap2 == "MOON":
+                        continue
+                    if abs(_ah2 - _moon_h_p4) == 1 or abs(_ah2 - _moon_h_p4) == 11:
+                        _moon_adj.append(_ap2)
+                _lagna_lord_p4 = house_lords.get(1, "MARS")
+                _ll_house_p4 = planet_houses.get(_lagna_lord_p4, 0)
+                _p4_computed["arishta"] = detect_arishta_yoga(
+                    moon_house=_moon_h_p4,
+                    moon_aspects_from=_moon_asp_from,
+                    lagna_lord_house=_ll_house_p4,
+                )
+            except Exception:
+                _p4_computed["arishta"] = {}
+            try:
+                _p_signs_str_p4: Dict[str, str] = {}
+                for _pp4, _ps4 in planet_signs.items():
+                    _p_signs_str_p4[_pp4] = SIGN_NAMES_LIST[_ps4 % 12] if isinstance(_ps4, int) else str(_ps4)
+                # Find debilitated planets
+                _DEBIL_MAP_P4 = {
+                    "SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+                    "JUPITER": 9, "VENUS": 5, "SATURN": 0,
+                }
+                _debil_p4 = [p for p, s in planet_signs.items()
+                             if isinstance(s, int) and _DEBIL_MAP_P4.get(p, -1) == s]
+                _lagna_lord_name_p4 = house_lords.get(1, "MARS")
+                _p4_computed["disease_yogas"] = check_disease_yogas(
+                    planet_houses=planet_houses,
+                    planet_signs=_p_signs_str_p4,
+                    debilitated_planets=_debil_p4,
+                    combust_planets=[],
+                    lagna_lord=_lagna_lord_name_p4,
+                )
+            except Exception:
+                _p4_computed["disease_yogas"] = []
+            try:
+                _moon_conj_p4: List[str] = []
+                _moon_h_c = planet_houses.get("MOON", 0)
+                for _cp, _ch in planet_houses.items():
+                    if _cp != "MOON" and _ch == _moon_h_c:
+                        _moon_conj_p4.append(_cp)
+                _p4_computed["psychiatric_yogas"] = detect_psychiatric_yogas(
+                    planet_houses=planet_houses,
+                    planet_signs=_p_signs_str_p4 if "_p_signs_str_p4" in dir() else {},
+                    moon_conjunctions=_moon_conj_p4,
+                    moon_aspects_from=_moon_asp_from if "_moon_asp_from" in dir() else [],
+                    planets_adjacent_to_moon=_moon_adj if "_moon_adj" in dir() else [],
+                )
+            except Exception:
+                _p4_computed["psychiatric_yogas"] = []
+            try:
+                _p4_computed["beeja_sphuta"] = compute_beeja_sphuta(
+                    sun_lon, planet_lons.get("JUPITER", 0.0), planet_lons.get("VENUS", 0.0))
+            except Exception:
+                _p4_computed["beeja_sphuta"] = {}
+            try:
+                _p4_computed["kshetra_sphuta"] = compute_kshetra_sphuta(
+                    moon_lon, planet_lons.get("MARS", 0.0), planet_lons.get("JUPITER", 0.0))
+            except Exception:
+                _p4_computed["kshetra_sphuta"] = {}
+
+        # ── 4.6 Advanced Dashas ────────────────────────────────────
+        if _ADV_DASHAS_AVAILABLE:
+            try:
+                _p4_computed["sudarshana_balance"] = compute_sudarshana_balance(
+                    chart.lagna_degree)
+            except Exception:
+                _p4_computed["sudarshana_balance"] = {}
+            try:
+                _p4_computed["sudarshana_sequence"] = compute_sudarshana_dasha_sequence(
+                    lagna_sign, moon_sign, sun_sign=int(sun_lon / 30) % 12)
+            except Exception:
+                _p4_computed["sudarshana_sequence"] = {}
+            try:
+                _p4_computed["patyayini_dasha"] = compute_patyayini_dasha(
+                    planet_lons, chart.lagna_degree)
+            except Exception:
+                _p4_computed["patyayini_dasha"] = {}
+            try:
+                # Extract BAV scores per planet from ashtakvarga
+                _bav_scores: Dict[str, int] = {}
+                _av = av_data if isinstance(av_data, dict) and "error" not in av_data else {}
+                for _bp in ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"]:
+                    _bp_av = _av.get(_bp, {})
+                    if isinstance(_bp_av, dict):
+                        _bp_sign = planet_signs.get(_bp, 0)
+                        _bp_sign_idx = _bp_sign if isinstance(_bp_sign, int) else 0
+                        _row = _bp_av.get("bav") or _bp_av.get("bindus")
+                        if isinstance(_row, (list, tuple)) and len(_row) > _bp_sign_idx:
+                            _bav_scores[_bp] = int(_row[_bp_sign_idx])
+                        elif isinstance(_bp_av, dict) and isinstance(_bp_av.get("total"), (int, float)):
+                            _bav_scores[_bp] = int(_bp_av["total"] / 12)
+                        else:
+                            _bav_scores[_bp] = 4  # default
+                    else:
+                        _bav_scores[_bp] = 4
+                _p_signs_str_ad: Dict[str, str] = {}
+                for _pi, _si in planet_signs.items():
+                    _p_signs_str_ad[_pi] = SIGN_NAMES_LIST[_si % 12] if isinstance(_si, int) else str(_si)
+                _p4_computed["ashtaka_dasha"] = compute_ashtaka_dasha(
+                    _bav_scores, _p_signs_str_ad)
+            except Exception:
+                _p4_computed["ashtaka_dasha"] = {}
+
+        # ── 4.7 Advanced Techniques ────────────────────────────────
+        if _ADV_TECH_AVAILABLE:
+            try:
+                _p4_computed["bhrigu_sutras"] = lookup_bhrigu_all_planets(planet_houses)
+            except Exception:
+                _p4_computed["bhrigu_sutras"] = []
+            try:
+                _nadi150: Dict[str, Any] = {}
+                for _np, _nl in planet_lons.items():
+                    _nadi150[_np] = compute_nadi_amsa_150(_nl)
+                _p4_computed["nadi_amsa_150"] = _nadi150
+            except Exception:
+                _p4_computed["nadi_amsa_150"] = {}
+            try:
+                _d4_all: Dict[str, Any] = {}
+                for _dp, _dl in planet_lons.items():
+                    _d4_all[_dp] = compute_chaturthamsha(_dl)
+                _p4_computed["chaturthamsha"] = _d4_all
+            except Exception:
+                _p4_computed["chaturthamsha"] = {}
+            try:
+                _drek: Dict[str, Any] = {}
+                for _drp, _drl in planet_lons.items():
+                    _drek[_drp] = {
+                        "parashari": compute_parashari_drekkana(_drl),
+                        "parivritta": compute_parivritta_drekkana(_drl),
+                        "somnath": compute_somnath_drekkana(_drl),
+                    }
+                _p4_computed["drekkana_variants"] = _drek
+            except Exception:
+                _p4_computed["drekkana_variants"] = {}
+            try:
+                _d8_all: Dict[str, Any] = {}
+                for _d8p, _d8l in planet_lons.items():
+                    _d8_all[_d8p] = compute_ashtamsha(_d8l)
+                _p4_computed["ashtamsha"] = _d8_all
+            except Exception:
+                _p4_computed["ashtamsha"] = {}
+            try:
+                # Check extended Neechabhanga for debilitated planets
+                _DEBIL_SIGNS_P4 = {
+                    "SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+                    "JUPITER": 9, "VENUS": 5, "SATURN": 0,
+                }
+                _neecha_results: Dict[str, Any] = {}
+                _other_debil: Dict[str, int] = {}
+                for _np4, _ns4 in planet_signs.items():
+                    if isinstance(_ns4, int) and _DEBIL_SIGNS_P4.get(_np4, -1) == _ns4:
+                        _other_debil[_np4] = planet_houses.get(_np4, 0)
+                for _np4 in list(_other_debil.keys()):
+                    _d9_sign_p4 = -1
+                    try:
+                        from vedic_engine.core.divisional import D9 as _d9_p4
+                        _d9_sign_p4 = _d9_p4(planet_lons.get(_np4, 0.0))
+                    except Exception:
+                        pass
+                    _remaining = {k: v for k, v in _other_debil.items() if k != _np4}
+                    _neecha_results[_np4] = check_neechabhanga_extended(
+                        planet=_np4,
+                        planet_house=planet_houses.get(_np4, 0),
+                        planet_d1_sign_idx=planet_signs.get(_np4, 0),
+                        planet_d9_sign_idx=_d9_sign_p4,
+                        other_debilitated=_remaining,
+                    )
+                _p4_computed["neechabhanga_extended"] = _neecha_results
+            except Exception:
+                _p4_computed["neechabhanga_extended"] = {}
+            try:
+                # Saptha Shalaka: need Moon nakshatra name
+                _NAKSHATRA_NAMES_28 = [
+                    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira",
+                    "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha",
+                    "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra",
+                    "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula",
+                    "Purva Ashadha", "Uttara Ashadha", "Abhijit", "Shravana",
+                    "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
+                    "Uttara Bhadrapada", "Revati",
+                ]
+                _moon_nak_idx_p4 = int(moon_lon / (360.0 / 27))
+                _janma_nak = _NAKSHATRA_NAMES_28[_moon_nak_idx_p4 % 28] if _moon_nak_idx_p4 < 27 else "Revati"
+                _p4_computed["saptha_shalaka"] = check_saptha_shalaka_vedha(
+                    janma_nakshatra=_janma_nak)
+            except Exception:
+                _p4_computed["saptha_shalaka"] = {}
+            try:
+                _6lord_h = planet_houses.get(house_lords.get(6, ""), 0)
+                _8lord_h = planet_houses.get(house_lords.get(8, ""), 0)
+                _12lord_h = planet_houses.get(house_lords.get(12, ""), 0)
+                _p4_computed["theft_litigation"] = check_theft_litigation(
+                    sixth_lord_house=_6lord_h,
+                    eighth_lord_house=_8lord_h,
+                    twelfth_lord_house=_12lord_h,
+                    rahu_house=planet_houses.get("RAHU", 0),
+                )
+            except Exception:
+                _p4_computed["theft_litigation"] = {}
+            try:
+                _3lord_h = planet_houses.get(house_lords.get(3, ""), 0)
+                _9lord_h = planet_houses.get(house_lords.get(9, ""), 0)
+                _12lord_h2 = planet_houses.get(house_lords.get(12, ""), 0)
+                _9th_lord_n = house_lords.get(9, "")
+                _12th_lord_n = house_lords.get(12, "")
+                _9_12_pariv = (planet_houses.get(_9th_lord_n, 0) == 12 and
+                               planet_houses.get(_12th_lord_n, 0) == 9)
+                _p4_computed["travel_relocation"] = check_travel_relocation(
+                    third_lord_house=_3lord_h,
+                    ninth_lord_house=_9lord_h,
+                    twelfth_lord_house=_12lord_h2,
+                    ninth_twelfth_parivartana=_9_12_pariv,
+                    rahu_house=planet_houses.get("RAHU", 0),
+                )
+            except Exception:
+                _p4_computed["travel_relocation"] = {}
+            try:
+                _5lord_h = planet_houses.get(house_lords.get(5, ""), 0)
+                _6lord_h2 = planet_houses.get(house_lords.get(6, ""), 0)
+                _MALEFICS_P4 = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+                _BENEFICS_P4 = {"JUPITER", "VENUS", "MERCURY", "MOON"}
+                _mal_in_6 = [p for p, h in planet_houses.items() if h == 6 and p in _MALEFICS_P4]
+                _ben_in_6 = [p for p, h in planet_houses.items() if h == 6 and p in _BENEFICS_P4]
+                _p4_computed["competition"] = check_competition_success(
+                    fifth_lord_house=_5lord_h,
+                    sixth_lord_house=_6lord_h2,
+                    malefics_in_sixth=_mal_in_6,
+                    benefics_in_sixth=_ben_in_6,
+                )
+            except Exception:
+                _p4_computed["competition"] = {}
+            try:
+                _moon_h_jt = planet_houses.get("MOON", 1)
+                # Check if Moon hemmed by malefics (Papakartari)
+                _prev_h = ((_moon_h_jt - 2) % 12) + 1
+                _next_h = (_moon_h_jt % 12) + 1
+                _MALEFICS_JT = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+                _pmal = any(planet_houses.get(p, 0) == _prev_h for p in _MALEFICS_JT)
+                _nmal = any(planet_houses.get(p, 0) == _next_h for p in _MALEFICS_JT)
+                _hemmed = _pmal and _nmal
+                # Twilight check (~sunrise/sunset ± 30 min)
+                _twilight = birth_dt.hour in (5, 6, 17, 18)
+                # Lunar Hora: odd hours from sunrise = Sun, even = Moon
+                _lunar_hora = (birth_dt.hour % 2) == 0
+                # Gandanta malefics
+                _gand_mal = False
+                if isinstance(_p4_computed.get("gandanta"), dict):
+                    for _gm_p in _MALEFICS_JT:
+                        _gm_data = _p4_computed["gandanta"].get(_gm_p, {})
+                        if isinstance(_gm_data, dict) and _gm_data.get("in_gandanta", False):
+                            _gand_mal = True
+                            break
+                _p4_computed["jataka_tatva_arishta"] = check_jataka_tatva_arishta(
+                    moon_house=_moon_h_jt,
+                    moon_hemmed_by_malefics=_hemmed,
+                    twilight_birth=_twilight,
+                    lunar_hora=_lunar_hora,
+                    gandantha_malefics=_gand_mal,
+                )
+            except Exception:
+                _p4_computed["jataka_tatva_arishta"] = {}
+
+        # ══════════════════════════════════════════════════════════
+        # Phase 5: Final Modules — Lookup Tables, Rare Dashas,
+        #   Advanced Yogas, Tithi Pravesh, Pancha Pakshi, Lal Kitab,
+        #   Advanced Prashna, Compatibility Tables
+        # ══════════════════════════════════════════════════════════
+        _p5_computed: Dict[str, Any] = {}
+
+        # ── 5.1 Tithi Pravesh ────────────────────────────────────
+        if _TITHI_PRAVESH_AVAILABLE:
+            try:
+                _p5_computed["tithi_pravesh"] = compute_tithi_pravesh(
+                    natal_moon_lon=moon_lon,
+                    natal_sun_lon=sun_lon,
+                    query_year=birth_dt.year,
+                    birth_weekday=birth_dt.weekday(),
+                    lagna_sign=asc_sign,
+                )
+            except Exception:
+                _p5_computed["tithi_pravesh"] = {}
+
+        # ── 5.2 Pancha Pakshi ────────────────────────────────────
+        if _PANCHA_PAKSHI_AVAILABLE:
+            try:
+                _moon_nak_p5 = int(moon_lon / (360.0 / 27))
+                _p5_computed["pancha_pakshi"] = compute_pancha_pakshi(
+                    birth_nakshatra=_moon_nak_p5,
+                    is_shukla_paksha=(((moon_lon - sun_lon) % 360) < 180),
+                )
+            except Exception:
+                _p5_computed["pancha_pakshi"] = {}
+
+        # ── 5.3 Lal Kitab ───────────────────────────────────────
+        if _LALKITAB_AVAILABLE:
+            try:
+                _p5_computed["lal_kitab"] = compute_all_lalkitab(
+                    planet_houses=planet_houses,
+                    age=max(1, birth_dt.year - 1970),
+                )
+            except Exception:
+                _p5_computed["lal_kitab"] = {}
+
+        # ── 5.4 Advanced Prashna ─────────────────────────────────
+        if _ADV_PRASHNA_AVAILABLE:
+            try:
+                _p5_computed["advanced_prashna"] = compute_all_advanced_prashna(
+                    lagna_lon=asc_lon,
+                    moon_lon=moon_lon,
+                    gulika_lon=planet_lons.get("GULIKA", 0.0),
+                )
+            except Exception:
+                _p5_computed["advanced_prashna"] = {}
+
+        # ── 5.5 Compatibility Lookup Tables ──────────────────────
+        if _LOOKUP_TABLES_AVAILABLE:
+            try:
+                _moon_nak_p5b = int(moon_lon / (360.0 / 27))
+                _p5_computed["nara_chakra_body"] = NARA_CHAKRA.get(_moon_nak_p5b, {})
+                _p5_computed["tajika_yoga_defs"] = TAJIKA_YOGA_DEFINITIONS
+            except Exception:
+                pass
+
+        # ── 5.6 Rare Dashas (Mandooka + Padanadhamsha) ──────────
+        if _RARE_DASHAS_AVAILABLE:
+            try:
+                _p5_computed["rare_dashas"] = compute_all_rare_dashas(
+                    planet_lons=planet_lons,
+                    asc_lon=asc_lon,
+                    birth_dt=birth_dt,
+                )
+            except Exception:
+                _p5_computed["rare_dashas"] = {}
+
+        # ── 5.7 Advanced Yogas ───────────────────────────────────
+        if _ADV_YOGAS_AVAILABLE:
+            try:
+                _p5_computed["advanced_yogas"] = compute_all_advanced_yogas(
+                    planet_houses=planet_signs,
+                    planet_lons=planet_lons,
+                    house_lords=house_lords,
+                    asc_sign=asc_sign,
+                )
+            except Exception:
+                _p5_computed["advanced_yogas"] = {}
+            try:
+                _ll_sign = planet_signs.get(house_lords.get(0, ""), 0)
+                _8_lord = house_lords.get(7, "")
+                _8l_sign = planet_signs.get(_8_lord, 0)
+                _p5_computed["jaimini_longevity"] = compute_jaimini_longevity(
+                    lagna_lord_sign=_ll_sign,
+                    eighth_lord_sign=_8l_sign,
+                    moon_sign=moon_sign,
+                    saturn_sign=planet_signs.get("SATURN", 0),
+                    lagna_sign=asc_sign,
+                    hora_lagna_sign=asc_sign,  # approximate
+                )
+            except Exception:
+                _p5_computed["jaimini_longevity"] = {}
+
         # ── Phase 1E: Kota Chakra + SBC Grid ─────────────────────
         _kota_chakra: Dict = {}
         _sbc_grid: Dict = {}
@@ -1079,6 +1782,7 @@ class PredictionEngine:
             "file5_analysis":   file5_analysis,
             # ── Phase 1D-1F: unified computed outputs ──────────────
             "computed": {
+                "karakamsha_sign": jaimini_extended.get("karakamsha", {}).get("karakamsha_sign", "") if isinstance(jaimini_extended, dict) else "",
                 "yogas":       _extended_yogas,
                 "kota_chakra": _kota_chakra,
                 "sbc_grid":    _sbc_grid,
@@ -1104,6 +1808,10 @@ class PredictionEngine:
                 # ── Phase 3E: Science
                 "birth_month_risk":              _sci_3e.get("birth_month_risk", {}),
                 "lunar_health_modifier":         None,  # populated in predict() with transit moon
+                # ── Phase 4: Classical Doshas & Advanced Techniques
+                **_p4_computed,
+                # ── Phase 5: Final Modules
+                **_p5_computed,
             },
         }
 
