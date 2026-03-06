@@ -348,32 +348,83 @@ def _kakshya_info(
     degree_in_sign: float,
     bhinna_av: Optional[List[int]],
     transit_sign: int,
+    pav_data: Optional[Dict[str, Dict[str, List[int]]]] = None,
 ) -> Dict:
     """
     Determine Kakshya sub-division (1–8) for the current transit position
-    and return whether the Kakshya lord gave a bindu or rekha in the planet's BAV.
+    and return whether the Kakshya lord gave a bindu or rekha in the planet's PAV.
+
+    If PAV data is available, do a direct lookup:
+        PAV[planet][kakshya_lord][transit_sign] == 1 → bindu (favorable)
+        PAV[planet][kakshya_lord][transit_sign] == 0 → rekha (obstructed)
 
     Returns:
         kakshya_num:   1-8 (1=Saturn, 2=Jupiter, ..., 8=Lagna)
         kakshya_lord:  string name of the sub-lord
         bindu_state:   'bindu' | 'rekha' | 'unknown'
-        precision_boost: float (+0.05 or -0.02 or 0.0) to add to net_score
+        precision_boost: float multiplier adjustment for transit score
     """
     kakshya_num = min(int(degree_in_sign / KAKSHYA_SPAN), 7)  # 0-indexed → 0-7
     lord_name = KAKSHYA_LORDS[kakshya_num]
 
-    # To check bindu/rekha we need the BAV contribution table — a simplified
-    # heuristic: if the planet's bhinna_av for this sign ≥ 5 (generally good),
-    # treat the current Kakshya as favourable (bindu), otherwise rekha.
-    # A full implementation would store per-Kakshya donor contributions.
     bindu_state = "unknown"
     precision_boost = 0.0
-    if bhinna_av is not None and 0 <= transit_sign < 12:
+
+    # ── Primary: PAV direct lookup (proper Kakshya implementation) ───────
+    p_upper = planet_name.upper()
+    if pav_data and p_upper in pav_data:
+        pav_planet = pav_data[p_upper]
+        # Map kakshya lord name: ASC in PAV is "ASC"
+        pav_lord_key = "ASC" if lord_name == "LAGNA" else lord_name
+        donor_row = pav_planet.get(pav_lord_key)
+        if donor_row and 0 <= transit_sign < len(donor_row):
+            contributed = donor_row[transit_sign]
+            if contributed == 1:
+                bindu_state = "bindu"
+                # Bindu: transit delivers positive results in this 3°45' window
+                # Slow planets (SAT/JUP/RAH/KET) get stronger boost
+                if p_upper in ("SATURN", "JUPITER", "RAHU", "KETU"):
+                    precision_boost = 0.10  # critical micro-timing for slow movers
+                else:
+                    precision_boost = 0.05
+            else:
+                bindu_state = "rekha"
+                # Rekha: transit yields negative/obstructed results in this window
+                # even if overall sign transit is favorable
+                if p_upper in ("SATURN", "JUPITER", "RAHU", "KETU"):
+                    precision_boost = -0.08  # heavy penalty for slow movers
+                else:
+                    precision_boost = -0.03
+
+            # ── Secondary refinement: friendship between transiting planet
+            # and kakshya lord magnifies result (classical second-order rule)
+            _FRIENDS_MAP = {
+                "SUN":     {"MOON", "MARS", "JUPITER"},
+                "MOON":    {"SUN", "MERCURY"},
+                "MARS":    {"SUN", "MOON", "JUPITER"},
+                "MERCURY": {"SUN", "VENUS"},
+                "JUPITER": {"SUN", "MOON", "MARS"},
+                "VENUS":   {"MERCURY", "SATURN"},
+                "SATURN":  {"MERCURY", "VENUS"},
+            }
+            _ENEMIES_MAP = {
+                "SUN":     {"VENUS", "SATURN"},
+                "MOON":    set(),
+                "MARS":    {"MERCURY"},
+                "MERCURY": {"MOON"},
+                "JUPITER": {"MERCURY", "VENUS"},
+                "VENUS":   {"SUN", "MOON"},
+                "SATURN":  {"SUN", "MOON", "MARS"},
+            }
+            if pav_lord_key != "ASC":  # ASC has no natural friendship
+                if pav_lord_key in _FRIENDS_MAP.get(p_upper, set()):
+                    precision_boost *= 1.25  # friend magnifies outcome
+                elif pav_lord_key in _ENEMIES_MAP.get(p_upper, set()):
+                    precision_boost *= 1.30  # enemy worsens friction
+
+    # ── Fallback: crude BAV-threshold heuristic (when PAV unavailable) ──
+    elif bhinna_av is not None and 0 <= transit_sign < 12:
         bav_in_sign = bhinna_av[transit_sign]
-        # Map BAV bindus to Kakshya sub-grid (approximation):
-        # Each sign has up to 8 donors; bav_in_sign tells how many gave bindus.
-        # If the specific kakshya lord's position in the donor sequence gave a bindu
-        # we boost, else penalise.  Use a threshold approach here.
         if bav_in_sign >= 6:
             bindu_state = "bindu"
             precision_boost = 0.05
@@ -388,7 +439,7 @@ def _kakshya_info(
         "kakshya_num":     kakshya_num + 1,   # 1-indexed for display
         "kakshya_lord":    lord_name,
         "bindu_state":     bindu_state,
-        "precision_boost": precision_boost,
+        "precision_boost": round(precision_boost, 4),
     }
 
 
@@ -402,6 +453,7 @@ def evaluate_transit(
         sarva_av: Optional[List[int]] = None,
         other_transit_signs: Optional[Dict[str, int]] = None,
         transit_sun_lon: Optional[float] = None,
+        pav_data: Optional[Dict[str, Dict[str, List[int]]]] = None,
 ) -> Dict:
     """
     Evaluate a planet's transit for a given moment.
@@ -414,6 +466,7 @@ def evaluate_transit(
         sarva_av: Sarvashtakvarga for each sign (list of 12)
         other_transit_signs: {other_planet: sign_idx} for Vedha check
         transit_sun_lon: current Sun longitude (sidereal) for combustion check
+        pav_data: Prastharashtakavarga for this planet {contributor: [12 ints]}
     """
     transit_sign = sign_of(transit_lon)
     degree_in_sign = transit_lon % 30.0        # 0-30° within sign
@@ -432,7 +485,8 @@ def evaluate_transit(
     zone_mult = _manifestation_multiplier(planet, degree_in_sign)
 
     # ── Kakshya Pravesha sub-precision ───────────────────────────
-    kakshya = _kakshya_info(planet, degree_in_sign, bhinna_av, transit_sign)
+    kakshya = _kakshya_info(planet, degree_in_sign, bhinna_av, transit_sign,
+                            pav_data=pav_data)
 
     # ── Vedha check — quantitative reduction (not binary) ────────
     vedha_blocked = False
@@ -637,6 +691,7 @@ def evaluate_all_transits(
         bhinna_av: Optional[Dict[str, List[int]]] = None,
         sarva_av: Optional[List[int]] = None,
         natal_moon_nak: Optional[int] = None,
+        pav: Optional[Dict[str, Dict[str, List[int]]]] = None,
 ) -> Dict[str, Dict]:
     """Evaluate all planet transits including Tarabala and Chandrabala for Moon."""
     other_signs = {p: sign_of(lon) for p, lon in transit_positions.items()}
@@ -644,6 +699,11 @@ def evaluate_all_transits(
     results = {}
     for pname, lon in transit_positions.items():
         bav = bhinna_av.get(pname) if bhinna_av else None
+        # Get PAV data for this specific planet
+        pav_planet = None
+        if pav and pname.upper() in pav:
+            # Pass full PAV so _kakshya_info can look up {planet: {contributor: [12]}}
+            pav_planet = pav
         results[pname] = evaluate_transit(
             planet=pname,
             transit_lon=lon,
@@ -652,6 +712,7 @@ def evaluate_all_transits(
             sarva_av=sarva_av,
             other_transit_signs=other_signs,
             transit_sun_lon=sun_lon,
+            pav_data=pav_planet,
         )
 
     # ── Tarabala (transit Moon nakshatra vs birth Moon nakshatra) ──

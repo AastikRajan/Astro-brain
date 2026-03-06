@@ -24,6 +24,7 @@ from vedic_engine.config import (
     NAISARGIKA_FRIENDS, SHADBALA_MINIMUMS,
 )
 from vedic_engine.core.coordinates import sign_of, angular_distance, house_from_moon
+from vedic_engine.core.divisional import D9 as _D9_navamsa
 
 PLANET_NAMES_7 = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"]
 
@@ -417,7 +418,13 @@ def _kemadrum_yoga(
     Kemadrum Yoga: Moon has no planet in the 2nd or 12th from *itself*
     (by sign / house), AND no planets conjunct it.
     A weakening yoga indicating isolation, financial struggle, or lack of support.
-    Cancelled if Moon has any planet in these positions OR Moon is in kendra.
+
+    Cancellation conditions (classical):
+      1. Any planet (except Rahu/Ketu) in 2nd, 12th, or conjunct Moon
+      2. Moon in kendra (angular houses 1/4/7/10)
+      3. Jupiter aspects Moon (5th, 7th, or 9th from Moon)
+      4. Venus or Jupiter in kendra from Moon (1/4/7/10 from Moon)
+      5. Full Moon (strong pakshabala — Moon near full brightness)
     """
     moon_h = _planet_house("MOON", planet_houses)
     if moon_h == 0:
@@ -428,17 +435,39 @@ def _kemadrum_yoga(
 
     surrounding_houses = {moon_h, second_from_moon, twelfth_from_moon}
 
-    # Any planet (except Rahu/Ketu) in these positions?
+    # Cancel 1: Any planet (except Rahu/Ketu) in these positions
     planets_nearby = [
         p for p in PLANET_NAMES_7
         if p != "MOON" and _planet_house(p, planet_houses) in surrounding_houses
     ]
-
     if planets_nearby:
-        return None  # Cancelled — planetary support exists
+        return None
 
-    # Also cancelled if Moon is in kendra (angular houses 1/4/7/10)
+    # Cancel 2: Moon in kendra (angular houses 1/4/7/10)
     if _is_in_kendra(moon_h):
+        return None
+
+    # Cancel 3: Jupiter aspects Moon (Jupiter has special aspects: 5th, 7th, 9th)
+    jup_h = _planet_house("JUPITER", planet_houses)
+    if jup_h:
+        jup_from_moon = (jup_h - moon_h) % 12 + 1
+        if jup_from_moon in (5, 7, 9):
+            return None  # Jupiter's protective aspect cancels Kemadruma
+
+    # Cancel 4: Venus or Jupiter in kendra from Moon
+    for p in ("VENUS", "JUPITER"):
+        p_h = _planet_house(p, planet_houses)
+        if p_h:
+            p_from_moon = (p_h - moon_h) % 12 + 1
+            if p_from_moon in (1, 4, 7, 10):
+                return None  # Benefic in kendra from Moon cancels
+
+    # Cancel 5: Full Moon (within 30° of opposition to Sun = strong)
+    moon_lon = planet_lons.get("MOON", 0.0)
+    sun_lon  = planet_lons.get("SUN", 0.0)
+    sun_moon_dist = abs(moon_lon - sun_lon) % 360
+    sun_moon_dist = min(sun_moon_dist, 360 - sun_moon_dist)
+    if sun_moon_dist >= 150:  # Near-full Moon (150-180° from Sun)
         return None
 
     moon_strength = shadbala_ratios.get("MOON", 0.5)
@@ -558,10 +587,9 @@ def _neechabhanga_raj_yoga(
             conditions_met.append("C4_exalt_lord_kendra")
 
         # ── Condition 5: Vargottama / Divisional Exaltation ────────────────────
-        # Simplified: debilitated planet is Vargottama (D1 sign = D9 sign)
-        # D9 sign = (sign * 9 + navamsha_pos) % 12 — rough check via longitude
+        # Proper D9 (Navamsa) sign via BPHS element-based rule
         d1_sign = sign_of(lon)
-        d9_sign = int((lon % (360 / 9)) / (360 / 9 / 12)) % 12  # rough D9 sign
+        d9_sign = _D9_navamsa(lon)
         if d1_sign == d9_sign:
             conditions_met.append("C5_vargottama_divisional")
 
@@ -2036,6 +2064,26 @@ def compute_panchamahapurusha_raja_symbiosis(
                     "shared_planets": list(shared),
                     "boost_applied": round(ry.strength - old_s, 3),
                 })
+
+    # ── Inverse Rule: Raja yogas WITHOUT PMP grounding are fragile ──────
+    # Classical: PMP provides character grit/foundation; without it, Raja
+    # yoga is circumstantial and fragile. Apply modest penalty if no PMP
+    # planet intersects with any Raja yoga planets.
+    pancha_planets = set()
+    for py in pancha:
+        pancha_planets.update(py.planets)
+
+    if pancha:  # Only apply inverse if PMP exists somewhere in chart
+        for ry in raja:
+            raja_planets = set(ry.planets)
+            if not raja_planets & pancha_planets:
+                # Raja yoga has no PMP grounding → fragile
+                old_s = ry.strength
+                ry.strength = round(ry.strength * 0.80, 3)  # 20% reduction
+                ry.description += (
+                    f" [No Pancha Mahapurusha grounding: "
+                    f"strength {old_s:.2f}→{ry.strength:.2f}, circumstantial/fragile]"
+                )
 
     return symbiosis_records
 

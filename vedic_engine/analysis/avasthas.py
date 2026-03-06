@@ -79,15 +79,19 @@ _SHAYANADI_SUB_MULTIPLIER = {0: 0.0, 1: 0.5, 2: 1.0}
 # Deeptadi: dignity conditions → state label and quality multiplier
 _DEEPTADI_MAP = [
     # (condition_key, label, multiplier)
-    ("kopa",      "Kopa",      -1.0),    # combust — highest severity
-    ("vikala",    "Vikala",    -0.5),    # malefic conjunction
-    ("khala",     "Khala",     -0.25),   # great enemy / debilitated
-    ("dukhita",   "Dukhita",    0.0),    # enemy sign
-    ("dina",      "Dina",       0.125),  # neutral sign
-    ("shanta",    "Shanta",     0.25),   # friend's sign
-    ("pramudita", "Pramudita",  0.375),  # great friend's sign
-    ("swastha",   "Swastha",    0.625),  # own / moolatrikona
-    ("deepta",    "Deepta",     1.0),    # exalted
+    # Research: Kopa = combust = 0.00 (severe negative, eclipsed ability)
+    # Vikala = malefic conjunction = 0.05 (near-zero, crippled)
+    # Khala = great enemy/debilitated = 0.00 (subtractive, wicked)
+    # Dukhita = enemy sign = 0.0625 (severely distressed, barely functional)
+    ("kopa",      "Kopa",      0.00),    # combust — eclipsed, 0% delivery
+    ("vikala",    "Vikala",    0.05),    # malefic conjunction — crippled
+    ("khala",     "Khala",     0.00),    # great enemy / debilitated — wicked/nil
+    ("dukhita",   "Dukhita",   0.0625),  # enemy sign — miserable
+    ("dina",      "Dina",      0.125),   # neutral sign — distressed
+    ("shanta",    "Shanta",    0.25),    # friend's sign — peaceful
+    ("pramudita", "Pramudita", 0.375),   # great friend's sign — delighted
+    ("swastha",   "Swastha",   0.625),   # own / moolatrikona — comfortable
+    ("deepta",    "Deepta",    1.0),     # exalted — blazing/radiant
 ]
 
 # Combustion orbs per planet (degrees from Sun, sidereal)
@@ -251,12 +255,13 @@ def compute_deeptadi_avasthas(
     planet_lons: Dict[str, float],
     sun_lon: float,
     malefic_conjunction_planets: Optional[Dict[str, List[str]]] = None,
+    retrograde_planets: Optional[Dict[str, bool]] = None,
 ) -> Dict[str, Dict]:
     """
     Compute Deeptadi (9-state dignity-based) Avasthas for all planets.
 
     Hierarchy (Research File 2, Part A.3):
-      Kopa      : combust (within Sun orb) — overrides all
+      Kopa      : combust (within Sun orb) — overrides ALL including exaltation
       Vikala    : conjunct natural malefic (Mars/Saturn/Rahu/Ketu) within 5°
       Khala     : placed in great enemy / debilitation sign
       Dukhita   : placed in enemy sign
@@ -265,6 +270,11 @@ def compute_deeptadi_avasthas(
       Pramudita : placed in great friend sign
       Swastha   : own or moolatrikona sign
       Deepta    : exalted sign
+
+    Combination rules (Research: BPHS/Phaladeepika):
+      - Combustion (Kopa) + Exaltation (Deepta) → Kopa wins (0.00)
+      - Retrograde + Debilitation (Khala) → classical double-negative → Deepta (1.00)
+      - Mrita (Baladi) + Retrograde → Baladi handled separately; Mrita=0.00 wins
 
     multiplier → used as quality coefficient for dasha/prediction layers.
     ADDED 2026-03-02: Phase 1B.
@@ -324,6 +334,14 @@ def compute_deeptadi_avasthas(
         dignity_key = (planet_dignities.get(planet)
                        or planet_dignities.get(p, "NEUTRAL"))
         condition   = _DIGNITY_TO_DEEPTADI.get(dignity_key, "dina")
+
+        # Combination rule: Retrograde + Debilitated/Great-Enemy → Deepta (exalted)
+        # Classical double-negative logic (Uttara Kalamrita): retro planet in
+        # debilitation acts as if exalted. BUT Kopa (combustion) still overrides.
+        is_retro = (retrograde_planets or {}).get(p, False)
+        if is_retro and condition == "khala":
+            condition = "deepta"  # double-negative inversion
+
         label, mult = _STATE_TO_LABEL_MULT.get(condition, ("Dina", 0.125))
 
         result[planet] = {
@@ -331,6 +349,7 @@ def compute_deeptadi_avasthas(
             "condition": condition,
             "multiplier": mult,
             "dignity":   dignity_key,
+            "retro_inversion": (is_retro and dignity_key in ("DEBILITATED", "GREAT_ENEMY")),
         }
 
     # Sun gets Deepta / Swastha / Dina based on its own dignity
@@ -357,6 +376,7 @@ def compute_all_avasthas(
     sunrise_hour: float = 6.0,
     combustion_data: Optional[Dict[str, float]] = None,
     malefic_conjunctions: Optional[Dict[str, List[str]]] = None,
+    retrograde_planets: Optional[Dict[str, bool]] = None,
 ) -> Dict[str, Dict]:
     """
     Compute all three Avastha systems and return combined result.
@@ -379,6 +399,7 @@ def compute_all_avasthas(
     deeptadi = compute_deeptadi_avasthas(
         planet_dignities, planet_lons, sun_lon,
         malefic_conjunction_planets=malefic_conjunctions,
+        retrograde_planets=retrograde_planets,
     )
 
     return {

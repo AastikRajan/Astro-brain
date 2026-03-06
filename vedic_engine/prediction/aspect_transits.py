@@ -102,37 +102,66 @@ def compute_transit_aspects(
     transit_positions: Dict[str, float],
     natal_positions:   Dict[str, float],
     transit_speeds:    Dict[str, float] | None = None,
+    natal_shadbala:    Dict[str, float] | None = None,
 ) -> Dict[str, dict]:
     """
     Compute all transit-to-natal major aspects with continuous orb weighting.
+
+    Research enhancements:
+      - Dynamic graduated orbs: natal planet strength determines effective orb
+        (strong=1°, medium=2°, weak=5°) — the TRIGGER orb for exact timing.
+      - Stationing multiplier: if transit planet near 0 speed (retrograde station
+        or direct station), impact multiplied exponentially.
+      - Nakshatra Pada overlap micro-trigger: flagged when orb < 3.33°
 
     Parameters
     ----------
     transit_positions : {planet: sidereal_longitude}  — current transits
     natal_positions   : {planet: sidereal_longitude}  — natal chart
     transit_speeds    : optional {planet: deg_per_day} — for applying/separating
+    natal_shadbala    : optional {planet: shadbala_ratio} — for dynamic orb
 
     Returns
     -------
     {
       "SATURN": {
           "aspects": [
-              {natal_planet, aspect, aspect_angle, orb, strength, applying, nature}, …
+              {natal_planet, aspect, aspect_angle, orb, strength, applying, nature,
+               partile, stationing, nakshatra_pada_overlap}, …
           ],
           "benefic_score": float,
           "malefic_score": float,
-          "net_aspect_score": float,   # benefic − malefic  (can be negative)
+          "net_aspect_score": float,
       },
       …
     }
     """
     speeds = transit_speeds or {}
+    sb_ratios = natal_shadbala or {}
     results: Dict[str, dict] = {}
+
+    # Slow-moving planets for stationing check
+    _SLOW_PLANETS = {"SATURN", "JUPITER", "RAHU", "KETU", "MARS"}
 
     for t_planet, t_lon in transit_positions.items():
         max_orb   = ORB_TABLE.get(t_planet, 6.0)
         t_speed   = speeds.get(t_planet, MEAN_SPEED.get(t_planet, 1.0))
         is_benefic_planet = t_planet in NATURAL_BENEFIC
+
+        # ── Stationing detection (Research §4): velocity near zero ───────
+        # Station = planet going retrograde or direct; speed ≈ 0
+        _mean_spd = abs(MEAN_SPEED.get(t_planet, 1.0))
+        _is_stationing = False
+        _station_mult = 1.0
+        if t_planet in _SLOW_PLANETS and _mean_spd > 0:
+            _speed_ratio = abs(t_speed) / _mean_spd
+            if _speed_ratio < 0.15:
+                _is_stationing = True
+                # Near-zero velocity → magnifying glass effect (2x to 3x)
+                _station_mult = 2.5
+            elif _speed_ratio < 0.30:
+                _is_stationing = True
+                _station_mult = 1.8
 
         aspects_found: List[dict] = []
         total_benefic = 0.0
@@ -140,6 +169,19 @@ def compute_transit_aspects(
 
         for n_planet, n_lon in natal_positions.items():
             sep = _separation(t_lon, n_lon)
+
+            # ── Dynamic graduated orb based on natal planet strength ─────
+            # Research 1°/2°/5° rule:
+            #   Strong natal (shadbala > 1.2) → tight orb, event triggers at 1°
+            #   Medium natal (0.8-1.2)        → standard 2° precision
+            #   Weak natal (< 0.8)            → wide orb, effects begin at 5°
+            _n_sb = sb_ratios.get(n_planet, 1.0)
+            if _n_sb > 1.2:
+                _precision_orb = 1.0  # Strong: tight trigger
+            elif _n_sb >= 0.8:
+                _precision_orb = 2.0  # Medium: standard
+            else:
+                _precision_orb = 5.0  # Weak: wide trigger
 
             for asp_angle, asp_name in MAJOR_ASPECTS.items():
                 orb_diff = abs(sep - asp_angle)
@@ -149,10 +191,26 @@ def compute_transit_aspects(
                 # Continuous weight function (research formula)
                 strength = 1.0 - orb_diff / max_orb
 
+                # ── Partile (exact within precision orb) bonus ───────────
+                _is_partile = orb_diff <= _precision_orb
+                if _is_partile:
+                    # Within precision orb → logarithmic amplification
+                    _partile_boost = 1.0 + (1.0 - orb_diff / max(_precision_orb, 0.1)) * 0.30
+                    strength = min(1.0, strength * _partile_boost)
+
                 # Applying aspects are 15% stronger (classical rule)
                 applying = _is_applying(t_lon, n_lon, t_speed, asp_angle)
                 if applying:
                     strength = min(1.0, strength * 1.15)
+
+                # ── Stationing amplification ─────────────────────────────
+                if _is_stationing and orb_diff <= 2.0:
+                    strength = min(1.0, strength * _station_mult)
+
+                # ── Nakshatra Pada overlap micro-trigger ─────────────────
+                # 3°20' = one Nakshatra Pada. If orb < 3.33°, transit is
+                # conjunct in both D1 and D9 → logarithmic amplification
+                _pada_overlap = orb_diff < 3.33
 
                 # Conjunction nature depends on transit planet
                 polarity = ASPECT_POLARITY[asp_angle]
@@ -161,13 +219,16 @@ def compute_transit_aspects(
 
                 nature = "benefic" if polarity > 0 else "malefic"
                 aspects_found.append({
-                    "natal_planet":  n_planet,
-                    "aspect":        asp_name,
-                    "aspect_angle":  asp_angle,
-                    "orb":           round(orb_diff, 2),
-                    "strength":      round(strength, 3),
-                    "applying":      applying,
-                    "nature":        nature,
+                    "natal_planet":          n_planet,
+                    "aspect":                asp_name,
+                    "aspect_angle":          asp_angle,
+                    "orb":                   round(orb_diff, 2),
+                    "strength":              round(strength, 3),
+                    "applying":              applying,
+                    "nature":                nature,
+                    "partile":               _is_partile,
+                    "stationing":            _is_stationing,
+                    "nakshatra_pada_overlap": _pada_overlap,
                 })
                 if polarity > 0:
                     total_benefic += strength
@@ -182,6 +243,8 @@ def compute_transit_aspects(
             "benefic_score":    round(total_benefic, 3),
             "malefic_score":    round(total_malefic, 3),
             "net_aspect_score": round(total_benefic - total_malefic, 3),
+            "stationing":       _is_stationing,
+            "station_mult":     round(_station_mult, 2) if _is_stationing else None,
         }
 
     return results

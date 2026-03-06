@@ -67,7 +67,7 @@ from vedic_engine.prediction.classical_modifiers import (
 from vedic_engine.prediction.domain_signal_weights import DOMAIN_SIGNALS
 from vedic_engine.prediction.prediction_overrides import check_master_overrides
 from vedic_engine.prediction.bridge_integration import compute_bridge_modifier
-from vedic_engine.prediction.dasha_transit  import analyze_dasha_lord_transit, compute_ingress_calendar
+from vedic_engine.prediction.dasha_transit  import analyze_dasha_lord_transit, compute_ingress_calendar, check_domain_double_transit, compute_domain_lord_transit_boost
 from vedic_engine.prediction.calibration    import calibrate_confidence
 from vedic_engine.prediction.timing_optimizer import find_best_windows, find_worst_windows
 from vedic_engine.analysis.remedial          import get_remedies
@@ -479,12 +479,34 @@ DOMAIN_PLANETS = {
 }
 
 
-def _planet_domain_map(planet_house_map: Dict[str, int]) -> Dict[str, List[str]]:
-    """Map each planet to domains whose houses it occupies."""
+def _planet_domain_map(planet_house_map: Dict[str, int],
+                       house_lords: Optional[Dict[int, str]] = None) -> Dict[str, List[str]]:
+    """Map each planet to domains whose houses it occupies OR lords.
+
+    Classical rule: a planet signifies a domain through BOTH occupation
+    (which house it sits in) AND lordship (which houses it rules).
+    E.g. Jupiter ruling H10 is a career significator regardless of where it sits.
+    """
     result: Dict[str, List[str]] = {}
+    # Step 1: occupation-based mapping (planet sits in domain house)
     for planet, house in planet_house_map.items():
-        domains = [d for d, houses in DOMAIN_HOUSES.items() if house in houses]
-        result[planet] = domains
+        domains = {d for d, houses in DOMAIN_HOUSES.items() if house in houses}
+        result[planet] = list(domains)
+
+    # Step 2: lordship-based mapping (planet lords a domain house)
+    if house_lords:
+        # Invert house_lords: planet → list of houses it rules
+        planet_ruled_houses: Dict[str, List[int]] = {}
+        for h_num, lord_name in house_lords.items():
+            planet_ruled_houses.setdefault(lord_name, []).append(
+                h_num if isinstance(h_num, int) else int(h_num))
+        for planet, ruled in planet_ruled_houses.items():
+            existing = set(result.get(planet, []))
+            for d, houses in DOMAIN_HOUSES.items():
+                if any(h in houses for h in ruled):
+                    existing.add(d)
+            result[planet] = list(existing)
+
     return result
 
 
@@ -604,6 +626,89 @@ class PredictionEngine:
             lagna_sign=lagna_sign,
             retrograde_planets=retro_set,
         )
+
+        # ── D9 Degradation Matrix (Research: Phaladeepika classical rule) ──────
+        # D9 is the "absolute qualitative filter" for ALL yogas.
+        # Check debilitation, great enemy, combustion in D9 (penalties),
+        # and Vargottama/exaltation in D9 (boosts).
+        _D9_DEBIL = {
+            "SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+            "JUPITER": 9, "VENUS": 5, "SATURN": 0,
+        }
+        _D9_EXALT = {
+            "SUN": 0, "MOON": 1, "MARS": 9, "MERCURY": 5,
+            "JUPITER": 3, "VENUS": 11, "SATURN": 6,
+        }
+        # Great enemy signs: sign ruled by a planet's great enemy
+        # Map: planet → set of sign indices where planet is in great enemy territory
+        _D9_GREAT_ENEMY = {
+            "SUN":     {1, 6},   # Taurus(Venus), Libra(Venus), + Capricorn/Aquarius(Saturn)
+            "MOON":    set(),    # Moon has no natural enemies
+            "MARS":    {2, 5},   # Gemini(Mercury), Virgo(Mercury)
+            "MERCURY": {3},      # Cancer(Moon)
+            "JUPITER": {2, 5, 1, 6},  # Gemini/Virgo(Mercury), Taurus/Libra(Venus)
+            "VENUS":   {4, 3},   # Leo(Sun), Cancer(Moon)
+            "SATURN":  {0, 4, 7},  # Aries(Mars), Leo(Sun), Scorpio(Mars)
+        }
+        for y in yogas:
+            if not y.detected or not y.planets:
+                continue
+            _debil_count = 0
+            _enemy_count = 0
+            _vargottama_count = 0
+            _exalt_count = 0
+            _total_planets = len(y.planets)
+            for p in y.planets:
+                _pvargas = vargas.get(p)
+                if not _pvargas or 9 not in _pvargas:
+                    continue
+                _d9_sign = _pvargas[9]
+                _d1_sign = int(planet_lons.get(p, 0) / 30) % 12
+                # Vargottama: occupies same sign in D1 and D9
+                if _d9_sign == _d1_sign:
+                    _vargottama_count += 1
+                # Debilitation in D9
+                elif _d9_sign == _D9_DEBIL.get(p):
+                    _debil_count += 1
+                # Great enemy sign in D9
+                elif _d9_sign in _D9_GREAT_ENEMY.get(p, set()):
+                    _enemy_count += 1
+                # Exaltation in D9
+                elif _d9_sign == _D9_EXALT.get(p):
+                    _exalt_count += 1
+
+            _d9_notes = []
+            # Apply penalties: debilitation is worst, then great enemy
+            if _debil_count > 0:
+                _ratio = _debil_count / _total_planets
+                # Research: debilitated D9 → strength severely diminished
+                # All planets debilitated → 0.30×, one of many → milder
+                y.strength *= max(0.30, 1.0 - 0.70 * _ratio)
+                _d9_notes.append(f"{_debil_count} planet(s) debilitated in D9")
+            if _enemy_count > 0:
+                _ratio = _enemy_count / _total_planets
+                # Great enemy sign in D9 → D1 promise broken
+                y.strength *= max(0.40, 1.0 - 0.50 * _ratio)
+                _d9_notes.append(f"{_enemy_count} planet(s) in great enemy sign in D9")
+
+            # Apply boosts: Vargottama is strongest, then exaltation
+            if _vargottama_count > 0:
+                _ratio = _vargottama_count / _total_planets
+                # Vargottama: massive qualitative strength, equivalent to own sign
+                # Overrides D1 afflictions — strength boost ×1.40
+                y.strength = min(1.0, y.strength * (1.0 + 0.40 * _ratio))
+                _d9_notes.append(f"{_vargottama_count} planet(s) Vargottama (D1=D9)")
+            if _exalt_count > 0:
+                _ratio = _exalt_count / _total_planets
+                y.strength = min(1.0, y.strength * (1.0 + 0.25 * _ratio))
+                _d9_notes.append(f"{_exalt_count} planet(s) exalted in D9")
+
+            if _d9_notes:
+                _existing = y.cancellation_reason or ""
+                _combined = "; ".join(_d9_notes)
+                y.cancellation_reason = (
+                    f"{_existing}; {_combined}" if _existing else _combined
+                )
 
         # ── Phase 1D: Extended unified yoga output ────────────────
         try:
@@ -749,6 +854,7 @@ class PredictionEngine:
                 birth_dt=birth_dt,
                 sunrise_hour=6.0,
                 malefic_conjunctions=_malefic_conj,
+                retrograde_planets=retrogrades,
             )
         except Exception as e:
             avasthas = {"error": str(e)}
@@ -788,7 +894,7 @@ class PredictionEngine:
             rashi_drishti = {"error": str(e)}
 
         # ── Domain map
-        domain_map = _planet_domain_map(planet_houses)
+        domain_map = _planet_domain_map(planet_houses, house_lords)
 
         # ── Shadvarga Vimshopak (classical 6-chart quality scheme) ────
         shadvarga_vimshopak: Dict = {}
@@ -986,7 +1092,9 @@ class PredictionEngine:
                 )
 
                 # Medical Analysis
-                _combust = [p for p in retrogrades if p != "RAHU" and p != "KETU"]  # placeholder
+                # Actual combustion via sliding-scale orb computation
+                _combust_data = compute_combustion(planet_lons, sun_lon, retrogrades)
+                _combust = [p for p, v in _combust_data.items() if v.get("is_combust")]
                 _vargottama_ps: List[str] = []
                 try:
                     from vedic_engine.core.divisional import D9 as _d9fv
@@ -1855,7 +1963,8 @@ class PredictionEngine:
                                     planet_lons, vargas, chart.lagna_degree),
             "remedies":         _compute_remedies_safe(
                                     planet_signs, planet_houses, shadbala_ratios,
-                                    retrogrades, wars),
+                                    retrogrades, wars,
+                                    _p4_computed.get("combustion", {})),
             "arudha_padas":     arudha,
             "rashi_drishti":    rashi_drishti,
             "yoga_compounding": yoga_compounding,
@@ -1999,18 +2108,24 @@ class PredictionEngine:
             sarva_av  = av_data.get("sarva", None) if isinstance(av_data, dict) else None
 
             natal_moon_nak = int(moon_lon / (360.0 / 27))
+            pav_data = av_data.get("pav", {}) if isinstance(av_data, dict) else {}
             transit_evals = evaluate_all_transits(
                 transit_positions=transit_pos,
                 natal_moon_sign=moon_sign,
                 bhinna_av=bhinna_av,
                 sarva_av=sarva_av,
                 natal_moon_nak=natal_moon_nak,
+                pav=pav_data,
             )
         except Exception as e:
             transit_pos, transit_evals = {}, {"error": str(e)}
 
         # ── Sudarshana Chakra evaluation (Phase 1E) ─────────────
+        # VALIDITY GATE: Sudarshana requires 3 DISTINCT reference frames.
+        # If any two of Lagna/Sun/Moon share the same sign, Sudarshana
+        # collapses to ≤2 unique frames and must be skipped entirely.
         sudarshana_eval: Dict = {}
+        _sudarshana_valid = False
         try:
             _t_signs = {p: int(lon % 360 / 30) % 12
                         for p, lon in transit_pos.items()
@@ -2021,11 +2136,44 @@ class PredictionEngine:
                 static.get("chart_raw", {}).get("planet_lons", {}).get("SUN", 0)
                 % 360 / 30
             ) % 12
-            sudarshana_eval = {
-                "planets": evaluate_sudarshana_all_planets(
+            # Validity: all three anchors must occupy different signs
+            _sudarshana_valid = (
+                _s_lagna != _s_moon
+                and _s_lagna != _s_sun
+                and _s_moon != _s_sun
+            )
+            if not _sudarshana_valid:
+                sudarshana_eval = {
+                    "skipped": True,
+                    "reason": "Lagna/Sun/Moon not in 3 distinct signs",
+                    "lagna_sign": _s_lagna,
+                    "sun_sign": _s_sun,
+                    "moon_sign": _s_moon,
+                }
+            else:
+                _sc_planets = evaluate_sudarshana_all_planets(
                     _t_signs, _s_lagna, _s_moon, _s_sun
-                ),
-            }
+                )
+                # Convergence scoring: triple agreement = maximum kinetic realization
+                _triple_agree = 0
+                _total_sc = len(_sc_planets) if _sc_planets else 0
+                for _sc_e in (_sc_planets or []):
+                    if isinstance(_sc_e, dict):
+                        _sc_fs = _sc_e.get("final_score", 0)
+                        _sc_frames = [
+                            _sc_e.get("lagna_score", 0),
+                            _sc_e.get("moon_score", 0),
+                            _sc_e.get("sun_score", 0),
+                        ]
+                        # Triple agreement: all 3 frames same sign (all positive or all negative)
+                        if all(f > 0 for f in _sc_frames) or all(f < 0 for f in _sc_frames):
+                            _triple_agree += 1
+                _convergence_ratio = round(_triple_agree / max(1, _total_sc), 4)
+                sudarshana_eval = {
+                    "planets": _sc_planets,
+                    "convergence_ratio": _convergence_ratio,
+                    "triple_agree_count": _triple_agree,
+                }
             try:
                 _birth_dt_s = datetime.fromisoformat(
                     static.get("meta", {}).get("birth_dt", "")
@@ -2094,7 +2242,10 @@ class PredictionEngine:
         # ── Transit-to-natal longitude aspects (continuous orb weighting + applying/separating)
         try:
             natal_lons = static.get("chart_raw", {}).get("planet_lons", {})
-            transit_aspects = compute_transit_aspects(transit_pos, natal_lons)
+            transit_aspects = compute_transit_aspects(
+                transit_pos, natal_lons,
+                natal_shadbala=static.get("shadbala_ratios"),
+            )
         except Exception as e:
             transit_aspects = {"error": str(e)}
 
@@ -2204,6 +2355,16 @@ class PredictionEngine:
 
         dynamic = self.analyze_dynamic(chart, static, on_date)
 
+        # ── Compute native's current age for Manduka Gati ──────────────────
+        _native_age = -1
+        try:
+            _birth_dt_str = static.get("meta", {}).get("birth_dt", "")
+            if _birth_dt_str:
+                _bd = datetime.fromisoformat(_birth_dt_str) if isinstance(_birth_dt_str, str) else _birth_dt_str
+                _native_age = max(0, int((on_date - _bd).days / 365.25))
+        except Exception:
+            pass
+
         # ── Gather inputs for confidence scoring
         vim_active = dynamic["vimshottari"].get("active", {})
         yog_active = dynamic["yogini"].get("active", {})
@@ -2220,6 +2381,14 @@ class PredictionEngine:
                            vim_active.get("planet", dasha_planet))
             antar_planet = vim_active.get("antardasha",
                            vim_active.get("planet", dasha_planet))
+
+        # ── Pratyantardasha extraction (physical trigger layer) ─────────────
+        # PD carries 20% temporal weight — the definitive physical catalyst.
+        pratyantar_planet: Optional[str] = None
+        if isinstance(vim_active, dict):
+            pratyantar_planet = vim_active.get("pratyantardasha")
+        elif isinstance(vim_active, list) and len(vim_active) > 2:
+            pratyantar_planet = vim_active[2].get("planet")
 
         yogini_lord = (yog_active.get("major_planet",
                         yog_active.get("planet")) if isinstance(yog_active, dict)
@@ -2296,10 +2465,18 @@ class PredictionEngine:
                         _entry["_vipareeta_2c"] = _vh["vipareeta_by"]
 
                     # 2D — Sudarshana: blend triple-frame score (60% existing / 40% SC)
-                    if _pn in _suda_map:
+                    # Only applied when Sudarshana passed validity gate (3 distinct anchor signs).
+                    # Convergence boost: if triple agreement ratio > 0.60, amplify SC weight.
+                    if _pn in _suda_map and _sudarshana_valid:
                         _suda_n = _suda_map[_pn]
-                        _net = round(0.60 * _net + 0.40 * _suda_n, 4)
+                        _sc_conv = dynamic.get("sudarshana", {}).get("convergence_ratio", 0.0)
+                        if _sc_conv >= 0.60:
+                            # High convergence → SC weight rises from 0.40 to 0.50
+                            _net = round(0.50 * _net + 0.50 * _suda_n, 4)
+                        else:
+                            _net = round(0.60 * _net + 0.40 * _suda_n, 4)
                         _entry["_sudarshana_norm_2d"] = _suda_n
+                        _entry["_sudarshana_convergence"] = _sc_conv
 
                     _entry["net_score"] = max(0.0, min(1.0, _net))
                     transit_evals_adj[_pn] = _entry
@@ -2424,6 +2601,11 @@ class PredictionEngine:
                     shadbala_ratios=shadbala_for_pr,
                     planet_lons=planet_lons_for_pr,
                     vargas=vargas_for_pr,
+                    retrograde_planets=_retro_list if isinstance(_retro_list, dict) else (
+                        {p: True for p in (_retro_list or [])} if isinstance(_retro_list, list) else None
+                    ),
+                    combust_planets=static.get("combust_planets"),
+                    ashtakvarga_bindus=static.get("ashtakvarga", {}).get("planet_totals") if isinstance(static.get("ashtakvarga"), dict) else None,
                 )
             except Exception as _pe:
                 promise_result = None
@@ -2521,11 +2703,40 @@ class PredictionEngine:
                 elif _benefic_hits == 1:
                     _rd_score = 0.55
 
+            # ── AK dignity data for veto power (Fix 47) ──────────────
+            _ak_p = static.get("ak_planet")
+            _ak_combust = False
+            _ak_debilitated = False
+            _ak_enemy_sign = False
+            _ak_shadbala = 1.0
+            if _ak_p:
+                _comb_list = static.get("combust_planets") or []
+                _ak_combust = _ak_p in _comb_list
+                _p_signs_ak = static.get("chart_raw", {}).get("planet_signs", {})
+                _ak_sign_idx = _p_signs_ak.get(_ak_p)
+                if isinstance(_ak_sign_idx, int):
+                    _AK_DEBIL = {"SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+                                 "JUPITER": 9, "VENUS": 5, "SATURN": 0}
+                    _ak_debilitated = _ak_sign_idx == _AK_DEBIL.get(_ak_p, -1)
+                    _AK_ENEMY = {
+                        "SUN": {1, 6, 9, 10}, "MOON": set(),
+                        "MARS": {2, 5}, "MERCURY": {3},
+                        "JUPITER": {2, 5, 1, 6}, "VENUS": {4, 3},
+                        "SATURN": {0, 4, 7},
+                    }
+                    _ak_enemy_sign = _ak_sign_idx in _AK_ENEMY.get(_ak_p, set())
+                _ak_shadbala = static.get("shadbala_ratios", {}).get(_ak_p, 1.0)
+
             jaimini_data = {
                 "chara_alignment":     _c_align,
                 "karakamsha_score":    _k_score,
                 "arudha_alignment":    _a_align,
                 "rashi_drishti_score": _rd_score,
+                "ak_planet":           _ak_p,
+                "ak_combust":          _ak_combust,
+                "ak_debilitated":      _ak_debilitated,
+                "ak_enemy_sign":       _ak_enemy_sign,
+                "ak_shadbala":         _ak_shadbala,
             }
         except Exception:
             jaimini_data = None
@@ -2534,6 +2745,8 @@ class PredictionEngine:
         # Core compute_baladi_avasthas() is untouched; modifier applied here so it
         # cascades into dasha alignment, house-lord strength, and promise scoring
         # that compute_confidence() does internally with the ratios.
+        # Research: Mrita = 0.00 (nil), NO floor. Mercury is exempt (always 1.0)
+        # via compute_baladi_avasthas overrides. Sun/Mars peak at Bala, Moon/Saturn at Vriddha.
         _raw_shadbala   = static.get("shadbala_ratios", {})
         _avasthas_data  = static.get("avasthas", {})
         _baladi_map     = (_avasthas_data.get("baladi", {})
@@ -2542,8 +2755,37 @@ class PredictionEngine:
         for _p, _ratio in _raw_shadbala.items():
             _b    = _baladi_map.get(_p, {})
             _mult = _b.get("multiplier", 1.0) if isinstance(_b, dict) else 1.0
-            # Floor at 0.15 so Mrita never completely zeros out a planet
-            _effective_shadbala[_p] = round(_ratio * max(0.15, _mult), 4)
+            # Mrita = 0.00 strictly per BPHS. No artificial floor.
+            _effective_shadbala[_p] = round(_ratio * _mult, 4)
+
+        # ── Pre-compute dasha lord gochar multiplier (Fix 48) ────────────
+        # Research: gochar is a MULTIPLIER on dasha strength, not additive.
+        # Effective_Dasha_Strength = Natal_Dasha_Quality × σ(Gochar_Score)
+        _dlt_gochar_mult = 1.0  # neutral default
+        try:
+            _pre_dt = dynamic.get("dasha_transit", {}) or {}
+            _pre_dlt = _pre_dt.get("combined_transit_score", 0.0)
+            if isinstance(_pre_dlt, (int, float)) and _pre_dlt > 0:
+                _pre_dl_lon = dynamic.get("transit_positions", {}).get(dasha_planet)
+                _pre_bav = 4  # neutral default
+                if _pre_dl_lon is not None and isinstance(bhinna_av, dict):
+                    _pre_sign = int(_pre_dl_lon / 30.0) % 12
+                    _pre_bav_d = bhinna_av.get(dasha_planet, {})
+                    if isinstance(_pre_bav_d, list):
+                        _pre_bav = int(_pre_bav_d[_pre_sign]) if _pre_sign < len(_pre_bav_d) else 4
+                    elif isinstance(_pre_bav_d, dict):
+                        for _bk, _bv in _pre_bav_d.items():
+                            if int(_bk) == _pre_sign:
+                                _pre_bav = int(_bv)
+                                break
+                _GOCHAR_BAV = {0: 0.40, 1: 0.45, 2: 0.55, 3: 0.70,
+                               4: 1.00, 5: 1.30, 6: 1.60, 7: 1.85, 8: 2.00}
+                _bm = _GOCHAR_BAV.get(min(_pre_bav, 8), 1.0)
+                # Deviation from neutral (0.50), scaled by BAV, mapped to ±30%
+                _gochar_dev = (_pre_dlt - 0.50) * _bm * 0.40
+                _dlt_gochar_mult = max(0.70, min(1.30, 1.0 + _gochar_dev))
+        except Exception:
+            _dlt_gochar_mult = 1.0
 
         confidence = compute_confidence(
             dasha_planet=dasha_planet,
@@ -2572,7 +2814,100 @@ class PredictionEngine:
             dasha_lord_retrograde=dasha_lord_retrograde,
             jaimini_data=jaimini_data,
             karaka_bav_data=karaka_bav_data,
+            pratyantar_planet=pratyantar_planet,
+            age_years=_native_age,
+            planet_lons=static.get("chart_raw", {}).get("planet_lons"),
+            dasha_lord_gochar_mult=_dlt_gochar_mult,
         )
+
+        # ── Deeptadi Avastha Hard-Gate (Classical Phaladeepika) ──────────────
+        # Uses ONLY Deeptadi states (dignity-based, 9-state system).
+        # kshobhita is Lajjitadi (different system) — removed.
+        # vriddha is Baladi (age-based) — handled by Baladi modifier, not here.
+        # Research: Avasthas are the FINAL multiplicative filter. Even a planet
+        # with high retrograde strength outputs 0.00 if Mrita or Kopa.
+        _deeptadi_for_gate = (static.get("avasthas", {}) or {})
+        if isinstance(_deeptadi_for_gate, dict):
+            _deeptadi_for_gate = _deeptadi_for_gate.get("deeptadi", {})
+        if isinstance(_deeptadi_for_gate, dict):
+            _md_avastha_data = _deeptadi_for_gate.get(dasha_planet, {})
+            if isinstance(_md_avastha_data, dict):
+                _md_state = str(_md_avastha_data.get(
+                    "state", _md_avastha_data.get("avastha", "normal")
+                )).lower()
+                # Deeptadi-only gate multipliers (research-aligned coefficients)
+                _AVASTHA_GATE = {
+                    "mrita": 0.00,         # Dead: zero delivery — absolute
+                    "kopa": 0.00,          # Combust/furious: zero delivery
+                    "khala": 0.00,         # Wicked: zero delivery
+                    "vikala": 0.05,        # Crippled: near-zero
+                    "dukhita": 0.0625,     # Miserable: heavily reduced
+                    "dina": 0.125,         # Depressed: weak
+                    "shanta": 0.25,        # Calm: moderate
+                    "pramudita": 0.375,    # Joyful: good but not full
+                }
+                _gate_mult = _AVASTHA_GATE.get(_md_state)
+                if _gate_mult is not None and isinstance(confidence, dict):
+                    _old_overall = confidence.get("overall", 0.5)
+                    confidence["overall"] = round(
+                        max(0.01, _old_overall * _gate_mult), 4
+                    )
+                    confidence["avastha_gate"] = {
+                        "state": _md_state,
+                        "multiplier": _gate_mult,
+                    }
+
+        # ── Badhaka Friction Gate (Classical Parashari soft modifier) ────────
+        # Badhaka = obstruction/delay, NOT denial. Active only when badhakesh
+        # is afflicted.  Applied AFTER promise/confidence, as a post-multiplier.
+        if _BADHAKA_AVAILABLE:
+            try:
+                _bad_lagna = static.get("meta", {}).get("lagna_sign", 0)
+                _bad_info  = get_badhaka_house(_bad_lagna)
+                _bad_planet = _bad_info["badhakesh"]
+                _bad_planet_house = (static.get("chart_raw", {})
+                                     .get("planet_houses", {})
+                                     .get(_bad_planet, 0))
+                _bad_sb_ratio = static.get("shadbala_ratios", {}).get(_bad_planet, 1.0)
+                # Functional benefic check from functional analysis
+                _func_an = static.get("functional", {})
+                _bad_is_benefic = False
+                if isinstance(_func_an, dict):
+                    _p_func = _func_an.get(_bad_planet, _func_an.get("planets", {}).get(_bad_planet, {}))
+                    if isinstance(_p_func, dict):
+                        _bad_is_benefic = _p_func.get("yogakaraka", False) or _p_func.get("benefic", False)
+
+                _bad_friction = compute_badhaka_friction(
+                    lagna_sign=_bad_lagna,
+                    badhakesh_house=_bad_planet_house,
+                    badhakesh_is_functional_benefic=_bad_is_benefic,
+                    badhakesh_shadbala_ratio=_bad_sb_ratio,
+                    current_dasha_lord=dasha_planet,
+                    badhakesh=_bad_planet,
+                    event_domain=domain,
+                )
+                # Only apply friction when badhakesh is actually afflicted
+                # (in dusthana or natural malefic) — classical rule: "cannot
+                # cause badhaka unless there is an affliction"
+                if _bad_friction.get("friction_label") != "none":
+                    _old_conf = confidence.get("overall", 0.5)
+                    confidence["overall"] = round(
+                        apply_badhaka_to_confidence(
+                            _old_conf,
+                            _bad_friction["friction_multiplier"],
+                            _bad_friction.get("badhaka_active_in_dasha", False),
+                        ), 4
+                    )
+                    confidence["badhaka_friction"] = {
+                        "badhakesh": _bad_planet,
+                        "badhakesh_house": _bad_planet_house,
+                        "friction_label": _bad_friction["friction_label"],
+                        "friction_multiplier": _bad_friction["friction_multiplier"],
+                        "active_in_dasha": _bad_friction.get("badhaka_active_in_dasha", False),
+                        "note": _bad_friction.get("note", ""),
+                    }
+            except Exception:
+                pass  # Badhaka is a soft modifier — failure should not crash pipeline
 
         # ── Phase 6 L2: research-backed domain modifier + convergence flow ──
         _computed_for_classical: Dict[str, Any] = dict(static.get("computed", {}) or {})
@@ -2744,19 +3079,140 @@ class PredictionEngine:
             confidence["overall"] = round(float(override_conf), 3)
             confidence["final"] = round(float(override_conf), 3)
 
-        # ── Double Transit Gate (§5.1) ──────────────────────────────────
-        # If Jupiter+Saturn are NOT in beneficial houses from natal Moon,
-        # cap the confidence at 0.50 (event unlikely to manifest fully).
+        # ── Double Transit Gate (§5.1) — domain-specific ────────────────
+        # Classical rule: Jupiter AND Saturn must both aspect/conjoin the
+        # specific domain houses or their lords for a major event to manifest.
+        # Generic benefic transit from Moon is kept as fallback only.
         _dt_info = dynamic.get("dasha_transit", {}) or {}
         _dbl_tr  = _dt_info.get("double_transit", {}) or {}
-        _double_transit_active = bool(_dbl_tr.get("active"))
+        _generic_dt_active = bool(_dbl_tr.get("active"))
+
+        # Domain-specific double transit (primary check)
+        _transit_pos = dynamic.get("transit_positions", {})
+        _lagna_sign = static.get("meta", {}).get("lagna_sign", 0)
+        _hl = {int(k): v for k, v in static.get("house_lords", {}).items()}
+        _natal_p_signs = static.get("chart_raw", {}).get("planet_signs", {})
+        try:
+            _domain_dt = check_domain_double_transit(
+                transit_positions=_transit_pos,
+                lagna_sign=_lagna_sign,
+                domain_houses=domain_houses,
+                house_lords=_hl,
+                natal_planet_signs=_natal_p_signs,
+            )
+        except Exception:
+            _domain_dt = {"active": _generic_dt_active}
+
+        _double_transit_active = bool(_domain_dt.get("active"))
+        confidence["double_transit"] = _domain_dt
+
         if not _double_transit_active and isinstance(confidence, dict):
-            _raw = confidence.get("final_score", confidence.get("score", 0.5))
+            _raw = confidence.get("final", confidence.get("overall", 0.5))
             if isinstance(_raw, (int, float)) and _raw > 0.50:
-                confidence["final_score"] = 0.50
-                confidence["score"]       = 0.50
+                confidence["final"] = 0.50
+                confidence["overall"] = 0.50
                 confidence.setdefault("gates_applied", []).append(
-                    "double_transit_cap: Jupiter+Saturn not in beneficial houses"
+                    f"double_transit_cap: Jupiter+Saturn not activating domain houses {domain_houses}"
+                )
+
+        # ── Domain Lord Transit Boost (Fix 42) ──────────────────────────
+        # Classical: domain house lord / natural karaka transiting a sign
+        # with 4+ BAV bindus → massive domain activation.  Also: MD/AD lord
+        # transiting own natal house (+ favorable Kakshya) → par excellence.
+        try:
+            _natal_ph = static.get("chart_raw", {}).get("planet_houses", {})
+            _dl_boost = compute_domain_lord_transit_boost(
+                transit_positions=_transit_pos,
+                domain=domain,
+                domain_houses=domain_houses,
+                house_lords=_hl,
+                bhinna_av=bhinna_av,
+                lagna_sign=_lagna_sign,
+                natal_planet_houses=_natal_ph,
+                mahadasha_lord=dasha_planet,
+                antardasha_lord=antar_planet,
+            )
+            confidence["domain_lord_transit_boost"] = _dl_boost
+            _dl_total = _dl_boost.get("total_boost", 0.0)
+            if _dl_total > 0 and isinstance(confidence, dict):
+                _cur = confidence.get("final", confidence.get("overall", 0.5))
+                if isinstance(_cur, (int, float)):
+                    _boosted = min(1.0, _cur + _dl_total)
+                    confidence["final"] = round(_boosted, 3)
+                    confidence["overall"] = round(_boosted, 3)
+                    confidence.setdefault("gates_applied", []).append(
+                        f"domain_lord_transit_boost: +{_dl_total:.3f}"
+                    )
+        except Exception:
+            confidence["domain_lord_transit_boost"] = {"active": False, "error": "computation failed"}
+
+        # ── Triple Transit Magnitude Escalation (Research: multiplicative) ──
+        # Slow-moving planets exert exponential pressure — "like a magnifying
+        # glass focusing sunlight".  Rahu/Ketu joining Jupiter-Saturn double
+        # transit is a MULTIPLICATIVE accelerator, not a flat additive bump.
+        _triple_tr = _dt_info.get("triple_transit") or {}
+        if _triple_tr.get("active") and isinstance(confidence, dict):
+            _tri_node = _triple_tr.get("node", "")
+            _cur_tt = confidence.get("final", confidence.get("overall", 0.5))
+            if isinstance(_cur_tt, (int, float)):
+                _dom_lower = domain.lower()
+                if _tri_node == "RAHU":
+                    # Rahu: explosive unorthodox catalyst — material domains
+                    # boosted unequally.  Career/finance get highest factor;
+                    # health/spiritual lower factor.
+                    _RAHU_MULT = {
+                        "career": 1.25, "finance": 1.22, "property": 1.18,
+                        "travel": 1.18, "marriage": 1.12, "children": 1.10,
+                        "health": 1.05, "spiritual": 1.05,
+                    }
+                    _tri_mult = _RAHU_MULT.get(_dom_lower, 1.15)
+                    _new_tt = round(min(1.0, _cur_tt * _tri_mult), 3)
+                    confidence["final"] = _new_tt
+                    confidence["overall"] = _new_tt
+                    confidence.setdefault("gates_applied", []).append(
+                        f"triple_transit_RAHU: ×{_tri_mult:.2f} (explosive unorthodox elevation)"
+                    )
+                elif _tri_node == "KETU":
+                    # Ketu: ACTIVELY suppresses material domains — forces
+                    # dissolution, structural collapse, letting-go.
+                    # Spiritual domains get a boost instead.
+                    if _dom_lower in ("spiritual", "moksha"):
+                        _tri_mult = 1.20  # Ketu empowers renunciation/spiritual
+                    else:
+                        # Material suppression: forced dissolution
+                        _tri_mult = 0.80  # 20% reduction — structural collapse
+                    _new_tt = round(min(1.0, max(0.0, _cur_tt * _tri_mult)), 3)
+                    confidence["final"] = _new_tt
+                    confidence["overall"] = _new_tt
+                    confidence.setdefault("gates_applied", []).append(
+                        f"triple_transit_KETU: ×{_tri_mult:.2f} ({'spiritual boost' if _tri_mult > 1 else 'material dissolution'})"
+                    )
+            confidence["triple_transit"] = _triple_tr
+
+        # ── Dasha Lord Transit Quality — diagnostic only (Fix 48) ────────
+        # Gochar is now applied as a MULTIPLIER on c_dasha inside
+        # compute_confidence() via dasha_lord_gochar_mult parameter.
+        # This block retains BAV diagnostic output for reporting.
+        _dlt_combined = _dt_info.get("combined_transit_score", 0.0)
+        if isinstance(_dlt_combined, (int, float)) and _dlt_combined > 0:
+            _dl_t_lon = _transit_pos.get(dasha_planet)
+            _dl_bav_bindus = 4  # neutral default
+            if _dl_t_lon is not None and isinstance(bhinna_av, dict):
+                _dl_t_sign = int(_dl_t_lon / 30.0) % 12
+                _dl_bav_data = bhinna_av.get(dasha_planet, {})
+                if isinstance(_dl_bav_data, list):
+                    _dl_bav_bindus = int(_dl_bav_data[_dl_t_sign]) if _dl_t_sign < len(_dl_bav_data) else 4
+                elif isinstance(_dl_bav_data, dict):
+                    for _bk, _bv in _dl_bav_data.items():
+                        if int(_bk) == _dl_t_sign:
+                            _dl_bav_bindus = int(_bv)
+                            break
+            confidence["dasha_lord_gochar_mult"] = round(_dlt_gochar_mult, 4)
+            confidence["dasha_lord_bav_in_transit"] = _dl_bav_bindus
+            if abs(_dlt_gochar_mult - 1.0) >= 0.01:
+                confidence.setdefault("gates_applied", []).append(
+                    f"dasha_lord_gochar: ×{_dlt_gochar_mult:.3f} on c_dasha "
+                    f"(combined={_dlt_combined:.3f}, BAV={_dl_bav_bindus})"
                 )
 
         # ── Multi-Dasha AND Consensus (Research Brief Block 3C) ──────────
@@ -2823,8 +3279,8 @@ class PredictionEngine:
         try:
             fuzzy_inputs = aggregate_for_fuzzy(confidence["components"])
             fuzzy_result = compute_fuzzy_confidence(**fuzzy_inputs)
-            # Blend: 55% linear weighted + 45% fuzzy (fuzzy captures convergence better)
-            blended = 0.55 * boosted + 0.45 * fuzzy_result["fuzzy_confidence"]
+            # Blend: 50% linear weighted + 50% fuzzy (non-linear capture critical)
+            blended = 0.50 * boosted + 0.50 * fuzzy_result["fuzzy_confidence"]
             confidence["fuzzy"] = fuzzy_result
             confidence["fuzzy_inputs"] = fuzzy_inputs
             confidence["overall_boosted"] = round(min(1.0, blended), 3)
@@ -2834,6 +3290,17 @@ class PredictionEngine:
 
         confidence["overall_boosted"] = round(confidence["overall_boosted"], 3)
         confidence["multi_system_agreement"] = agreement
+
+        # ── Multi-Dasha 2-of-3 Hard Gate ─────────────────────────────────
+        # Classical: timing predictions require at least 2 dasha systems to
+        # independently agree.  Lock-level 1 (no multi-system support) means
+        # timing is speculative — hard-cap overall confidence to prevent
+        # overconfident predictions from a single dasha perspective.
+        if agreement.get("lock_level", 1) < 2:
+            _cap_msd = 0.45
+            if confidence["overall_boosted"] > _cap_msd:
+                confidence["overall_boosted"] = _cap_msd
+                confidence["multi_dasha_cap_applied"] = True
 
         # ── Phase 2G: Multi-dasha convergence score (Bayesian evidence) ──────
         # Counts how many active dasha systems support the domain.
@@ -2941,14 +3408,16 @@ class PredictionEngine:
                 dasha_convergence=_dasha_conv,      # Phase 2G: multi-dasha signal
                 varshaphala_score=_varsha_score,    # Phase 2H: annual chart quality
             )
-            # Triple-blend: 45% linear + 35% fuzzy + 20% Bayesian posterior
+            # Triple-blend: 25% linear + 35% fuzzy + 40% Bayesian posterior
+            # Research: Bayesian foundational, linear heavily penalized for
+            # double-counting and independence-assumption flaws.
             fuzzy_score = confidence.get("fuzzy", {}).get("fuzzy_confidence",
                                                            confidence["overall_boosted"])
             bayes_score = bayes_result["posterior_mean"]
             triple_blend = round(min(1.0,
-                0.45 * boosted
+                0.25 * boosted
                 + 0.35 * fuzzy_score
-                + 0.20 * bayes_score
+                + 0.40 * bayes_score
             ), 3)
             confidence["bayesian"] = bayes_result
             confidence["overall_boosted"] = triple_blend
@@ -3078,7 +3547,10 @@ class PredictionEngine:
         try:
             natal_lons_for_asp = static.get("chart_raw", {}).get("planet_lons", {})
             trans_pos_for_asp  = dynamic.get("transit_positions", {})
-            aspect_transit_data = compute_transit_aspects(trans_pos_for_asp, natal_lons_for_asp)
+            aspect_transit_data = compute_transit_aspects(
+                trans_pos_for_asp, natal_lons_for_asp,
+                natal_shadbala=static.get("shadbala_ratios"),
+            )
             asp_score = compute_natal_activation_score(aspect_transit_data, domain_planets_list)
             asp_mod   = (asp_score - 0.5) * 0.10    # ±5% max modifier
             confidence["overall_boosted"] = round(
@@ -3160,6 +3632,8 @@ class PredictionEngine:
                 "maha_dasha": dasha_planet,
                 "antar_dasha": antar_planet,
                 "yogini_lord": yogini_lord,
+                "decanate_timing": _compute_decanate_timing(
+                    dasha_planet, antar_planet, static),
             },
             "confidence": confidence,
             "calibrated_confidence": calibrated,
@@ -3286,17 +3760,60 @@ def _compute_varga_report_safe(
         return {"error": str(e)}
 
 
+def _compute_decanate_timing(
+        dasha_planet: str,
+        antar_planet: str,
+        static: dict,
+) -> dict:
+    """
+    Classical decanate timing rule (Phaladeepika):
+    1st decanate (0-10°) → results in beginning of dasha period
+    2nd decanate (10-20°) → results in middle of dasha period
+    3rd decanate (20-30°) → results in end of dasha period
+    Retrograde reverses: 3rd→beginning, 1st→end.
+    """
+    planet_lons = static.get("chart_raw", {}).get("planet_lons", {})
+    retrogrades = static.get("chart_raw", {}).get("retrogrades", {})
+
+    _PHASE_LABELS = {0: "beginning", 1: "middle", 2: "end"}
+
+    def _timing_for(planet: str) -> dict:
+        lon = planet_lons.get(planet)
+        if lon is None:
+            return {}
+        deg_in_sign = lon % 30
+        decanate = min(int(deg_in_sign / 10), 2)  # 0, 1, or 2
+        is_retro = bool(retrogrades.get(planet, False))
+        if is_retro:
+            decanate = 2 - decanate  # reverse mapping
+        return {
+            "degree_in_sign": round(deg_in_sign, 2),
+            "decanate": decanate + 1,  # 1-indexed for display
+            "phase": _PHASE_LABELS[decanate],
+            "retrograde_reversed": is_retro,
+        }
+
+    return {
+        "mahadasha": _timing_for(dasha_planet),
+        "antardasha": _timing_for(antar_planet),
+    }
+
+
 def _compute_remedies_safe(
         planet_signs: dict,
         planet_houses: dict,
         shadbala_ratios: dict,
         retrogrades: dict,
         wars: list,
+        combustion_data: dict = None,
 ) -> list:
     try:
+        if combustion_data is None:
+            combustion_data = {}
         war_losers = {w["loser"] for w in wars if isinstance(w, dict) and "loser" in w}
         planet_states = {}
         for planet, sign in planet_signs.items():
+            _cdata = combustion_data.get(planet, {})
             planet_states[planet] = {
                 "sign_idx":        sign,
                 "house":           planet_houses.get(planet, 1),
@@ -3304,7 +3821,7 @@ def _compute_remedies_safe(
                 "retrograde":      retrogrades.get(planet, False),
                 "war_defeated":    planet in war_losers,
                 "malefic_aspects": 0,   # can be augmented later
-                "combust":         False,
+                "combust":         bool(_cdata.get("is_combust", False)),
             }
         return get_remedies(planet_states, threshold=0.12)
     except Exception as e:

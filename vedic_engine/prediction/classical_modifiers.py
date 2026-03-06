@@ -99,16 +99,26 @@ CONFIDENCE_LABELS = {
 }
 
 
+# Correct Deeptadi Avastha coefficients (Research: BPHS Ch.45 / Phaladeepika)
+# NOTE: mudita/kshobhita are LAJJITADI avasthas (mood-based), NOT Deeptadi.
+#       vriddha/mrita are BALADI avasthas (age-based), NOT Deeptadi.
+#       Deeptadi is purely dignity-based (9 states from spatial placement).
 AVASTHA_COEFFICIENTS = {
-    "deepta": 1.00,
-    "swastha": 0.875,
-    "mudita": 0.75,
-    "normal": 0.50,
-    "dina": 0.125,
-    "dukhita": 0.25,
-    "kshobhita": 0.125,
-    "vriddha": 0.10,
-    "mrita": 0.00,
+    # Deeptadi (dignity-based)
+    "deepta":    1.00,    # Exalted: blazing, full delivery
+    "swastha":   0.625,   # Own/Moolatrikona: comfortable
+    "pramudita": 0.375,   # Great friend's sign: delighted
+    "shanta":    0.25,    # Friend's sign: peaceful
+    "dina":      0.125,   # Neutral sign: distressed
+    "dukhita":   0.0625,  # Enemy sign: miserable
+    "khala":     0.00,    # Great enemy/debilitated: nil
+    "vikala":    0.05,    # Malefic conjunction: crippled
+    "kopa":      0.00,    # Combust: eclipsed, zero output
+    # Baladi (age-based) — kept for backward-compat in gate lookups
+    "vriddha":   0.10,    # Old age (overridden for Moon/Saturn)
+    "mrita":     0.00,    # Dead: nil
+    # Fallback
+    "normal":    0.50,    # Unknown state: default midpoint
 }
 
 

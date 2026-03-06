@@ -25,7 +25,29 @@ from typing import Dict, List, Optional, Tuple
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
-PILLAR_STRENGTH_THRESHOLD = 0.50   # >= 0.50 = "strong" pillar
+# Research: 0.55 required for "securely promised"; 0.45-0.55 = grey zone
+PILLAR_STRENGTH_THRESHOLD = 0.55   # >= 0.55 = "strong" pillar
+PILLAR_GREY_ZONE = (0.45, 0.55)    # "possible but constrained / delayed"
+
+# Domain-specific promise thresholds (SAV-based classical proxy)
+# Marriage = 19 SAV minimum (lowest), Career = 36 SAV minimum (highest)
+DOMAIN_PROMISE_THRESHOLD: Dict[str, float] = {
+    "marriage":  0.45,   # low baseline; can manifest with conscious effort
+    "career":    0.60,   # demands maximum unobstructed structural promise
+    "finance":   0.55,   # standard
+    "health":    0.50,   # health promise is mostly structural
+    "spiritual": 0.50,
+    "children":  0.50,
+    "siblings":  0.50,
+    "mother":    0.50,
+    "father":    0.50,
+    "property":  0.55,
+}
+
+# Individual pillar shadbala thresholds
+# Research: ratio > 1.2 = programmatically "strong"; < 0.8 = explicitly weak
+PILLAR_SHADBALA_STRONG = 1.2
+PILLAR_SHADBALA_WEAK   = 0.8
 
 _NATURAL_BENEFICS = {"MOON", "MERCURY", "JUPITER", "VENUS"}
 _NATURAL_MALEFICS = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
@@ -151,6 +173,14 @@ def _score_bhavesha(house_lords: Dict[int, str],
                     d9_score = 0.50
 
     score = d1_strength * 0.6 + placement_score * 0.2 + d9_score * 0.2
+
+    # ── D9 Veto Rule ────────────────────────────────────────────────────
+    # Classical: D9 has veto power over D1 promise.  If bhavesha is in
+    # dusthana (6/8/12) in Navamsa, sustainability is fundamentally
+    # compromised — hard-cap the pillar score regardless of D1 strength.
+    if d9_score <= 0.20:
+        score = min(score, 0.38)  # Cannot pass "strong" threshold even with D1 blessing
+
     return max(0.0, min(1.0, score))
 
 
@@ -201,6 +231,9 @@ def compute_promise(
     vargas: Optional[Dict[str, Dict]] = None,
     nbry_planets: Optional[List[str]] = None,
     upachaya_malefics: Optional[List[str]] = None,
+    retrograde_planets: Optional[Dict[str, bool]] = None,
+    combust_planets: Optional[Dict[str, bool]] = None,
+    ashtakvarga_bindus: Optional[Dict[str, int]] = None,
 ) -> Dict:
     """
     Compute promise score for a domain using Three Pillar Rule.
@@ -225,8 +258,15 @@ def compute_promise(
     karaka_score   = _score_karaka(domain, shadbala_ratios, planet_houses,
                                    planet_lons, vargas)
 
+    # Domain-specific threshold (Research: marriage lowest, career highest)
+    _domain_thresh = DOMAIN_PROMISE_THRESHOLD.get(domain, PILLAR_STRENGTH_THRESHOLD)
+
     strong_count = sum(1 for s in [bhava_score, bhavesha_score, karaka_score]
-                       if s >= PILLAR_STRENGTH_THRESHOLD)
+                       if s >= _domain_thresh)
+
+    # Grey zone: pillars in [0.45, 0.55) count as "borderline"
+    grey_count = sum(1 for s in [bhava_score, bhavesha_score, karaka_score]
+                     if PILLAR_GREY_ZONE[0] <= s < _domain_thresh)
 
     if strong_count == 3:
         promise_pct = 100
@@ -236,6 +276,13 @@ def compute_promise(
         promise_pct = 33
     else:
         promise_pct = 0
+
+    # Grey zone elevation: pillars in grey zone upgrade promise one tier
+    # (Research: "possible but constrained / delayed / requires strong timing")
+    _grey_elevated = False
+    if promise_pct < 100 and grey_count > 0 and strong_count + grey_count >= 2:
+        _grey_elevated = True
+        # Don't change promise_pct — instead flag for downstream use
 
     # Check for NBRY / Upachaya masquerade (suppressed, not truly denied)
     suppressed = False
@@ -259,10 +306,62 @@ def compute_promise(
             suppressed = True
             denied = False
 
+    # ── Additional Suppression Conditions (Research §3) ──────────────────
+    _retro = retrograde_planets or {}
+    _combust = combust_planets or {}
+    _av_bindus = ashtakvarga_bindus or {}
+    _suppression_reasons: List[str] = []
+
+    if denied or (promise_pct <= 33 and not suppressed):
+        lord = house_lords.get(domain_house, "")
+        lord_house = planet_houses.get(lord, 0)
+
+        # Viparita Raja Yoga (VRY): Dusthana lord in another Dusthana
+        # → double negative = massive delayed success after crisis
+        if lord and lord_house in _DUSTHANA:
+            # Check if the lord also rules a dusthana
+            _lord_rules_dusthana = any(
+                house_lords.get(dh) == lord for dh in _DUSTHANA
+            )
+            # Check if lord is PLACED in a DIFFERENT dusthana than its own
+            _lord_own_dusthana = [dh for dh in _DUSTHANA if house_lords.get(dh) == lord]
+            _in_other_dusthana = lord_house in _DUSTHANA and lord_house not in _lord_own_dusthana
+            if _lord_rules_dusthana and _in_other_dusthana:
+                suppressed = True
+                denied = False
+                _suppression_reasons.append("VRY_dusthana_lord_in_dusthana")
+
+        # Retrograde Debilitation: debilitated + retrograde → treated as exalted
+        # Classical double-negative logic: sudden unexpected success after frustration
+        if lord and _retro.get(lord):
+            _lord_sb = shadbala_ratios.get(lord, 0.5)
+            # Debilitated planet typically has very low shadbala; also check D9
+            # Proxy: if lord is in dusthana AND retrograde → suppressed not denied
+            if lord_house in _DUSTHANA or _lord_sb < PILLAR_SHADBALA_WEAK:
+                suppressed = True
+                denied = False
+                _suppression_reasons.append("retrograde_debilitation_inversion")
+
+        # Combustion Exemptions
+        karaka = DOMAIN_KARAKA.get(domain, "JUPITER")
+        for _cp in (lord, karaka):
+            if not _cp or not _combust.get(_cp):
+                continue
+            # Venus/Mercury retrograde → combustion mitigated (closer to Earth)
+            if _cp in ("VENUS", "MERCURY") and _retro.get(_cp):
+                _suppression_reasons.append(f"combust_{_cp}_retro_mitigated")
+                suppressed = True
+                denied = False
+            # High AV bindu count shields against combustion
+            elif _av_bindus.get(_cp, 0) >= 5:
+                _suppression_reasons.append(f"combust_{_cp}_high_av_{_av_bindus[_cp]}")
+                suppressed = True
+                denied = False
+
     # Promise level label
     if denied:
         promise_level = "DENIED"
-        detail = (f"All three pillars weak for {domain}. "
+        detail = (f"All three pillars weak for {domain} (threshold {_domain_thresh:.2f}). "
                   "No Dasha or Transit can physically manifest this event. "
                   "Best-case: functional substitute (e.g., denied progeny → mentoring).")
     elif suppressed:
@@ -270,6 +369,10 @@ def compute_promise(
         detail = (f"Promise appears denied but NBRY/Upachaya planet(s) masquerade as denial. "
                   f"Event is highly delayed (early life struggle) but CAN break through "
                   f"during mature Dasha activation.")
+    elif _grey_elevated and promise_pct <= 33:
+        promise_level = "GREY_ZONE"
+        detail = (f"Grey zone for {domain}: {grey_count} pillar(s) borderline (0.45-0.55). "
+                  "Possible but constrained / delayed / requires strong timing alignment.")
     elif promise_pct == 33:
         promise_level = "WEAK"
         detail = (f"Only 1 of 3 pillars strong for {domain}. "
@@ -288,7 +391,11 @@ def compute_promise(
         "denied": denied,
         "suppressed": suppressed,
         "strong_count": strong_count,
+        "grey_count": grey_count,
+        "grey_elevated": _grey_elevated,
         "promise_level": promise_level,
+        "domain_threshold": _domain_thresh,
+        "suppression_reasons": _suppression_reasons,
         "pillars": {
             "bhava":    round(bhava_score,    3),
             "bhavesha": round(bhavesha_score, 3),

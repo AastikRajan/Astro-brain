@@ -273,6 +273,46 @@ def analyze_dasha_lord_transit(
             }
     results["double_transit"] = double_transit
 
+    # ── Triple Transit: Rahu/Ketu joining Jupiter+Saturn configuration ───────
+    # Research: When a node joins the double transit, magnitude escalates.
+    # Rahu = explosive, unorthodox, out-of-hierarchy elevation
+    # Ketu = dissolution, spiritual withdrawal, forced letting-go
+    triple_transit = None
+    if double_transit and double_transit.get("active"):
+        rahu_transit = transit_positions.get("RAHU")
+        ketu_transit = transit_positions.get("KETU")
+        rahu_h = house_from_moon(rahu_transit, natal_moon_lon) if rahu_transit else 0
+        ketu_h = house_from_moon(ketu_transit, natal_moon_lon) if ketu_transit else 0
+        # Rahu favors 3/6/11 (Upachaya); Ketu favors 3/6/12 (moksha)
+        rahu_joins = rahu_h in [2, 3, 5, 6, 7, 9, 11]
+        ketu_joins = ketu_h in [3, 6, 9, 12]
+        if rahu_joins:
+            triple_transit = {
+                "active": True,
+                "node": "RAHU",
+                "node_house": rahu_h,
+                "type": "RAHU TRIPLE TRANSIT",
+                "note": ("Rahu joins Guru-Shani configuration — explosive, "
+                         "unorthodox sudden elevation, massive non-linear event"),
+            }
+        elif ketu_joins:
+            triple_transit = {
+                "active": True,
+                "node": "KETU",
+                "node_house": ketu_h,
+                "type": "KETU TRIPLE TRANSIT",
+                "note": ("Ketu joins Guru-Shani configuration — profound dissolution, "
+                         "spiritual withdrawal, forced letting-go of domain attachments"),
+            }
+        else:
+            triple_transit = {
+                "active": False,
+                "rahu_house": rahu_h,
+                "ketu_house": ketu_h,
+                "note": "Nodes not in favorable houses for triple transit",
+            }
+    results["triple_transit"] = triple_transit
+
     # Combined dasha lord transit score (weighted: MD=60%, AD=40%)
     md_score = results.get("mahadasha", {}).get("gochar_score", 0.3)
     ad_score = results.get("antardasha", {}).get("gochar_score", 0.3)
@@ -290,6 +330,19 @@ def analyze_dasha_lord_transit(
     if double_transit and double_transit.get("active"):
         combined = min(1.0, combined + 0.15)
 
+    # Triple transit bonus (Research: multiplicative magnitude escalation)
+    # Slow-moving nodes exert exponential pressure — "magnifying glass" effect
+    if triple_transit and triple_transit.get("active"):
+        _node = triple_transit.get("node", "")
+        if _node == "RAHU":
+            # Multiplicative: explosive material amplification
+            combined = min(1.0, combined * 1.20)
+        elif _node == "KETU":
+            # Ketu ACTIVELY suppresses material combined score;
+            # spiritual context handled by engine.py domain-aware logic
+            combined = combined * 0.85  # material dissolution factor
+            results["ketu_dissolution_active"] = True
+
     results["combined_transit_score"] = round(combined, 3)
 
     # Quality label
@@ -305,6 +358,91 @@ def analyze_dasha_lord_transit(
         results["transit_quality"] = "CHALLENGING"
 
     return results
+
+
+# ─── Domain-specific double transit (classical Gopesh Kumar Ojha rule) ────────
+
+# Jupiter aspects: 5th, 7th, 9th from its position (plus conjunction = 1st)
+_JUP_ASPECTS = {0, 4, 6, 8}   # 0-indexed offsets: 1st/5th/7th/9th house from Jup
+# Saturn aspects: 3rd, 7th, 10th from its position (plus conjunction = 1st)
+_SAT_ASPECTS = {0, 2, 6, 9}   # 0-indexed offsets: 1st/3rd/7th/10th house from Sat
+
+
+def check_domain_double_transit(
+    transit_positions: Dict[str, float],
+    lagna_sign: int,
+    domain_houses: List[int],
+    house_lords: Dict[int, str],
+    natal_planet_signs: Dict[str, int],
+) -> Dict:
+    """
+    Classical domain-specific double transit (K.N. Rao / Gopesh Kumar Ojha).
+
+    For a major event to physically manifest, BOTH transiting Jupiter
+    and transiting Saturn must simultaneously influence the relevant
+    domain houses OR their lords through conjunction or aspect.
+
+    Parameters
+    ----------
+    transit_positions   : {planet: sidereal_lon} current transit
+    lagna_sign          : natal ascendant sign index (0-11)
+    domain_houses       : list of house numbers relevant to the domain
+    house_lords         : {house_num: planet_name}
+    natal_planet_signs  : {planet_name: sign_index} natal sign of each planet
+
+    Returns
+    -------
+    dict with active, jupiter_activates, saturn_activates, details
+    """
+    jup_lon = transit_positions.get("JUPITER")
+    sat_lon = transit_positions.get("SATURN")
+    if jup_lon is None or sat_lon is None:
+        return {"active": False, "reason": "Jupiter/Saturn transit positions unavailable"}
+
+    jup_sign = int(jup_lon / 30.0) % 12
+    sat_sign = int(sat_lon / 30.0) % 12
+
+    # Signs that Jupiter aspects (conjunction + 5th/7th/9th aspects)
+    jup_influenced_signs = {(jup_sign + off) % 12 for off in _JUP_ASPECTS}
+    # Signs that Saturn aspects (conjunction + 3rd/7th/10th aspects)
+    sat_influenced_signs = {(sat_sign + off) % 12 for off in _SAT_ASPECTS}
+
+    # Convert domain houses to their signs
+    domain_signs = set()
+    for h in domain_houses:
+        domain_signs.add((lagna_sign + h - 1) % 12)
+
+    # Also include signs where the domain house lords are placed natally
+    lord_signs = set()
+    for h in domain_houses:
+        lord = house_lords.get(h)
+        if lord and lord in natal_planet_signs:
+            lord_signs.add(natal_planet_signs[lord])
+
+    # Target signs = domain house signs + natal lord placement signs
+    target_signs = domain_signs | lord_signs
+
+    # Check if Jupiter influences any target sign
+    jup_activates = bool(jup_influenced_signs & target_signs)
+    # Check if Saturn influences any target sign
+    sat_activates = bool(sat_influenced_signs & target_signs)
+
+    active = jup_activates and sat_activates
+
+    return {
+        "active": active,
+        "jupiter_activates": jup_activates,
+        "saturn_activates": sat_activates,
+        "jupiter_sign": jup_sign,
+        "saturn_sign": sat_sign,
+        "domain_target_signs": sorted(target_signs),
+        "jupiter_influenced_signs": sorted(jup_influenced_signs),
+        "saturn_influenced_signs": sorted(sat_influenced_signs),
+        "note": ("Domain double transit ACTIVE — Jupiter+Saturn both activate domain"
+                 if active else
+                 f"Incomplete: Jup={'YES' if jup_activates else 'NO'}, "
+                 f"Sat={'YES' if sat_activates else 'NO'}"),
+    }
 
 
 # ─── Transit ingress calendar ─────────────────────────────────────────────────
@@ -339,3 +477,176 @@ def compute_ingress_calendar(
 
     ingress_list.sort(key=lambda x: x["days"])
     return ingress_list
+
+
+# ─── Domain Lord Transit Boost (BAV + Kakshya) ───────────────────────────────
+
+# Kakshya lords in order (each 3°45' sector within a sign)
+_KAKSHYA_LORDS = ["SATURN", "JUPITER", "MARS", "SUN", "VENUS", "MERCURY", "MOON", "ASC"]
+
+# Natural karakas for each domain (primary only)
+_DOMAIN_KARAKA: Dict[str, str] = {
+    "career":   "SUN",
+    "finance":  "JUPITER",
+    "marriage": "VENUS",
+    "health":   "SUN",
+    "children": "JUPITER",
+    "property": "MOON",
+    "spiritual":"JUPITER",
+    "travel":   "MERCURY",
+}
+
+
+def compute_domain_lord_transit_boost(
+    transit_positions: Dict[str, float],
+    domain: str,
+    domain_houses: List[int],
+    house_lords: Dict[int, str],
+    bhinna_av: Dict[str, Dict[str, int]],
+    lagna_sign: int,
+    natal_planet_houses: Dict[str, int],
+    mahadasha_lord: str = "",
+    antardasha_lord: str = "",
+) -> Dict:
+    """
+    Classical domain lord transit boost (Ashtakavarga + Kakshya).
+
+    Two independent boosts:
+    A) If the domain house lord AND/OR the domain natural karaka transits a
+       sign where that planet has 4+ Bhinna AV bindus → domain is strongly
+       activated ("massive auspicious boost").
+    B) If the active MD/AD lord transits its own natal house → "results par
+       excellence" (own-house transit boost).  Additionally checks whether
+       the lord occupies a favorable Kakshya (benefic bindu in PAV at that
+       exact degree sector).
+
+    Parameters
+    ----------
+    transit_positions  : current transit longitudes {planet: lon}
+    domain             : e.g. "career", "marriage"
+    domain_houses      : list of house numbers for this domain
+    house_lords        : {house_num: planet_name}
+    bhinna_av          : {planet: {sign_idx_str_or_int: bindu_count}}
+                         OR {planet: [12 ints]}
+    lagna_sign         : natal ascendant sign (0-11)
+    natal_planet_houses: {planet: house_num} from natal chart
+    mahadasha_lord     : active MD lord name
+    antardasha_lord    : active AD lord name
+
+    Returns
+    -------
+    dict with boost_a (domain lord BAV), boost_b (dasha own-house),
+    total_boost, detail strings
+    """
+    details: List[str] = []
+    boost_a = 0.0   # domain lord/karaka BAV boost
+    boost_b = 0.0   # dasha lord own-house boost
+
+    # ── Helper: get BAV bindus for a planet in a sign ──
+    def _bav_bindus(planet: str, sign_idx: int) -> int:
+        pdata = bhinna_av.get(planet, {})
+        if isinstance(pdata, list):
+            return int(pdata[sign_idx]) if sign_idx < len(pdata) else 0
+        # dict keyed by sign index (str or int)
+        for k, v in pdata.items():
+            if int(k) == sign_idx:
+                return int(v)
+        return 0
+
+    # ── A) Domain lord + karaka transit in high-BAV sign ──
+    # Collect domain lords (ruling planets of domain houses)
+    domain_lord_planets: List[str] = []
+    for h in domain_houses:
+        lord = house_lords.get(h) or house_lords.get(str(h))
+        if lord and lord not in domain_lord_planets:
+            domain_lord_planets.append(lord)
+
+    # Add natural karaka
+    karaka = _DOMAIN_KARAKA.get(domain.lower(), "")
+    check_planets = list(domain_lord_planets)
+    if karaka and karaka not in check_planets:
+        check_planets.append(karaka)
+
+    # BAV tiered contribution (exponential, not binary 4+ threshold)
+    # 0-3: malefic/weak, 4: neutral equilibrium, 5: tipping point, 6-8: exponential
+    _BAV_TIER: Dict[int, float] = {
+        0: -0.04, 1: -0.03, 2: -0.02, 3: -0.01,  # Resists domain activation
+        4: 0.02,                                    # Neutral equilibrium
+        5: 0.08,                                    # Tipping point — favorable
+        6: 0.14,                                    # Strong — exponential zone
+        7: 0.18,                                    # Very strong
+        8: 0.22,                                    # Maximum — effortless manifestation
+    }
+
+    for planet in check_planets:
+        t_lon = transit_positions.get(planet)
+        if t_lon is None:
+            continue
+        t_sign = int(t_lon / 30.0) % 12
+        bindus = _bav_bindus(planet, t_sign)
+        is_karaka = (planet == karaka)
+        is_lord = (planet in domain_lord_planets)
+        role = "domain-lord+karaka" if (is_lord and is_karaka) else (
+            "domain-karaka" if is_karaka else "domain-lord")
+        contribution = _BAV_TIER.get(min(bindus, 8), 0.0)
+        boost_a += contribution
+        details.append(
+            f"{planet} ({role}) transits sign {t_sign} with {bindus} BAV bindus → {'+' if contribution >= 0 else ''}{contribution:.2f}"
+        )
+
+    # Cap boost_a to prevent runaway (both directions)
+    boost_a = max(-0.10, min(boost_a, 0.30))
+
+    # ── B) Dasha lord own-house transit + Kakshya check ──
+    for dasha_lord, weight_label in [(mahadasha_lord, "MD"), (antardasha_lord, "AD")]:
+        if not dasha_lord:
+            continue
+        t_lon = transit_positions.get(dasha_lord)
+        if t_lon is None:
+            continue
+        t_sign = int(t_lon / 30.0) % 12
+        natal_house = natal_planet_houses.get(dasha_lord, -1)
+        if natal_house < 1:
+            continue
+        # Natal house sign
+        natal_house_sign = (lagna_sign + natal_house - 1) % 12
+        if t_sign == natal_house_sign:
+            # Own-house transit — "results par excellence" (Phaladeepika)
+            # BUT must be cross-verified with BAV.  Own house + BAV < 3
+            # → dignity neutralized, downgrade to stress.
+            dl_bindus = _bav_bindus(dasha_lord, t_sign)
+            if dl_bindus <= 3:
+                # Own-house neutralized by poor BAV
+                own_boost = -0.03 if weight_label == "MD" else -0.02
+                details.append(
+                    f"{dasha_lord} ({weight_label}) transits own house (sign {t_sign}) "
+                    f"BUT BAV={dl_bindus} neutralizes dignity → {own_boost:+.2f}"
+                )
+            else:
+                # BAV-tiered own-house boost
+                _own_tier = _BAV_TIER.get(min(dl_bindus, 8), 0.02)
+                base_mult = 1.5 if weight_label == "MD" else 1.0
+                own_boost = round(_own_tier * base_mult, 3)
+                # Kakshya refinement
+                deg_in_sign = t_lon % 30.0
+                kakshya_idx = min(int(deg_in_sign / 3.75), 7)
+                kakshya_lord = _KAKSHYA_LORDS[kakshya_idx]
+                if dl_bindus >= 5:
+                    own_boost += 0.04  # favorable kakshya sector
+                details.append(
+                    f"{dasha_lord} ({weight_label}) transits own natal house (sign {t_sign}) "
+                    f"BAV={dl_bindus}, kakshya={kakshya_lord} → +{own_boost:.2f}"
+                )
+            boost_b += own_boost
+
+    # Cap boost_b (both directions)
+    boost_b = max(-0.06, min(boost_b, 0.30))
+
+    total = round(boost_a + boost_b, 3)
+    return {
+        "domain_lord_bav_boost": round(boost_a, 3),
+        "dasha_own_house_boost": round(boost_b, 3),
+        "total_boost": total,
+        "active": total > 0,
+        "details": details,
+    }

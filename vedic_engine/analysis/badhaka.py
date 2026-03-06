@@ -135,12 +135,23 @@ def compute_badhaka_friction(
             f"Domain '{event_domain}' faces major obstructions. ~45% probability dampening."
         )
     elif is_natural_malefic and not in_kendra_trikona:
-        friction_pct = 30.0
-        friction_label = "moderate"
-        note = (
-            f"MODERATE FRICTION: {badhakesh} (natural malefic) in neutral H{badhakesh_house}. "
-            f"Domain '{event_domain}' faces meaningful delays. ~30% dampening."
-        )
+        # Upachaya houses (3, 6, 10, 11): growth through struggle → reduced long-term severity
+        in_upachaya = badhakesh_house in {3, 6, 10, 11}
+        if in_upachaya:
+            friction_pct = 22.0
+            friction_label = "moderate_reducing"
+            note = (
+                f"MODERATE (REDUCING): {badhakesh} (natural malefic) in Upachaya H{badhakesh_house}. "
+                f"Domain '{event_domain}' faces initial struggle that diminishes over time — "
+                "Upachaya forces native to develop skills that ultimately defeat the obstruction."
+            )
+        else:
+            friction_pct = 30.0
+            friction_label = "moderate"
+            note = (
+                f"MODERATE FRICTION: {badhakesh} (natural malefic) in neutral H{badhakesh_house}. "
+                f"Domain '{event_domain}' faces meaningful delays. ~30% dampening."
+            )
     elif is_natural_malefic and in_kendra_trikona:
         friction_pct = 20.0
         friction_label = "moderate_low"
@@ -176,6 +187,30 @@ def compute_badhaka_friction(
             "the Badhaka friction is NOW OPERATIONAL. Delays/obstructions are manifest, "
             "not merely potential. Events promised by this period will require extraordinary "
             "effort and patience."
+        )
+
+    # ── Domain-specific modulation ────────────────────────────────────
+    # Spiritual domains: Badhaka paradoxically ELEVATES inner growth.
+    # Health domains: Badhaka is EXTREME — worse than Maraka for illness.
+    _domain_lower = event_domain.lower()
+    if _domain_lower in ("spiritual", "dharma", "moksha"):
+        # Badhaka period spectacularly benefits spiritual growth
+        friction_pct = max(0.0, friction_pct - 25.0)  # reduce friction heavily
+        if friction_pct <= 5.0:
+            friction_pct = -10.0  # net POSITIVE effect for spiritual domains
+            friction_label = "spiritual_boost"
+            note += (
+                " SPIRITUAL DOMAIN: Badhaka period dissolves ego and accelerates "
+                "inner growth — paradoxical net positive for spiritual pursues."
+            )
+    elif _domain_lower in ("health", "medical", "longevity"):
+        # Badhaka governs unseen obstacles, misdiagnoses, sudden trauma
+        friction_pct = min(60.0, friction_pct * 1.35)  # amplify by 35%, cap at 60%
+        friction_label = "extreme_health" if friction_pct > 40 else friction_label
+        note += (
+            " HEALTH DOMAIN: Badhaka governs severe medical misdiagnoses, "
+            "sudden physical trauma, and hard-to-cure diseases. "
+            "Combined Maraka+Badhaka dasha can prove fatal if longevity expired."
         )
 
     friction_multiplier = round(1.0 - friction_pct / 100.0, 3)

@@ -26,6 +26,69 @@ def _clamp(v: float) -> float:
     return max(0.0, min(1.0, float(v)))
 
 
+# ── Manduka Gati (Frog's Leap) Age-Based Yoga Activation ─────────────────────
+# BPHS-standard: 108-year lifespan divided into 12 × 9-year segments.
+# Houses are NOT activated in zodiacal order but in "frog leap" sequence.
+# Yogas in a house activate FULLY only during their assigned age epoch.
+# Outside their epoch: suppressed (early) or persistent (past).
+#
+# Sequence: 4→2→8→10→12→6→5→11→1→7→9→3
+# Early Life (0-36): houses 4, 2, 8, 10
+# Middle Life (36-72): houses 12, 6, 5, 11
+# Late Life (72-108): houses 1, 7, 9, 3
+
+_MANDUKA_EARLY_HOUSES  = {4, 2, 8, 10}    # Ages 0-36
+_MANDUKA_MIDDLE_HOUSES = {12, 6, 5, 11}   # Ages 36-72
+_MANDUKA_LATE_HOUSES   = {1, 7, 9, 3}     # Ages 72-108
+
+
+def _manduka_age_coefficient(yoga_houses: List[int], age_years: int) -> float:
+    """
+    Manduka Gati age coefficient for yoga fructification.
+
+    If the yoga's constituent houses fall in the native's current age block →  1.00
+    If one block too early (yoga's epoch hasn't arrived) →  0.35 (suppressed)
+    If one block past (yoga's epoch has passed but residual effects remain) →  0.70
+    If two blocks away → 0.20 (deeply dormant or exhausted)
+    If no house info → 1.00 (neutral, don't penalize)
+    """
+    if not yoga_houses or age_years < 0:
+        return 1.0
+
+    if age_years < 36:
+        current_block = 0  # Early
+    elif age_years < 72:
+        current_block = 1  # Middle
+    else:
+        current_block = 2  # Late
+
+    # Determine which block the yoga primarily belongs to
+    block_counts = [0, 0, 0]
+    for h in yoga_houses:
+        if h in _MANDUKA_EARLY_HOUSES:
+            block_counts[0] += 1
+        elif h in _MANDUKA_MIDDLE_HOUSES:
+            block_counts[1] += 1
+        elif h in _MANDUKA_LATE_HOUSES:
+            block_counts[2] += 1
+
+    yoga_block = block_counts.index(max(block_counts))
+
+    if yoga_block == current_block:
+        return 1.0   # Active epoch — full manifestation
+    elif yoga_block == current_block + 1:
+        # Future epoch — "delays its ultimate fruition"; heavily suppressed
+        # Research: ~20% latent capacity (not yet activated but seeded)
+        return 0.20
+    elif yoga_block == current_block - 1:
+        # Past epoch — residual effects persist; fruits already delivered
+        # Research: 80-100% residual (midpoint 85%)
+        return 0.85
+    else:
+        # Two blocks away — extremely dormant
+        return 0.10
+
+
 # ─── Individual component scorers ────────────────────────────────
 
 def score_dasha_alignment(
@@ -34,21 +97,32 @@ def score_dasha_alignment(
     domain: str,
     planet_domain_map: Dict[str, List[str]],
     shadbala_ratios: Dict[str, float],
+    pratyantar_planet: Optional[str] = None,
 ) -> float:
     """
     Dasha planet alignment with queried domain.
-    - 0.60 if Maha-dasha planet signifies the domain
-    - 0.40 bonus if Antar-dasha planet also signifies it
-    - Weighted by shadbala ratio (0.5 – 1.5 range normalised)
+
+    Classical weight hierarchy (Tripod of Life):
+      MD (Sun/Soul)  = 50% — absolute karmic boundary & permission
+      AD (Moon/Mind)  = 30% — narrows to specific developmental window
+      PD (Lagna/Body) = 20% — physical trigger, precipitating catalyst
+
+    Weighted by shadbala ratio (0.5–1.5 range normalised).
     """
     score = 0.0
     md_domains = planet_domain_map.get(dasha_planet, [])
     ad_domains = planet_domain_map.get(antardasha_planet, [])
 
     if domain in md_domains:
-        score += 0.6
+        score += 0.50
     if domain in ad_domains:
-        score += 0.4
+        score += 0.30
+
+    # Pratyantardasha: physical trigger layer (20% weight)
+    if pratyantar_planet:
+        pd_domains = planet_domain_map.get(pratyantar_planet, [])
+        if domain in pd_domains:
+            score += 0.20
 
     # Modulate by strength of dasha-lord
     md_ratio = shadbala_ratios.get(dasha_planet, 1.0)
@@ -61,12 +135,16 @@ def score_dasha_alignment(
 def score_transit_support(
     transit_scores: Dict[str, Dict],
     domain_planets: List[str],
+    dasha_planet: Optional[str] = None,
 ) -> float:
     """
     Average net_score of domain-relevant transiting planets.
+    Excludes dasha_planet from average to prevent double-counting
+    with dasha lord gochar (Fix 49).
     """
     relevant = [transit_scores[p]["net_score"]
-                for p in domain_planets if p in transit_scores]
+                for p in domain_planets
+                if p in transit_scores and p != dasha_planet]
     if not relevant:
         return 0.3     # neutral when no data
     return _clamp(sum(relevant) / len(relevant))
@@ -287,8 +365,17 @@ def score_kp_sublord(
         overlap = len(sigs & domain_set)
         neg_overlap = len(sigs & neg_set)
         raw = _clamp(overlap / len(domain_set))
-        # Negator penalty: each negator house signified reduces score by 0.15
-        penalty = min(raw, neg_overlap * 0.15)
+        # ── KP Absolute Veto (CSL Denial) ────────────────────────────
+        # KP doctrine: sub-lord of cusp is the final judge (yes/no).
+        # If planet signifies ONLY negator houses and NO domain houses,
+        # the event is mathematically denied — probability = 0.
+        if overlap == 0 and neg_overlap > 0:
+            return 0.0  # absolute KP denial: no domain, only negators
+        # Negator penalty: each negator house signified reduces score by 0.25
+        penalty = min(raw, neg_overlap * 0.25)
+        # KP veto: if negators outnumber domain overlaps, severe suppression
+        if neg_overlap > overlap and neg_overlap > 0:
+            return _clamp(max(0.0, raw - penalty) * 0.30)  # near-denial
         return _clamp(raw - penalty)
 
     md_score = sig_overlap(dasha_planet)
@@ -331,6 +418,155 @@ def score_functional_alignment(
 
     combined = 0.65 * md_norm + 0.35 * ad_norm
     return _clamp(combined)
+
+
+# ─── D9 (Navamsha) Quality Evaluator ─────────────────────────────────────────
+
+_D9_DEBIL_SIGNS = {
+    "SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+    "JUPITER": 9, "VENUS": 5, "SATURN": 0,
+}
+_D9_EXALT_SIGNS = {
+    "SUN": 0, "MOON": 1, "MARS": 9, "MERCURY": 5,
+    "JUPITER": 3, "VENUS": 11, "SATURN": 6,
+}
+_D9_GREAT_ENEMY_SIGNS = {
+    "SUN":     {1, 6, 9, 10},    # Venus + Saturn ruled signs
+    "MOON":    set(),
+    "MARS":    {2, 5},            # Mercury ruled
+    "MERCURY": {3},               # Moon ruled
+    "JUPITER": {2, 5, 1, 6},     # Mercury + Venus ruled
+    "VENUS":   {4, 3},            # Sun + Moon ruled
+    "SATURN":  {0, 4, 7},         # Mars + Sun ruled
+}
+_SIGN_LORD = {
+    0: "MARS", 1: "VENUS", 2: "MERCURY", 3: "MOON", 4: "SUN", 5: "MERCURY",
+    6: "VENUS", 7: "MARS", 8: "JUPITER", 9: "SATURN", 10: "SATURN", 11: "JUPITER",
+}
+_KENDRA_H = frozenset({1, 4, 7, 10})
+_TRIKONA_H = frozenset({1, 5, 9})
+_DUSTHANA_H = frozenset({6, 8, 12})
+
+
+def score_d9_quality(
+    domain: str,
+    vargas: Optional[Dict[str, Dict]],
+    house_lords: Optional[Dict[int, str]],
+    planet_houses: Optional[Dict[str, int]],
+    planet_lons: Optional[Dict[str, float]] = None,
+) -> float:
+    """
+    Compute D9 (Navamsha) quality score for a domain.
+
+    Research mandate: D9 is the 'absolute qualitative filter'.
+    For marriage: 70% weight on D9 chart quality.
+    For other domains: D9 acts as primary multiplicative filter on promise.
+
+    Evaluates:
+      1. D9 Lagna Lord placement (for marriage)
+      2. D9 7th house/lord (for marriage)
+      3. D1 7th lord → D9 dignity (marriage-critical)
+      4. General: domain-lord dignity in D9
+
+    Returns: 0.0 (D9 fundamentally denies quality) to 1.0 (D9 strongly confirms).
+    """
+    if not vargas or not house_lords:
+        return 0.50  # no D9 data → neutral
+
+    domain_lower = domain.lower()
+    factors = []
+
+    # ── Marriage-specific D9 evaluation (research: co-equal to D1) ──────
+    if domain_lower == "marriage":
+        # 1. D9 Lagna Lord placement
+        #    D9 Lagna sign = D9 of the Ascendant longitude
+        #    The lord of D9 Lagna in Kendra/Trikona → early/timely marriage
+        #    In Dusthana conjunct malefics → delayed beyond 30 / denial
+        if planet_lons:
+            try:
+                from vedic_engine.core.divisional import D9 as _d9_func
+                lagna_lon = planet_lons.get("ASC") or planet_lons.get("LAGNA")
+                if lagna_lon is not None:
+                    d9_lagna_sign = _d9_func(lagna_lon)
+                    d9_lagna_lord = _SIGN_LORD.get(d9_lagna_sign, "")
+                    # Find D9 lagna lord's D9 sign → which house from D9 lagna
+                    if d9_lagna_lord and d9_lagna_lord in vargas:
+                        _dll_d9 = vargas[d9_lagna_lord].get(9)
+                        if _dll_d9 is not None:
+                            _h_from_d9_lagna = ((_dll_d9 - d9_lagna_sign) % 12) + 1
+                            if _h_from_d9_lagna in _KENDRA_H or _h_from_d9_lagna in _TRIKONA_H:
+                                factors.append(0.85)  # timely marriage
+                            elif _h_from_d9_lagna in _DUSTHANA_H:
+                                factors.append(0.20)  # severely delayed/denied
+                            else:
+                                factors.append(0.50)
+            except Exception:
+                pass
+
+        # 2. D1 7th Lord's D9 dignity (research: if exalted D1 but debilitated D9 → broken)
+        lord_7 = house_lords.get(7)
+        if lord_7 and lord_7 in vargas:
+            d9_sign_7l = vargas[lord_7].get(9)
+            p = lord_7.upper()
+            if d9_sign_7l is not None:
+                d1_sign_7l = int(planet_lons.get(lord_7, 0) / 30) % 12 if planet_lons else -1
+                if d9_sign_7l == d1_sign_7l and d1_sign_7l >= 0:
+                    factors.append(0.95)  # Vargottama 7th lord: excellent
+                elif d9_sign_7l == _D9_DEBIL_SIGNS.get(p):
+                    factors.append(0.10)  # Debilitated in D9: promise fundamentally broken
+                elif d9_sign_7l in _D9_GREAT_ENEMY_SIGNS.get(p, set()):
+                    factors.append(0.20)  # Great enemy in D9: severely weakened
+                elif d9_sign_7l == _D9_EXALT_SIGNS.get(p):
+                    factors.append(0.90)  # Exalted in D9: strong confirmation
+                else:
+                    factors.append(0.50)  # neutral
+
+        # 3. Venus D9 dignity (Venus = marriage karaka)
+        if "VENUS" in vargas:
+            v_d9 = vargas["VENUS"].get(9)
+            if v_d9 is not None:
+                if v_d9 == _D9_DEBIL_SIGNS.get("VENUS"):
+                    factors.append(0.15)
+                elif v_d9 == _D9_EXALT_SIGNS.get("VENUS"):
+                    factors.append(0.90)
+                elif v_d9 in (1, 6):  # Own signs for Venus
+                    factors.append(0.80)
+                else:
+                    factors.append(0.50)
+
+        # 4. Jupiter D9 dignity (Jupiter = general benefic for marriage longevity)
+        if "JUPITER" in vargas:
+            j_d9 = vargas["JUPITER"].get(9)
+            if j_d9 is not None:
+                if j_d9 == _D9_DEBIL_SIGNS.get("JUPITER"):
+                    factors.append(0.20)
+                elif j_d9 == _D9_EXALT_SIGNS.get("JUPITER"):
+                    factors.append(0.85)
+                else:
+                    factors.append(0.50)
+
+    else:
+        # ── General domain: check domain lord dignity in D9 ──────────
+        _DOMAIN_PRIMARY = {"career": 10, "finance": 11, "health": 1,
+                           "children": 5, "property": 4, "spiritual": 9}
+        primary_h = _DOMAIN_PRIMARY.get(domain_lower, 10)
+        lord = house_lords.get(primary_h)
+        if lord and lord in vargas:
+            d9_sign = vargas[lord].get(9)
+            p = lord.upper()
+            if d9_sign is not None:
+                if d9_sign == _D9_DEBIL_SIGNS.get(p):
+                    factors.append(0.15)
+                elif d9_sign in _D9_GREAT_ENEMY_SIGNS.get(p, set()):
+                    factors.append(0.25)
+                elif d9_sign == _D9_EXALT_SIGNS.get(p):
+                    factors.append(0.90)
+                else:
+                    factors.append(0.50)
+
+    if not factors:
+        return 0.50
+    return _clamp(sum(factors) / len(factors))
 
 
 def score_house_lord_strength(
@@ -441,37 +677,88 @@ def score_jaimini_sub(
     domain: str,
 ) -> float:
     """
-    Jaimini system confidence sub-score for the queried domain.
+    Jaimini system confidence sub-score with domain-specific weighting
+    and Chara Karaka routing protocol.
 
-    Sub-score structure (ad.md §4.1):
-      Chara Dasha alignment      : 30%
-      Karakamsha dignity/strength: 25%
-      Arudha Pada concordance    : 25%
-      Rashi Drishti confirmation : 20%
+    Routing Protocol (Research §1):
+      - Phalita domains (career, marriage, wealth, etc.): activate Chara Karakas
+      - Ayur domains (health/longevity): bypass Chara Karakas, use Sthira only
 
-    Each sub-component is normalised to 0–1 from the pre-computed Jaimini
-    analysis modules (jaimini_dashas, karakamsha, arudha_padas, rashi_drishti).
+    AK Veto Power (Research §2):
+      If Atmakaraka is adverse (ak_strength < 0.30), all other karakas are
+      suppressed — AK is the "king" and overrides secondary significators.
 
-    Args:
-        jaimini_data : Dict from Jaimini analysis with keys:
-          chara_alignment     : float 0-1 — current Chara lord signifies domain
-          karakamsha_score    : float 0-1 — Karakamsha planet/sign strength
-          arudha_alignment    : float 0-1 — Arudha Pada concordance for domain
-          rashi_drishti_score : float 0-1 — Rashi Drishti to relevant houses
-        domain : str — not used directly (Jaimini analysis is pre-filtered)
+    Domain-Specific Jaimini Weighting (Research §5):
+      - Spiritual/Dharmic: AK + Karakamsha = highest weight
+      - Career Eminence: AmK relationship to AK = highest weight
+      - Spouse Characteristics: DK + Upapada = highest weight
 
-    Returns:
-        float in [0, 1] — Jaimini sub-score; 0.3 (neutral) if no data available
+    Sub-score structure:
+      Chara Dasha alignment      : variable
+      Karakamsha dignity/strength: variable
+      Arudha Pada concordance    : variable
+      Rashi Drishti confirmation : variable
     """
     if not jaimini_data:
         return 0.3   # neutral when Jaimini analysis not performed
+
+    # ── Routing Protocol: Ayur domains bypass Chara Karakas ──────────────
+    _ayur_domains = {"health", "longevity", "death", "disease"}
+    if domain.lower() in _ayur_domains:
+        # Use only Sthira Karaka data (rashi drishti + arudha survive)
+        # Chara Karaka components zeroed
+        arudha  = _clamp(float(jaimini_data.get("arudha_alignment",    0.30)))
+        rashi_d = _clamp(float(jaimini_data.get("rashi_drishti_score", 0.30)))
+        sthira  = _clamp(float(jaimini_data.get("sthira_score",       0.30)))
+        return _clamp(0.40 * sthira + 0.30 * arudha + 0.30 * rashi_d)
 
     chara   = _clamp(float(jaimini_data.get("chara_alignment",     0.30)))
     kara    = _clamp(float(jaimini_data.get("karakamsha_score",    0.30)))
     arudha  = _clamp(float(jaimini_data.get("arudha_alignment",    0.30)))
     rashi_d = _clamp(float(jaimini_data.get("rashi_drishti_score", 0.30)))
 
-    score = 0.30 * chara + 0.25 * kara + 0.25 * arudha + 0.20 * rashi_d
+    # ── Domain-specific weighting (Research §5) ──────────────────────────
+    _dom = domain.lower()
+    if _dom in ("spiritual", "moksha", "dharma"):
+        # Spiritual: AK's Karakamsha is ultimate diagnostic → karakamsha dominant
+        w_chara, w_kara, w_arudha, w_rashi = 0.20, 0.40, 0.20, 0.20
+    elif _dom in ("career", "profession"):
+        # Career: AmK-to-AK spatial relationship → chara alignment dominant
+        w_chara, w_kara, w_arudha, w_rashi = 0.35, 0.30, 0.15, 0.20
+    elif _dom == "marriage":
+        # Spouse: DK + Upapada → arudha dominant (Upapada = A12)
+        w_chara, w_kara, w_arudha, w_rashi = 0.25, 0.15, 0.40, 0.20
+    else:
+        # Default Phalita
+        w_chara, w_kara, w_arudha, w_rashi = 0.30, 0.25, 0.25, 0.20
+
+    score = w_chara * chara + w_kara * kara + w_arudha * arudha + w_rashi * rashi_d
+
+    # ── AK Veto Power (Research §2 — Dignity-Based) ────────────────────────
+    # Research: AK affliction is NOT a flat Shadbala ratio threshold.
+    # Affliction = debilitated (without cancellation) OR combust OR enemy sign,
+    # combined with Shadbala minimum failure (< 1.0 BPHS ratio).
+    # Strong AK = protective insulation floor, NOT multiplicative boost.
+    # "If AK adverse → other karakas cannot give their benefic effects fully."
+    # "If AK favourable → prevents malefic karakas from predominating."
+    _ak_combust = bool(jaimini_data.get("ak_combust", False))
+    _ak_debilitated = bool(jaimini_data.get("ak_debilitated", False))
+    _ak_enemy_sign = bool(jaimini_data.get("ak_enemy_sign", False))
+    _ak_shadbala = float(jaimini_data.get("ak_shadbala", 1.0))
+
+    _ak_afflictions = sum([_ak_combust, _ak_debilitated, _ak_enemy_sign])
+    _ak_shadbala_fail = _ak_shadbala < 1.0  # Below BPHS minimum
+
+    if _ak_afflictions >= 2 or (_ak_debilitated and _ak_shadbala_fail):
+        # AK severely afflicted → full veto (king incapacitated)
+        score = min(score, 0.25)
+    elif _ak_afflictions == 1 or _ak_shadbala_fail:
+        # AK mildly afflicted → partial suppression
+        score = min(score, 0.40)
+    elif _ak_afflictions == 0 and _ak_shadbala >= 1.0:
+        # Strong AK → protective insulation floor (shield, not boost)
+        score = max(score, 0.35)
+
     return _clamp(score)
 
 
@@ -508,6 +795,13 @@ def compute_confidence(
     # ── Dasha lord dignity flags ──────────────────────────
     dasha_lord_combust: bool = False,   # MD lord combust → burned domains
     dasha_lord_retrograde: bool = False,  # MD lord retrograde → erratic/delayed
+    # ── Pratyantardasha (physical trigger) ──────────────────
+    pratyantar_planet: Optional[str] = None,
+    # ── Age (for Manduka Gati yoga timing) ──────────────────
+    age_years: int = -1,                  # Native's current age; -1 = unknown
+    planet_lons: Optional[Dict[str, float]] = None,
+    # ── Dasha lord gochar multiplier (Fix 48) ───────────────
+    dasha_lord_gochar_mult: float = 1.0,  # Pre-computed multiplicative throttle
 ) -> Dict:
     """
     Multi-system confidence score using CONDITIONAL GATE LOGIC.
@@ -554,11 +848,28 @@ def compute_confidence(
 
     # --- Component scores ---
     c_dasha    = score_dasha_alignment(dasha_planet, antardasha_planet, domain,
-                                       planet_domain_map, shadbala_ratios)
-    c_transit  = score_transit_support(transit_scores, domain_planets)
+                                       planet_domain_map, shadbala_ratios,
+                                       pratyantar_planet=pratyantar_planet)
+    c_transit  = score_transit_support(transit_scores, domain_planets,
+                                       dasha_planet=dasha_planet)
     c_av       = score_ashtakvarga(sarva_av, relevant_signs, dasha_planet_bav,
                                     karaka_bav_data=karaka_bav_data, domain=domain)
     c_yoga     = score_yoga_activation(active_yogas, domain)
+
+    # ── Manduka Gati age modulation on yoga score ────────────────────────
+    # Research: yogas remain dormant until their assigned chronological epoch.
+    # Apply age coefficient to suppress/boost yoga score based on house placement.
+    if age_years >= 0 and active_yogas:
+        _yoga_houses = []
+        for _yg in active_yogas:
+            if isinstance(_yg, dict):
+                _yg_houses = _yg.get("houses", [])
+                if isinstance(_yg_houses, list):
+                    _yoga_houses.extend(_yg_houses)
+        if _yoga_houses:
+            _manduka_coeff = _manduka_age_coefficient(_yoga_houses, age_years)
+            c_yoga = _clamp(c_yoga * _manduka_coeff)
+
     c_kp       = score_kp_sublord(kp_significations, domain_houses,
                                   dasha_planet, antardasha_planet,
                                   negator_houses=negator_houses)
@@ -570,6 +881,10 @@ def compute_confidence(
                                            house_lords or {}, shadbala_ratios, vargas,
                                            planet_houses=planet_houses)
 
+    # D9 quality score (Research: "absolute qualitative filter")
+    c_d9 = score_d9_quality(domain, vargas, house_lords, planet_houses,
+                            planet_lons=planet_lons)
+
     # Allow GPT-reasoned adjustments to override specific components
     if gpt_adjustments:
         if "adjusted_kp_score" in gpt_adjustments:
@@ -579,39 +894,141 @@ def compute_confidence(
         if "dasha_weight_boost" in gpt_adjustments:
             c_dasha = _clamp(c_dasha * float(gpt_adjustments["dasha_weight_boost"]))
 
+    # ── Shadbala Hard Minimum Gate (BPHS mandate) ────────────────────────────
+    # If the Maha-dasha lord's Shadbala ratio falls below 1.0 (i.e., below the
+    # BPHS minimum required rupas), the planet is "fundamentally incapacitated"
+    # and cannot independently sustain its significations. Cap its contribution.
+    _md_ratio = shadbala_ratios.get(dasha_planet, 1.0)
+    if _md_ratio < 1.0:
+        # Planet below BPHS threshold → linearly reduce dasha score
+        # At ratio 0.5 → 50% effectiveness; at ratio 0.0 → 15% minimum
+        _shadbala_mult = max(0.15, _md_ratio)
+        c_dasha = _clamp(c_dasha * _shadbala_mult)
+
     # ── MD/AD Geometric Relationship Check ───────────────────────────────────
-    # AD lord in Dusthana (6/8/12) from MD lord → Shadashtaka/Dwirdwadasha friction
+    # AD lord in Dusthana (6/8/12) from MD lord → Shadashtaka friction
+    # AD lord in 2/12 from MD lord → Dwidwadasha friction (inauspicious per BPHS)
     # AD lord in Kendra (1/4/7/10) or Trikona (5/9) from MD lord → boost
     md_ad_geometry = "neutral"
     if dasha_house > 0 and antardasha_house > 0:
         ad_from_md = (antardasha_house - dasha_house) % 12 + 1
-        if ad_from_md in (6, 8, 12):
-            c_dasha = _clamp(c_dasha * 0.55)   # strong friction: enmity, health, obstacles
+        if ad_from_md in (6, 8):
+            c_dasha = _clamp(c_dasha * 0.55)   # Shadashtaka: great danger, enmity
             md_ad_geometry = f"friction_shadashtaka_AD_{ad_from_md}th_from_MD"
+        elif ad_from_md == 12:
+            c_dasha = _clamp(c_dasha * 0.60)   # 12th: losses, expenditure, separation
+            md_ad_geometry = f"friction_vyaya_AD_12th_from_MD"
+        elif ad_from_md == 2:
+            c_dasha = _clamp(c_dasha * 0.70)   # Dwidwadasha: mild inauspiciousness
+            md_ad_geometry = f"friction_dwidwadasha_AD_2nd_from_MD"
+        elif ad_from_md in (3, 11):
+            c_dasha = _clamp(c_dasha * 1.15)   # 3/11 axis: supportive, growth-oriented
+            md_ad_geometry = f"boost_upachaya_AD_{ad_from_md}th_from_MD"
         elif ad_from_md in (1, 4, 7, 10, 5, 9):
             c_dasha = _clamp(c_dasha * 1.25)   # Kendra/Trikona: fruitful, overrides MD negativity
             md_ad_geometry = f"boost_kendra_trikona_AD_{ad_from_md}th_from_MD"
 
-    # ── Dasha Lord Dignity Modifiers ─────────────────────────────────────────
-    # Combustion → domains of dasha lord: drastically reduced, hidden, conflicted
-    if dasha_lord_combust:
-        c_dasha = _clamp(c_dasha * 0.50)   # "burned" — half effectiveness
+    # ── MD-AD Natural Friendship/Enmity Check ────────────────────────────────
+    # BPHS: Sub-period of enemy of major lord → fear from enemies, fall from power
+    # Naisargika Maitri (Natural Friendship) table
+    _NATURAL_FRIENDS = {
+        "SUN":     {"MOON", "MARS", "JUPITER"},
+        "MOON":    {"SUN", "MERCURY"},
+        "MARS":    {"SUN", "MOON", "JUPITER"},
+        "MERCURY": {"SUN", "VENUS"},
+        "JUPITER": {"SUN", "MOON", "MARS"},
+        "VENUS":   {"MERCURY", "SATURN"},
+        "SATURN":  {"MERCURY", "VENUS"},
+    }
+    _NATURAL_ENEMIES = {
+        "SUN":     {"VENUS", "SATURN"},
+        "MOON":    set(),
+        "MARS":    {"MERCURY"},
+        "MERCURY": {"MOON"},
+        "JUPITER": {"MERCURY", "VENUS"},
+        "VENUS":   {"SUN", "MOON"},
+        "SATURN":  {"SUN", "MOON", "MARS"},
+    }
+    _md = dasha_planet.upper()
+    _ad = antardasha_planet.upper()
+    if _ad in _NATURAL_ENEMIES.get(_md, set()):
+        # AD lord is natural enemy of MD lord → enmity friction
+        c_dasha = _clamp(c_dasha * 0.80)
+        md_ad_geometry += "_enemy"
+    elif _ad in _NATURAL_FRIENDS.get(_md, set()):
+        # AD lord is natural friend of MD → mild synergy boost
+        c_dasha = _clamp(c_dasha * 1.10)
+        md_ad_geometry += "_friend"
 
-    # Retrograde → erratic, internalized, repeated efforts; delayed but eventual
+    # ── Dasha Lord Dignity Modifiers ─────────────────────────────────────────
+    # Combustion — bifurcated classical logic (Phaladeepika):
+    #   - Destroys KARAKATWA (living/psychological significations) heavily
+    #   - But LORDSHIP (structural house ownership) survives with mild penalty
+    # If the combust dasha lord IS the natural karaka for this domain,
+    # the penalty is severe (karakatwa destroyed). If it's only a domain lord
+    # by house ownership, the penalty is mild (lordship survives).
+    if dasha_lord_combust:
+        _DOMAIN_KARAKA = {
+            "marriage": "VENUS", "career": "SATURN", "finance": "JUPITER",
+            "health": "SUN", "spiritual": "KETU", "children": "JUPITER",
+        }
+        _domain_karaka = _DOMAIN_KARAKA.get(domain.lower(), "")
+        if dasha_planet.upper() == _domain_karaka:
+            # Combust natural karaka → karakatwa destroyed, severe penalty
+            c_dasha = _clamp(c_dasha * 0.35)
+        else:
+            # Combust lord but not karaka → lordship survives, mild penalty
+            c_dasha = _clamp(c_dasha * 0.70)
+
+    # Retrograde — bifurcated classical logic (Uttara Kalamrita):
+    # Retrograde grants Chesta Bala (extra directional strength); does NOT weaken.
+    # But it inverts/delays delivery:
+    #   - Retrograde natural benefic (Jupiter/Venus/Mercury/Moon): delayed then
+    #     massive spike — slight current reduction but eventual overperformance
+    #   - Retrograde natural malefic (Saturn/Mars/Sun/Rahu): erratic, unpredictable,
+    #     struggle-inducing — heavier current penalty
     if dasha_lord_retrograde:
-        # Retrograde benefic → eventually massive but delayed
-        c_dasha = _clamp(c_dasha * 0.75)   # 25% reduction due to delay/erratic nature
+        _BENEFICS = {"JUPITER", "VENUS", "MERCURY", "MOON"}
+        if dasha_planet.upper() in _BENEFICS:
+            # Benefic retro: delay but eventually massive — mild current reduction
+            c_dasha = _clamp(c_dasha * 0.85)
+        else:
+            # Malefic retro: erratic, struggle, unpredictable outcomes
+            c_dasha = _clamp(c_dasha * 0.65)
+
+    # ── Dasha Lord Gochar Multiplier (Fix 48) ────────────────────────────────
+    # Research: Effective_Dasha_Strength = Natal_Dasha_Quality × σ(Gochar_Score)
+    # Gochar is a multiplicative throttle on dasha, not an additive post-hoc mod.
+    if abs(dasha_lord_gochar_mult - 1.0) > 0.001:
+        c_dasha = _clamp(c_dasha * dasha_lord_gochar_mult)
 
     # ── Promise ceiling for suppressed charts ────────────────────────────────
-    # Suppressed promise: reduce all scores proportional to promise_pct
+    # Research: Progressive ceiling based on promise level
+    _grey_elevated = promise_result.get("grey_elevated", False) if promise_result else False
     if promise_suppressed:
         promise_ceiling = 0.45  # highly suppressed charts capped at moderate
+    elif _grey_elevated:
+        promise_ceiling = 0.48  # grey zone: between suppressed and weak
     elif promise_pct <= 33:
         promise_ceiling = 0.40  # weak promise → moderate cap
     elif promise_pct <= 67:
         promise_ceiling = 0.70  # moderate promise → high possible but not very high
     else:
         promise_ceiling = 1.00  # full promise → uncapped
+
+    # D9 quality multiplier on promise ceiling (Research: primary filter)
+    # For marriage: D9 gets 70% weight in quality determination
+    # D9 denial doesn't veto occurrence but vetoes survival/happiness
+    if c_d9 < 0.30:
+        # D9 strongly denies quality → "The Illusion" (event occurs but fails)
+        if domain.lower() == "marriage":
+            # Marriage: strong D1 + weak D9 = occurs but ends in separation
+            promise_ceiling = min(promise_ceiling, 0.55)
+        else:
+            promise_ceiling = min(promise_ceiling, 0.60)
+    elif c_d9 > 0.75:
+        # D9 confirms strongly → quality boost
+        promise_ceiling = min(1.0, promise_ceiling + 0.10)
 
     # ── GATE 1: KP Promise check ──────────────────────────────
     # If natal sub-lord does not signify domain houses, the chart has NO PROMISE.
@@ -659,8 +1076,19 @@ def compute_confidence(
                w_jaimini * c_jaimini)
 
     # ── Gate caps ─────────────────────────────────────────────
+    # Research §4: Distinguish "Suppressed Condition" from "Absolute Denial".
+    # - Absolute Denial (0%): hard cap, no dasha can force it.
+    # - Weak/Suppressed (33%): strong dasha CAN elevate to maximum potential
+    #   → late but successful. Results are "temporary, constrained, or regress".
+    # Old: flat 0.22 cap. New: conditional elevation.
+    _weak_promise_elevated = False
     if promise_failed:
-        overall = min(overall, 0.22)    # Chart has no KP promise → cap at Very Low
+        # KP promise absent — but if dasha is exceptionally strong, allow partial elevation
+        if c_dasha >= 0.70 and c_transit >= 0.50:
+            overall = min(overall, 0.35)  # Elevated: strong dasha pushes weak chart
+            _weak_promise_elevated = True
+        else:
+            overall = min(overall, 0.25)  # Standard cap for no-promise charts
     elif not dasha_confirmed:
         overall = min(overall, 0.38)    # Dasha not active → cap at Low
 
@@ -683,6 +1111,7 @@ def compute_confidence(
         "gate_status": gate_status,
         "promise_pct": promise_pct,
         "promise_level": promise_result.get("promise_level", "UNKNOWN") if promise_result else "UNKNOWN",
+        "weak_promise_elevated": _weak_promise_elevated,
         "md_ad_geometry": md_ad_geometry,
         "dasha_lord_combust": dasha_lord_combust,
         "dasha_lord_retrograde": dasha_lord_retrograde,
@@ -695,6 +1124,7 @@ def compute_confidence(
             "functional_alignment": round(c_func,    3),
             "house_lord_strength":  round(c_hlord,   3),
             "jaimini_sub":          round(c_jaimini, 3),
+            "d9_quality":           round(c_d9,      3),
         },
         "weights_used": {
             "dasha":     round(w_dasha,   3),
