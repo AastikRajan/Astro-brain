@@ -4,6 +4,26 @@
 
 ---
 
+### 2026-03-05 (Phase 6 Layer 2)
+
+2026-03-05 prediction/domain_signal_weights.py ADD — Phase 6 L2: research-backed `DOMAIN_SIGNALS` registry for career/finance/marriage/health with exact primary/secondary signal rankings and 1-10 weights
+2026-03-05 prediction/prediction_overrides.py ADD — Phase 6 L2: `check_master_overrides()` global interrupt logic (Sade Sati+weak Moon SAV, Dasha Sandhi, transit Saturn-Rahu on Lagna/Moon, active Vipreet Raja, Dasha-lord Vimshopak >= 18)
+2026-03-05 prediction/classical_modifiers.py REWRITE — Phase 6 L2: replaced Layer 1 chained heuristics with research formulas: `compute_planet_effectiveness`, `compute_bhava_effectiveness`, `DASHA_WEIGHTS`, `CONVERGENCE_TABLE`, `get_convergence_confidence`, `compute_yoga_domain_boost`, and retained focused dosha modifier
+2026-03-05 prediction/engine.py WIRE — Phase 6 L2: predict() now runs override pre-check, computes `planet_effectiveness` + `bhava_effectiveness`, applies research convergence interpolation, dosha and yoga adjustments, preserves diagnostics, and enforces override short-circuit on final confidence
+2026-03-05 report/content46_phase6_layer2.txt ADD — Nehru run generated after Phase 6 L2 wiring (date: 2026-03-03 target date)
+
+---
+
+### 2026-03-04 (Phase 6 Layer 1)
+
+2026-03-04 prediction/classical_modifiers.py ADD — Phase 6 L1: 10-rule classical modifier chain (`compute_classical_modifier`) with LM-verified thresholds: doshas, combustion sliding scale, graha yuddha penalty, BAV transit effectiveness, shadbala ratio, vimshopak bala, bhavabala, avasthas (incl. mrita=0), double transit, yoga activation; compound clamp [0.05, 2.0]
+2026-03-04 prediction/engine.py WIRE — Phase 6 L1: imports and applies `compute_classical_modifier` in `predict()` as `raw_adjusted = raw × classical_modifier`; stores `confidence.raw`, `confidence.classical_modifier`, `confidence.raw_adjusted`; downstream fuzzy/Bayesian stages now consume adjusted base
+2026-03-04 prediction/engine.py CHANGE — Replaced multi-dasha hard consensus behavior with graduated consensus modifier: ratio>=0.6 boosted (`1.0 + (ratio-0.6)*0.75`), 0.3–0.6 neutral, <0.3 damped to 0.70 (removed hard 0.15-style collapse)
+2026-03-04 test_classical_modifiers.py ADD — Phase 6 L1 smoke test fixture for `compute_classical_modifier`; expected marriage modifier validated at 0.4284
+2026-03-04 report/content45_phase6_layer1.txt ADD — Nehru run generated after Phase 6 L1 wiring (date: 2026-03-03) for comparison against content40
+
+---
+
 ### 2026-03-03 (Phase 5)
 
 2026-03-03 timing/tithi_pravesh.py ADD — Phase 5 File 1a: Luni-Solar Annual Return (Tithi Pravesh), natal tithi angle, iterative solver, weekday lords

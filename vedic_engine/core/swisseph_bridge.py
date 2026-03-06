@@ -439,6 +439,51 @@ def build_chart_from_birth_data(
     return chart_dict
 
 
+# ─── Bhava Chalit Shift Detection ────────────────────────────────────────────
+
+def compute_chalit_shifts(
+    planet_lons: Dict[str, float],
+    cusp_lons: List[float],
+) -> List[Dict[str, Any]]:
+    """
+    Compare Rashi-based house placement vs Bhava Chalit (cusp-based) placement.
+    Returns a list of planets that shift houses between the two systems.
+
+    Args:
+        planet_lons: {planet_name: sidereal_longitude}
+        cusp_lons:   list of 12 sidereal cusp longitudes (house 1-12)
+
+    Returns:
+        List of dicts with keys: planet, rashi_house, chalit_house
+        (only for planets that shifted)
+    """
+    shifts: List[Dict[str, Any]] = []
+    for pname, lon in planet_lons.items():
+        rashi_house = int(lon / 30.0) % 12 + 1
+
+        # Determine chalit house from cusp boundaries
+        chalit_house = 12  # default: last house
+        for i in range(12):
+            cusp_start = cusp_lons[i]
+            cusp_end = cusp_lons[(i + 1) % 12]
+            if cusp_start < cusp_end:
+                if cusp_start <= lon < cusp_end:
+                    chalit_house = i + 1
+                    break
+            else:  # wraps around 360°
+                if lon >= cusp_start or lon < cusp_end:
+                    chalit_house = i + 1
+                    break
+
+        if rashi_house != chalit_house:
+            shifts.append({
+                "planet": pname,
+                "rashi_house": rashi_house,
+                "chalit_house": chalit_house,
+            })
+    return shifts
+
+
 # ─── Transit Positions (enhanced) ────────────────────────────────────────────
 
 def get_transit_positions_swe(

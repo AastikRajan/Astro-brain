@@ -198,29 +198,30 @@ def D30(lon: float) -> int:
     """
     Trimsamsha – 30 divisions of 1° each.
     Different planet-owned degrees for odd vs even signs (BPHS table).
-    Odd signs: Mars(5°) Venus(5°) Mercury(8°) Jupiter(7°) Saturn(5°)
-    Even signs: Saturn(5°) Mercury(7°) Jupiter(8°) Venus(5°) Mars(5°)
+    Odd signs:  Mars(5°) Saturn(5°) Jupiter(8°) Mercury(7°) Venus(5°)
+    Even signs: Venus(5°) Mercury(7°) Jupiter(8°) Saturn(5°) Mars(5°)
     Returns sign index of the trims lord's sign (first own sign used).
     """
     s = sign_of(lon)
     d = degree_in_sign(lon)
 
     # Each entry: (lord_sign_0indexed, span_degrees)
+    # Sequence per BPHS standard (matches varga_interpretations.py)
     if s % 2 == 0:  # Odd signs (Aries, Gemini, Leo …)
         pieces = [
-            (0, 5),   # Mars → Aries
-            (6, 5),   # Venus → Libra (first own)
-            (2, 8),   # Mercury → Gemini
-            (8, 7),   # Jupiter → Sagittarius
-            (9, 5),   # Saturn → Capricorn
+            (0, 5),   # Mars 0-5°   → Aries
+            (9, 5),   # Saturn 5-10° → Capricorn
+            (8, 8),   # Jupiter 10-18° → Sagittarius
+            (2, 7),   # Mercury 18-25° → Gemini
+            (6, 5),   # Venus 25-30° → Libra
         ]
     else:           # Even signs (Taurus, Cancer, Virgo …)
         pieces = [
-            (9, 5),   # Saturn → Capricorn
-            (2, 7),   # Mercury → Gemini
-            (8, 8),   # Jupiter → Sagittarius
-            (1, 5),   # Venus → Taurus (first own)
-            (0, 5),   # Mars → Aries
+            (6, 5),   # Venus 0-5°   → Libra
+            (2, 7),   # Mercury 5-12° → Gemini
+            (8, 8),   # Jupiter 12-20° → Sagittarius
+            (9, 5),   # Saturn 20-25° → Capricorn
+            (0, 5),   # Mars 25-30°  → Aries
         ]
 
     accumulated = 0

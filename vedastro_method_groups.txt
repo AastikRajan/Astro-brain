@@ -1,0 +1,73 @@
+VedAstro method groups (clean extraction from discovery method list)
+
+[PREDICTION] count=16
+- EventEndTime
+- EventStartEndTime
+- EventStartTime
+- EventsAtRange
+- EventsAtTime
+- GetAllEventDataGroupedByTag
+- GetAllEventsChartAlgorithms
+- HoroscopeChat
+- HoroscopeChat2
+- HoroscopeChatFeedback
+- HoroscopeFollowUpChat
+- HoroscopeLLMSearch
+- HoroscopePredictionAlpacaTemplateLoRA
+- HoroscopePredictionNames
+- HoroscopePredictions
+- NameNumberPrediction
+
+[DASHA] count=26
+- AllHouseDashamamshaSign
+- AllHouseDwadashamshaSign
+- AllHouseShodashamshaSign
+- AllPlanetDashamamshaSign
+- AllPlanetDwadashamshaSign
+- AllPlanetShodashamshaSign
+- DasaAtRange
+- DasaAtTime
+- DasaForLife
+- DasaForNow
+- DashamamshaSignAtLongitude
+- DashamamshaSignName
+- DwadashamshaSignAtLongitude
+- DwadashamshaSignName
+- GetCharaDasaAtTime
+- GetDasaInfoForAscendant
+- HouseDashamamshaD10Sign
+- HouseDwadashamshaD12Sign
+- HouseShodashamshaD16Sign
+- PlanetDasaNature
+- PlanetDashamamshaD10Sign
+- PlanetDwadashamshaD12Sign
+- PlanetDwadashamshaSignOLD
+- PlanetShodashamshaD16Sign
+- ShodashamshaSignAtLongitude
+- ShodashamshaSignName
+
+[MATCH] count=2
+- MatchChat
+- MatchReport
+
+[CHAT] count=6
+- HoroscopeChat
+- HoroscopeChat2
+- HoroscopeChatFeedback
+- HoroscopeFollowUpChat
+- HoroscopeLLMSearch
+- MatchChat
+
+[TRANSIT] count=12
+- GetConstellationTransitStartTime
+- GocharaKakshas
+- GocharaZodiacSignCountFromMoon
+- IsGocharaObstructed
+- IsGocharaOccurring
+- IsPlanetGocharaBindu
+- PlanetSignTransit
+- PlanetsInGocharaHouse
+- TransitHouseFromLagna
+- TransitHouseFromMoon
+- TransitHouseFromNavamsaLagna
+- TransitHouseFromNavamsaMoon

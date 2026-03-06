@@ -1,0 +1,466 @@
+        PYJHORA GAP ANALYSIS
+====================
+Generated: 2026-03-04
+Method: AST function-name extraction only (no code reading)
+PyJHora: 99 modules, 3633 functions
+Our Engine: 96 modules, 1026 functions
+
+================================================================================
+SECTION 1: GRAHA DASHA SYSTEMS THEY HAVE, WE DON'T
+================================================================================
+
+1. Buddhi Gathi Dasha (buddhi_gathi.py — 2 functions)
+   - Rare graha dasha where dasha progression follows budhi (intellectual) gathi
+   - We have NO equivalent
+
+2. Kaala Dasha (kaala.py — 4 functions)
+   - Time-based graha dasha with two-phase progression
+   - We have NO equivalent
+
+3. Karaka Dasha (karaka.py — 4 functions)
+   - Graha dasha based on chara karaka ordering
+   - We have NO equivalent
+
+4. Karana Chathuraaseethi Sama Dasha (karana_chathuraaseethi_sama.py — 8 functions)
+   - 84-year dasha variant starting from karana lord
+   - We have chaturaashiti (84-year) but NOT the karana-based variant
+
+5. Naisargika Dasha (naisargika.py — 3 functions)
+   - Natural chronological order dasha (Sun→Moon→Mars→Mercury→Jupiter→Venus→Saturn)
+   - We have NO equivalent
+
+6. Saptharishi Nakshatra Dasha (saptharishi_nakshathra.py — 6 functions)
+   - 7 Rishi-based nakshatra dasha system
+   - We have NO equivalent
+
+7. Shastihayani Dasha (shastihayani.py — 9 functions)
+   - 60-year conditional dasha system
+   - We have NO equivalent (our conditional_dashas.py has 8 systems but not this one)
+
+8. Tara Dasha (tara.py — 7 functions)
+   - Nakshatra-tara-based graha dasha
+   - We have tara_dasha in conditional_dashas.py but theirs is a separate dedicated module
+
+9. Tithi Ashtottari Dasha (tithi_ashtottari.py — 10 functions)
+   - Ashtottari variant starting from tithi lord instead of nakshatra lord
+   - We have NO equivalent
+
+10. Tithi Yogini Dasha (tithi_yogini.py — 9 functions)
+    - Yogini variant starting from tithi lord instead of nakshatra lord
+    - We have NO equivalent
+
+11. Yoga Vimsottari Dasha (yoga_vimsottari.py — 12 functions)
+    - Vimsottari variant using yoga lord instead of nakshatra lord
+    - We have NO equivalent
+
+12. Rasi Bhukthi Vimsottari — mentioned in main.py
+    - Vimsottari variant with rasi-based sub-period ordering
+    - We have NO equivalent
+
+13. Aayu Dasha (aayu.py — 25 functions)
+    - Longevity-based dasha: Pindayu, Nisargayu, Amsayu with harana reductions
+    - Full dasha system with antardashas based on longevity calculations
+    - We compute longevity separately but DON'T use it as a dasha system
+
+================================================================================
+SECTION 2: RASI DASHA SYSTEMS THEY HAVE, WE DON'T
+================================================================================
+
+1. Chakra Dasha (chakra.py — 4 functions)
+   - Sign-based chakra dasha using seed sign method
+   - We have NO equivalent
+
+2. Kendradhi Rasi Dasha (kendradhi_rasi.py — 8 functions)
+   - 3 variants: lagna-based, karaka-based, standard kendradhi rasi
+   - We have NO equivalent
+
+3. Lagnamsaka Dasha (lagnamsaka.py — 1 function)
+   - Lagna navamsa-based rasi dasha
+   - We have NO equivalent
+
+4. Nirayana Dasha (nirayana.py — 6 functions)
+   - Nirayana Shoola dasha variant
+   - We compute niryana_shoola in jaimini_dashas.py — PARTIAL COVERAGE
+
+5. Paryaaya Dasha (paryaaya.py — 7 functions)
+   - Cyclic rasi dasha with applicability check, Iranganti & Indiadivine methods
+   - We have NO equivalent
+
+6. Sandhya Panchaka Dasha (sandhya.py — 5 functions)
+   - Sandhya (twilight) based rasi dasha
+   - We have NO equivalent
+
+7. Sthira Dasha (sthira.py — 5 functions)
+   - Fixed-duration rasi dasha based on sign modality
+   - We have NO equivalent
+
+8. Tara Lagna Dasha (tara_lagna.py — 4 functions)
+   - AK-based tara lagna rasi dasha
+   - We have NO equivalent
+
+9. Varnada Dasha (varnada.py — 4 functions)
+   - Varnada lagna-based rasi dasha
+   - We have NO equivalent
+
+10. Yogardha Dasha (yogardha.py — 3 functions)
+    - Yogardha (half-yoga) based rasi dasha
+    - We have NO equivalent
+
+Note: The following rasi dashas we DO have equivalents for:
+- Chara Dasha ✓ (chara_dasha.py)
+- Narayana Dasha ✓ (jaimini_dashas.py: compute_narayana_dasha)
+- Shoola Dasha ✓ (jaimini_dashas.py: compute_shoola_dasha)
+- Brahma Dasha ✓ (jaimini_dashas.py: compute_brahma_dasha)
+- Sudasa Dasha ✓ (jaimini_dashas.py: compute_sudasa)
+- Drig Dasha ✓ (jaimini_dashas.py: compute_drig_dasha)
+- Trikona Dasha ✓ (jaimini_dashas.py: compute_trikona_dasha)
+- Navamsa Dasha ✓ (jaimini_dashas.py: compute_navamsha_dasha)
+- Mandooka Dasha ✓ (rare_dashas.py: compute_mandooka_dasha)
+- Padanadhamsa Dasha ✓ (rare_dashas.py: compute_padanadhamsha_dasha)
+- Kalachakra Dasha ✓ (kalachakra.py)
+- Moola Dasha ✓ (conditional_dashas.py: compute_moola_dasha)
+
+================================================================================
+SECTION 3: ANNUAL/TAJAKA DASHA SYSTEMS THEY HAVE, WE DON'T
+================================================================================
+
+1. Mudda Dasha (mudda.py — 12 functions)
+   - Varsha Vimsottari with full multi-level recursion (Mahadasha→Bhukthi→Antara)
+   - We have compute_mudda_dasha in varshaphala.py — LIKELY COVERED but their
+     implementation has dedicated recursive sub-period computation
+
+2. Patyayini Dasha (patyayini.py — 3 functions)
+   - They have a dedicated module; we have compute_patyayini_dasha in advanced_dashas.py ✓
+
+3. Varsha Narayana Dasha — mentioned in main.py
+   - Annual Narayana dasha for solar return chart
+   - We have NO dedicated equivalent
+
+================================================================================
+SECTION 4: YOGA DETECTION GAP
+================================================================================
+
+PyJHora yoga.py: 1066 functions (~300+ individual yoga detectors with 3 variants each)
+Our yogas.py + advanced_yogas.py: 61 + 28 = 89 functions
+
+MASSIVE GAP. PyJHora implements each B.V. Raman yoga from "300 Important Combinations"
+individually with 3 call variants each (from_planet_positions, from_jd_place, direct).
+
+Yogas they have that we likely lack (sampling — not exhaustive):
+- Nabhasa Yogas (full set): Rajju, Musala, Nala, Sarpa, Gadaa, Sakata, Vihaga,
+  Sringaataka, Hala, Vajra, Yava, Kamala, Vaapi — ~20 Aakriti yogas
+- Sankhya Yogas: Vallaki, Dama, Kedara, Sula, Yuga, Gola
+- Specific named yogas: Parvata, Chaamara, Bheri, Mridanga, Matsya, Koorma,
+  Khadga, Kusuma, Kalpadruma, Lagnaadhi, Hari, Hara, Vishnu, Trilochana,
+  Bharathi, Amsaavatara, Devendra, Indra, Bhaaskara, Kulavardhana,
+  Vasumathi, Gandharva, Go, Makuta, Jaya, Chatussagara, Rajalakshana
+- Medical Yogas (~30): Rogagrastha, Krisanga, Dehasthoulya, Kushtaroga,
+  Kshayaroga, Pittharoga, Vaatharoga, Guhyaroga, Angaheena, Swetakushta,
+  Pisacha Grastha, Mathibhramana
+- Wealth Yogas (~15): Bahudravyarjana, Swaveeryaddhana, Madhya Vayasi Dhana,
+  Anthya Vayasi Dhana, Balya Dhana, source-specific dhana yogas (Bhratru/Matru/
+  Putra/Shatru/Kalatra Mooladdhana), Amaranantha Dhana, Ayatnadhanalabha
+- Children Yogas: Bahu Puthra, Dattha Puthra, Aputhra, Eka Puthra, Suputhra,
+  Kaalanirdesat Puthra
+- Character/Speech Yogas: Asatyavadi, Jada, Marud, Budha, Mooka, Sumukha,
+  Durmukha, Yukthi Samanwithavagmi
+- Sibling Yogas: Ekabhagini, Dwadasa Sahodara, Sapthasankhya Sahodara
+- Courage/War Yogas: Parakrama, Yuddha Praveena, Yuddhatpoorvadridhachitta
+- Curses (Shaapa) Yogas: Sarpasaapa, Pithru Saapa, Maathru Saapa, Bhraathru Saapa,
+  Pretha Saapa
+- Downfall Yogas: Rajabhrashta, Raja Bhanga, Vamsacheda, Dharidhra (10+ variants)
+- Property Yogas: Ayatna Griha Prapta, Grihanasa, Vichitra Saudha
+- Misc: Bhaagya, Kapata, Nishkapata, Matru Satrutwa/Sneha, Vahana, Bandhubhisthyaktha
+
+Note: We do detect ~30 core yogas plus 20+ advanced yogas, but lack the granular
+BV Raman-style individual variant detectors numbering 240+ distinct yogas.
+
+================================================================================
+SECTION 5: COMPUTATION MODULES THEY HAVE, WE DON'T
+================================================================================
+
+1. Surya Siddhanta (surya_sidhantha.py — 29 functions)
+   - Classical Indian astronomical computation without Swiss Ephemeris
+   - Mean/true planetary longitudes from Kali Ahargana
+   - Mandaphala, Sighra corrections
+   - We rely solely on Swiss Ephemeris / Skyfield / Astropy
+
+2. Vratha Finder (vratha.py — 27 functions)
+   - Festival/vratha date computation: Pradosham, Ashtaka, Sankranti,
+     Mahalaya Paksha, Sathyanarayana Puja, Chandra Dharshan, etc.
+   - We have NO vratha/festival system
+
+3. Tajaka Yoga Module (tajaka_yoga.py — 20 functions)
+   - Dedicated Tajaka yoga detectors: Ishkavala, Induvara, Ithasala, Eesarpha,
+     Nakta, Yamaya, Kamboola, Gairi Kamboola, Khallasara, Radda, Duhphali Kutta
+   - We detect Tajika yogas in varshaphala.py but with fewer dedicated functions
+
+4. Tajaka Aspect System (tajaka.py — 41 functions)
+   - Full Tajika aspect system: Trinal, Sextile, Square, Semi-sextile, Opposition
+   - Maasa Pravesh (monthly chart), Sixty Hour chart
+   - We have tajika_aspect in varshaphala.py — PARTIAL
+
+5. Saham Module (saham.py — 39 functions)
+   - 38 individual saham calculations (Punya, Vidya, Yasas, Mitra, etc.)
+   - We have compute_all_sahams in varshaphala.py — LIKELY COVERED but less granular
+
+6. Prediction Module (prediction/general.py — 5 functions + longevity.py — 17 functions)
+   - General prediction from lagna/rasi positions, lords-in-houses
+   - Longevity with Jaimini corrections, Alpayu/Madhyayu/Deerghaayu checks
+   - Balarishta checks
+   - We have broader prediction engine but their text-based prediction is different
+
+7. Raja Yoga (raja_yoga.py — 22 functions + raja_yoga_bv_raman.py — 1 function)
+   - Dedicated module: Dharma-Karmadhipati, Vipareetha, Neecha Bhanga, 5+ other raja checks
+   - BV Raman's 245 raja yoga calculation
+   - We detect these in yogas.py but less granularly
+
+8. Dosha Module (dosha.py — 19 functions)
+   - Dedicated: Ghata dosha, Shrapit dosha, Kalathra dosha
+   - We have Kala Sarpa, Manglik, Pitru, but LACK: Ghata, Shrapit, Kalathra, Ganda Moola detail
+
+9. Sphuta Module (sphuta.py — 28 functions)
+   - 14 sphuta calculations with mixed chart variants each:
+     Tri, Chatur, Pancha, Prana, Deha, Mrityu, Sookshma Tri,
+     Beeja, Kshetra, Tithi, Yoga, Yogi, Avayogi, Rahu Tithi
+   - We compute some (Beeja, Kshetra, Trisphutam) but LACK: Prana, Deha, Mrityu,
+     Sookshma Tri, Tithi, Yoga, Yogi/Avayogi Sphuta, Rahu Tithi Sphuta
+
+10. Varnada Lagna (charts.py — 10+ varnada functions)
+    - 5 different Varnada Lagna methods: Sanjay Rath, Jha-Pandey, BV Raman,
+      Santhanam, Sharma — each with mixed chart variant
+    - We have 1 varnada lagna computation
+
+11. Eclipse Module (eclipse.py — 4 functions)
+    - Dedicated solar/lunar eclipse finder with type classification
+    - We detect eclipses in lunations.py but less dedicated
+
+12. Drik1 Module (drik1.py — 85 functions)
+    - Secondary/alternate panchanga computation engine
+    - Includes a class-based panchanga interface
+    - We have one panchanga engine only
+
+================================================================================
+SECTION 6: CHART COMPUTATION GAPS
+================================================================================
+
+Divisional charts they have that we also have (both cover D1-D60):
+D1-D60 ✓ — Both have full coverage
+
+Additional chart features they have:
+1. Mixed charts (D-x/D-y combinations) — extensive support in charts.py
+   - We have NO mixed/composite chart system
+2. Nava-Navamsa (D81), Ashtotharamsa (D108), Dwadas-Dwadasamsa (D144)
+   - We compute up to D60 only
+3. Nadiamsa (D150) — We have nadi_amsha() but may differ in chart construction
+4. Custom divisional charts — We have NO equivalent
+5. Multiple Varnada Lagna methods (5 scholars) — We have 1
+6. Planet entry/exit date computation for divisional charts
+7. Conjunction date finder for planet pairs
+8. Planet retrograde change date finder
+9. Kalachakra Navamsa chart method
+10. Pachakadi Sambandha computation
+11. Graha Arudhas (planet-based arudhas) — We have bhava arudhas only
+12. Vaiseshikamsa Bala (4 schemes: Dasha/Shad/Saptha/Shodasa varga)
+    - We have vimshopak but NOT vaiseshikamsa bala
+
+================================================================================
+SECTION 7: DATA FILES THEY HAVE
+================================================================================
+
+Core Data:
+- Marriage_Compatibility-V4.0.1.xlsx (2.6 MB) — Full compatibility database
+- all_nak_pad_boy_girl.csv (658 KB) — Nakshatra pada matching (North)
+- all_nak_pad_boy_girl_south.csv (928 KB) — Nakshatra pada matching (South)
+- pancha_pakshi_db.csv (132 KB) — Pancha Pakshi database
+- hindu_festivals_multilingual_unicode_bom.csv (61 KB) — Festival database
+
+City Databases:
+- world_cities_with_tz.csv (41.1 MB) — Massive world city + timezone database
+- world_cities_db.csv (7.5 MB) — World cities
+- uscities.csv (1.9 MB) — US cities database
+
+Ephemeris (Swiss Ephemeris files):
+- 100+ .se1 binary files covering planetary + lunar ephemeris
+- Range: ~4000 BCE to ~3000 CE (seplm132 to sepl162)
+- Total ephemeris data: ~150+ MB
+- fixstars.cat, sefstars.txt (fixed stars catalog)
+- seasnam.txt (9.8 MB)
+
+Multilingual Resources (6 languages: en, hi, ta, ml, ka, te):
+- amsa_rulers_*.json — Amsa ruler descriptions
+- dosha_msgs_*.json — Dosha messages
+- prediction_msgs_*.json — Prediction text
+- raja_yoga_msgs_*.json — Raja yoga descriptions
+- list_values_*.txt — UI list strings
+- msg_strings_*.txt — UI message strings
+
+We have: nehru_reference.json, kundli_report.json, nakshatra_db.py
+We LACK: City databases, festival databases, multilingual support,
+          independent ephemeris files, compatibility spreadsheet
+
+================================================================================
+SECTION 8: THINGS WE HAVE THAT THEY DON'T
+================================================================================
+
+PREDICTION ENGINE (unique to us):
+1. vedic_engine/prediction/engine.py — Full 3-stage prediction pipeline
+   - Promise Gate (promise.py) — Three Pillar Rule evaluation
+   - Bayesian Posterior (bayesian_layer.py) — Beta-distribution confidence update
+   - Fuzzy Convergence (fuzzy_confidence.py) — 3-input fuzzy inference
+2. vedic_engine/prediction/confidence.py — 8-component weighted confidence scoring
+3. vedic_engine/prediction/calibration.py — Platt-scale calibration
+4. vedic_engine/prediction/timing_optimizer.py — Best/worst prediction windows
+5. vedic_engine/prediction/dasha_transit.py — Dasha lord transit analysis
+
+AI INTEGRATION (unique to us):
+6. vedic_engine/ai/interpreter.py — GPT-4o narrative interpretation
+7. vedic_engine/ai/gpt_reasoner.py — Chain-of-thought astrological reasoning
+8. vedic_engine/ai/agent_swarm.py — Multi-agent orchestration (Parashara/KP/Jaimini/Medical)
+
+ML PIPELINE (unique to us):
+9. vedic_engine/ml/ml_pipeline.py — sklearn-based training/inference for predictions
+
+ANALYSIS MODULES (unique to us):
+10. vedic_engine/analysis/career_checklist.py — 5-step career domain checklist
+11. vedic_engine/analysis/marriage_synthesis.py — Marriage readiness synthesis
+12. vedic_engine/analysis/medical_extended.py — Advanced medical: psychiatric yogas,
+    Beeja/Kshetra, decumbiture
+13. vedic_engine/analysis/advanced_techniques.py — Bhrigu Sutras, Saptha Shalaka,
+    Phala Jyotish, Neechabhanga extended
+14. vedic_engine/analysis/advanced_yogas.py — 20+ unique detectors: Dhana Matrix,
+    Chandika, Tapasvi, Foreign, Bandhana (5 variants), Graha Malika
+15. vedic_engine/analysis/sarvatobhadra.py — SBC 9×9 grid + vedha rays
+16. vedic_engine/analysis/kota_chakra.py — Kota Chakra fortress analysis
+17. vedic_engine/analysis/lal_kitab.py — Lal Kitab diagnostics
+18. vedic_engine/analysis/significations.py — Domain-planet mapping
+19. vedic_engine/analysis/badhaka.py — Badhaka analysis with confidence modifier
+
+TIMING MODULES (unique to us):
+20. vedic_engine/timing/hellenistic.py — Profections, Sect, Lots, Zodiacal Releasing
+21. vedic_engine/timing/nadi_timing.py — BCP, Saturn activation, Patel marriage, BNN
+22. vedic_engine/timing/tithi_pravesh.py — Dedicated Tithi Pravesh module
+23. vedic_engine/timing/progressions.py — Secondary progressions + solar terms
+24. vedic_engine/timing/dasha_quality.py — Ishta/Kashta Phala + quality scoring
+25. vedic_engine/timing/advanced_dashas.py — Sudarshana balance, Ashtaka Dasha
+26. vedic_engine/timing/rare_dashas.py — Mandooka + Padanadhamsha as dedicated module
+
+MUNDANE & PRASHNA (unique to us):
+27. vedic_engine/mundane/mundane.py — Ingress validity, Eclipse impact, Great Conjunction,
+    Gann price-to-degree
+28. vedic_engine/prashna/prashna.py — 6 sub-modules: yes/no, medical, legal, travel,
+    pregnancy, number prashna
+29. vedic_engine/prashna/prashna_advanced.py — Ashtamangala, Aksharachakra, Nimitta
+
+SCIENCE (unique to us):
+30. vedic_engine/science/correlations.py — Lunar health, birth month risk, chronotherapy
+
+CORE INFRASTRUCTURE (unique to us):
+31. vedic_engine/core/btr_montecarlo.py — Birth Time Rectification via Monte Carlo
+32. vedic_engine/core/skyfield_audit.py — Multi-backend ephemeris audit
+33. vedic_engine/prediction/ephemeris_audit.py — 4-backend position comparison
+34. vedic_engine/data/validation_data.py — 10 benchmark charts + edge cases
+35. vedic_engine/data/lookup_tables.py — Yoni/Vashya/Bhakoot matrices, Tajika defs
+
+VARGA INTERPRETATIONS (unique to us):
+36. vedic_engine/core/varga_interpretations.py — D60 deities, D30 rulers,
+    Kashinath Hora, D10 career vectors, Sapta/Dasha varga scheme
+
+================================================================================
+SECTION 9: THEIR TEST SUITE
+================================================================================
+
+Test Files: 5 (.py files in tests/)
+Total Test Functions: 669
+
+Breakdown:
+- pvr_tests.py: 521 functions — By far the largest
+  * Chapter-organized tests (Ch 1-31) following PVR Narasimha Rao's books
+  * Dasha tests: Vimsottari (11), Ashtottari (9), Narayana (6), Drig (4+),
+    Shoola (6), Kalachakra, Sudarshana, plus all conditional dashas
+  * Yoga tests: 100+ individual yoga test functions
+  * Chart tests: Divisional charts, mixed charts, bhava houses
+  * Strength tests: Shadbala, Harsha Bala, Pancha Vargeeya, Dwadhasa Vargeeya
+  * Compatibility: No dedicated tests (handled in test_helper)
+  * Panchanga, Eclipse, Conjunction tests
+
+- test_yogas.py: 98 functions — Dedicated yoga regression tests
+  * Every major yoga has its own test function
+
+- test_helper.py: 24 functions — Test infrastructure
+  * Baseline comparison framework with JSON, tolerance checking
+  * Subset filtering for selective test runs
+
+- test_ui.py: 19 functions — UI rendering tests
+
+- test_ss.py: 7 functions — Surya Siddhanta validation tests
+
+We have: validate_core.py, run_validation.py, debug_dasha.py (ad hoc)
+COMPARISON: Their test suite is ~10x more systematic with 521 chapter-organized
+tests + 98 yoga-specific regression tests + baseline comparison infrastructure.
+
+================================================================================
+SECTION 10: UI MODULES THEY HAVE (for reference — N/A for us)
+================================================================================
+
+PyJHora has a full PyQt5 GUI with 16 UI modules (584 total functions):
+- horo_chart_tabs.py (155 functions) — Main tabbed horoscope viewer
+- chakra.py (65 functions) — Chakra visualizations (SBC, Kota, Kalachakra, etc.)
+- chart_styles.py (60 functions) — North/South/East Indian + Western chart styles
+- panchangam.py (50 functions) — Panchanga viewer
+- horo_chart.py (35 functions) — Basic horoscope chart
+- vedic_calendar.py (22 functions) — Vedic calendar widget
+- vedic_clock.py (22 functions) — Vedic time clock
+- pancha_pakshi_sastra_widget.py (19 functions) — Pancha Pakshi viewer
+- conjunction.py (17 functions) — Conjunction finder dialog
+- options_dialog.py (14 functions) — Settings dialogs
+- vratha_finder.py (11 functions) — Vratha/festival finder
+- mixed_chart_dialog.py (9 functions) — Mixed chart selector
+- dhasa_bhukthi_options_dialog.py (7 functions) — Dasha display options
+- match_ui.py (6 functions) — Compatibility matching UI
+- vakra_gathi_plot.py (6 functions) — Retrograde motion plotter
+- varga_chart_dialog.py (6 functions) — Varga chart selector
+
+This is N/A for our engine (we're backend-only) but shows their UI maturity.
+
+================================================================================
+SECTION 11: COMPATIBILITY/MATCHING GAP
+================================================================================
+
+PyJHora compatibility.py: 38 functions
+- North + South Indian matching (separate implementations)
+- Kutas: Varna, Vasiya, Dina, Tara, Nakshatra, Gana, Yoni, Maitri,
+  Raasi Adhipathi, Bahut, Raasi, Naadi, Mahendra, Vedha, Rajju, Sthree Dheerga
+- Partner matching with minimum score filtering
+- Database-backed compatibility records
+
+Our compatibility.py: 10 functions
+- Ashtakoota: Varna, Vashya, Tara, Yoni, Graha Maitri, Gana, Bhakoot, Nadi
+
+GAP: We lack South Indian porutham system, Mahendra/Vedha/Rajju/Sthree Dheerga
+kutas, partner database, separate North vs South scoring. Our nakshatra_extended.py
+adds Rajju, Vedha, Stree Deergha, Nadi enhanced — PARTIAL COVERAGE.
+
+================================================================================
+SUMMARY: PRIORITY GAPS (by impact)
+================================================================================
+
+HIGH PRIORITY:
+1. Yoga coverage: 300+ vs ~89 functions — massive detection gap
+2. 13 missing graha dashas (Buddhi Gathi, Kaala, Karaka, Naisargika, etc.)
+3. 10 missing rasi dashas (Chakra, Kendradhi, Varnada, Sthira, etc.)
+4. Sphuta computations: 9+ sphuta types missing
+5. Test suite: Need systematic regression framework
+
+MEDIUM PRIORITY:
+6. Mixed/composite charts not supported
+7. Higher divisional charts (D81, D108, D144)
+8. Surya Siddhanta engine (classical computation without Swiss Eph)
+9. Vratha/Festival system
+10. South Indian compatibility matching
+
+LOW PRIORITY (coverage exists elsewhere):
+11. City database (can use external APIs)
+12. Multilingual support (AI interpreter handles this)
+13. UI modules (we are backend-only by design)
+14. Varnada Lagna variants (scholarly preference)

@@ -16,6 +16,8 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 
 **Raw confidence** (`confidence.py:compute_confidence`) feeds Stages 2 & 3. Final score is calibrated via `calibration.py`.
 
+**Phase 6 Layer 2 update:** Layer 1 chain is replaced with research-backed formulas. `prediction/classical_modifiers.py` now provides domain-config driven `compute_planet_effectiveness()`, `compute_bhava_effectiveness()`, dasha convergence interpolation (`CONVERGENCE_TABLE`), and yoga-domain boosts. `prediction/prediction_overrides.py:check_master_overrides()` runs before normal blending. `engine.py:predict()` now applies `raw_adjusted = raw × classical_modifier`, then convergence and dosha/yoga adjustments, with override short-circuit for final confidence.
+
 ---
 
 ## SECTION B: Module Registry
@@ -29,6 +31,9 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 | `prediction/engine.py` | Main pipeline orchestrator; builds static + dynamic analysis | `analyze_static()`, `predict()`, `_build_domain_report()` | All submodules | 2026-03-02 |
 | `prediction/promise.py` | Three Pillar natal promise evaluation; hard gate | `evaluate_promise()`, `_score_bhava()`, `_score_bhavesha()`, `_score_karaka()` | config.py | 2026-03-02 |
 | `prediction/confidence.py` | 8-component weighted confidence scoring | `compute_confidence()`, `score_dasha_alignment()`, `score_transit_support()`, `_tiered_bav()` | config.py | 2026-03-02 |
+| `prediction/classical_modifiers.py` | Research-backed domain formulas: planet effectiveness, bhava effectiveness, convergence interpolation, yoga boost, dosha modifier | `compute_classical_modifier()`, `compute_planet_effectiveness()`, `compute_bhava_effectiveness()`, `get_convergence_confidence()`, `compute_yoga_domain_boost()` | static/dynamic computed feature bundles | 2026-03-05 |
+| `prediction/domain_signal_weights.py` | Domain signal priority registry (primary/secondary ranked weights) | `DOMAIN_SIGNALS` | research docs (`new6/`) | 2026-03-05 |
+| `prediction/prediction_overrides.py` | Master override interrupt logic (Sade Sati weak Moon, Sandhi, Saturn-Rahu, Vipreet activation, Vimshopak extreme) | `check_master_overrides()` | computed + dynamic transit bundle | 2026-03-05 |
 | `prediction/bayesian_layer.py` | Beta-distribution Bayesian posterior update | `compute_bayesian_confidence()`, `_structural_prior()`, `_dasha_evidence()`, `_transit_evidence()` | — | 2026-03-02 |
 | `prediction/fuzzy_confidence.py` | 3-input fuzzy inference via scikit-fuzzy | `compute_fuzzy_confidence()`, `aggregate_for_fuzzy()`, `_build_fuzzy_system()` | scikit-fuzzy (optional) | 2026-03-02 |
 | `prediction/transits.py` | Real-time transit positions + Gochar scoring | `get_transit_positions()`, `evaluate_transit()`, `evaluate_all_transits()`, `detect_sade_sati()` | config.py, ashtakvarga.py | 2026-03-02 |
@@ -171,6 +176,12 @@ main.py:main()
           └─ score_kp_confirmation() × W_KP (0.12)
           └─ score_functional_role() × W_FUNCTIONAL (0.08)
           └─ W_HOUSE_LORD = 0.00 (zeroed, counted in Promise)
+      → prediction_overrides.py:check_master_overrides()  ← Phase 6 L2 pre-check
+      → classical_modifiers.py:compute_classical_modifier()  ← Phase 6 L2
+          └─ raw_adjusted = raw × classical_modifier
+          └─ convergence = get_convergence_confidence(weighted_dasha_agreement)
+          └─ adjusted_input = raw_adjusted × convergence × dosha_modifier
+          └─ final_base = adjusted_input × (1 + yoga_boost)
       → bayesian_layer.py:compute_bayesian_confidence()  ← STAGE 2
           └─ Prior: yoga (55%) + functional (45%)
           └─ Updates: dasha (3 obs), transit+BAV (2 obs), KP (binary 2 obs)
@@ -181,6 +192,11 @@ main.py:main()
       → calibration.py:calibrate_confidence()
       → Returns: final prediction report dict
 ```
+
+Multi-dasha consensus in `engine.py:predict()` now uses a graduated modifier (not hard gate):
+- consensus ratio ≥ 0.6 → boost (`1.0 + (ratio-0.6)*0.75`)
+- 0.3–0.6 → neutral (`1.0`)
+- < 0.3 → moderate damper (`0.70`)
 
 ---
 
@@ -243,3 +259,5 @@ main.py:main()
 - [x] Phase 5 Rare Dashas — DONE (timing/rare_dashas.py: Mandooka + Padanadhamsha)
 - [x] Phase 5 Advanced Yogas — DONE (analysis/advanced_yogas.py: 20+ new detectors incl. Jaimini Longevity, Foreign, Bandhana, Vehicular, Graha Malika)
 - [x] Phase 5 Engine Wiring — DONE (engine.py: 7 import blocks + §5.1–5.7 computation blocks + **_p5_computed spread → content40 Exit 0)
+- [x] Phase 6 Layer 1 Classical Modifiers — DONE (prediction/classical_modifiers.py + engine.py wiring for raw_adjusted + graduated consensus gate + content45 run)
+- [x] Phase 6 Layer 2 Research Formulas + Overrides — DONE (rewrote classical_modifiers formulas, added domain_signal_weights + prediction_overrides, rewired predict() flow, generated content46)

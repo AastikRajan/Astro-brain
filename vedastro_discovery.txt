@@ -1,0 +1,705 @@
+Total Calculate methods: 478
+  AbstractActivity
+  AbstractActivityStrength
+  AddressToGeoLocation
+  AkshavedamshaSignAtLongitude
+  AkshavedamshaSignName
+  AllHouseAkshavedamshaSign
+  AllHouseBhamshaSign
+  AllHouseChaturthamsaSign
+  AllHouseChaturvimshamshaSign
+  AllHouseConstellationLord
+  AllHouseDashamamshaSign
+  AllHouseData
+  AllHouseDrekkanaSign
+  AllHouseDwadashamshaSign
+  AllHouseHoraSign
+  AllHouseKhavedamshaSign
+  AllHouseLongitudes
+  AllHouseNavamshaSign
+  AllHousePlanetsInHouseBasedOnSign
+  AllHouseRasiSigns
+  AllHouseSaptamshaSign
+  AllHouseShashtyamshaSign
+  AllHouseShodashamshaSign
+  AllHouseTrimshamshaSign
+  AllHouseVimshamshaSign
+  AllHouseZodiacSigns
+  AllHousesOrderedByStrength
+  AllPlanetAkshavedamshaSign
+  AllPlanetBhamshaSign
+  AllPlanetChaturthamsaSign
+  AllPlanetChaturvimshamshaSign
+  AllPlanetConstellation
+  AllPlanetDashamamshaSign
+  AllPlanetData
+  AllPlanetDrekkanaSign
+  AllPlanetDwadashamshaSign
+  AllPlanetFixedLongitude
+  AllPlanetHoraSign
+  AllPlanetHouseData
+  AllPlanetKhavedamshaSign
+  AllPlanetLongitude
+  AllPlanetNavamshaSign
+  AllPlanetOrderedByStrength
+  AllPlanetRasiSigns
+  AllPlanetSaptamshaSign
+  AllPlanetShashtyamshaSign
+  AllPlanetShodashamshaSign
+  AllPlanetSignsBasedOnHouseLongitudes
+  AllPlanetStrength
+  AllPlanetTrimshamshaSign
+  AllPlanetVimshamshaSign
+  AllPlanetsInASignFromLagna
+  AllPlanetsInSignsFromLagna
+  AllPlanetsSignsFromPlanet
+  AllTimeData
+  AllZodiacSignData
+  ArthaprahaaraLongitude
+  ArudhaLagnaSign
+  AscendantDegreesToARMC
+  AutoCalculateTimeRange
+  AyanamsaDegree
+  BeneficHouseListByShadbala
+  BeneficPlanetList
+  BeneficPlanetListByShadbala
+  BeneficPlanetListInSign
+  BhamshaSignAtLongitude
+  BhamshaSignName
+  BhavaAdhipathiBala
+  BhavaDigBala
+  BhavaDrishtiBala
+  BhinnashtakavargaChart
+  BirthLocationAutoAIFill
+  BirthNumber
+  BirthTimeAutoAIFill
+  BirthTimeLocationAutoAIFill
+  BirthVarna
+  BirthYama
+  BouncBackInputGeoLocation
+  BouncBackInputPlanet
+  BouncBackInputTime
+  Chandrabala
+  ChaturthamshaSignAtLongitude
+  ChaturthamshaSignName
+  ChaturvimshamshaSignAtLongitude
+  ChaturvimshamshaSignName
+  ConstellationAtLongitude
+  ConvertJulianTimeToNormalTime
+  ConvertLmtToJulian
+  CoordinatesToGeoLocation
+  CountFromConstellationToConstellation
+  CountFromSignToSign
+  DasaAtRange
+  DasaAtTime
+  DasaForLife
+  DasaForNow
+  DashamamshaSignAtLongitude
+  DashamamshaSignName
+  DayDurationHours
+  DayOfWeek
+  DaysBetweenTimeRangePreset
+  DestinyNumber
+  DestinyPoint
+  DhumaLongitude
+  DishaShool
+  DistanceBetweenPlanets
+  DivisionalLongitude
+  DrekkanaSignAtLongitude
+  DrekkanaSignName
+  DwadashamshaSignAtLongitude
+  DwadashamshaSignName
+  EclipticObliquity
+  EpochInterval
+  EventEndTime
+  EventStartEndTime
+  EventStartTime
+  EventsAtRange
+  EventsAtTime
+  FindBirthTimeByAnimal
+  FindBirthTimeByRisingSign
+  FindBirthTimeHouseStrengthPerson
+  FindDrishtiValue
+  FindViseshaDrishti
+  FirstVowelSound
+  FortunaPoint
+  GenerateTimeListCSV
+  GeoLocationToTimezone
+  GetAllEventDataGroupedByTag
+  GetAllEventsChartAlgorithms
+  GetAllHouseNirayanaMiddleLongitudes
+  GetAllMaleficPlanetsAspecting
+  GetCharaDasaAtTime
+  GetConstellationTransitStartTime
+  GetDasaInfoForAscendant
+  GetHouseTags
+  GetHouseType
+  GetPlanetTags
+  GetSignTags
+  GhatakaChakra
+  GocharaKakshas
+  GocharaZodiacSignCountFromMoon
+  GreenwichApparentInJulianDays
+  GreenwichLmtInJulianDays
+  GreenwichTimeFromJulianDays
+  GulikaLongitude
+  HoraAtBirth
+  HoraSignAtLongitude
+  HoraSignName
+  HoroscopeChat
+  HoroscopeChat2
+  HoroscopeChatFeedback
+  HoroscopeFollowUpChat
+  HoroscopeLLMSearch
+  HoroscopePredictionAlpacaTemplateLoRA
+  HoroscopePredictionNames
+  HoroscopePredictions
+  HouseAkshavedamshaD45Sign
+  HouseAllPlanetOccupiesBasedOnLongitudes
+  HouseBhamshaD27Sign
+  HouseChaturthamshaD4Sign
+  HouseChaturvimshamshaD24Sign
+  HouseConstellation
+  HouseConstellationLord
+  HouseCountedFromInputHouse
+  HouseDashamamshaD10Sign
+  HouseDrekkanaD3Sign
+  HouseDwadashamshaD12Sign
+  HouseFromSignName
+  HouseHoraD2Sign
+  HouseJunctionPoint
+  HouseKhavedamshaD40Sign
+  HouseLongitude
+  HouseNatureScore
+  HouseNavamshaD9Sign
+  HousePlanetOccupiesBasedOnLongitudes
+  HousePlanetOccupiesBasedOnSign
+  HouseRasiSign
+  HouseSaptamshaD7Sign
+  HouseShashtyamshaD60Sign
+  HouseShodashamshaD16Sign
+  HouseSignName
+  HouseStrength
+  HouseTrimshamshaD30Sign
+  HouseVimshamshaD20Sign
+  HouseZodiacSign
+  HousesInAspect
+  HousesOwnedByPlanet
+  IndrachaapaLongitude
+  IpAddressToGeoLocation
+  IsAirSign
+  IsAllMaleficsInUpachayas
+  IsAllPlanetsInHouse
+  IsAnyPlanetsInHouse
+  IsBeforeSunrise
+  IsBeneficPlanetAspectHouse
+  IsBeneficPlanetInHouse
+  IsBeneficPlanetInSign
+  IsBeneficsInKendra
+  IsBeneficsInSignsFromLagna
+  IsBeneficsInSignsFromPlanet
+  IsCommonSign
+  IsDayBirth
+  IsEarthSign
+  IsEvenSign
+  IsFireSign
+  IsFixedSign
+  IsFullMoon
+  IsGocharaObstructed
+  IsGocharaOccurring
+  IsHouseAspectedByPlanet
+  IsHouseBeneficInShadbala
+  IsHouseLordInHouseBasedOnLongitudes
+  IsHouseLordInHouseBasedOnSign
+  IsHouseSignName
+  IsMaleficPlanetAspectHouse
+  IsMaleficPlanetInHouse
+  IsMaleficPlanetInSign
+  IsMercuryAfflicted
+  IsMercuryMalefic
+  IsMoonBenefic
+  IsMovableSign
+  IsNewMoon
+  IsNightBirth
+  IsOddSign
+  IsPlanetAspectedByBeneficPlanets
+  IsPlanetAspectedByEnemyPlanets
+  IsPlanetAspectedByFriendPlanets
+  IsPlanetAspectedByMaleficPlanets
+  IsPlanetAspectedByPlanet
+  IsPlanetBenefic
+  IsPlanetBeneficToLagna
+  IsPlanetCombust
+  IsPlanetConjunctWithBeneficPlanets
+  IsPlanetConjunctWithEnemyPlanets
+  IsPlanetConjunctWithFriendPlanets
+  IsPlanetConjunctWithMaleficPlanets
+  IsPlanetConjunctWithPlanet
+  IsPlanetDebilitated
+  IsPlanetExaltedDegree
+  IsPlanetExaltedSign
+  IsPlanetGocharaBindu
+  IsPlanetInEnemyHouse
+  IsPlanetInEnemySign
+  IsPlanetInFriendHouse
+  IsPlanetInFriendSign
+  IsPlanetInGarvitaAvasta
+  IsPlanetInGoodAspectToHouse
+  IsPlanetInGoodAspectToPlanet
+  IsPlanetInHouse
+  IsPlanetInHouseKP
+  IsPlanetInKendra
+  IsPlanetInKendraFromPlanet
+  IsPlanetInKshobhitaAvasta
+  IsPlanetInKshuditaAvasta
+  IsPlanetInLajjitaAvasta
+  IsPlanetInMoolatrikona
+  IsPlanetInMuditaAvasta
+  IsPlanetInOwnHouse
+  IsPlanetInOwnSign
+  IsPlanetInSign
+  IsPlanetInTrashitaAvasta
+  IsPlanetInTrikona
+  IsPlanetInUpachaya
+  IsPlanetInWaterySign
+  IsPlanetMalefic
+  IsPlanetMaleficToLagna
+  IsPlanetMarakaToLagna
+  IsPlanetRetrograde
+  IsPlanetSameHouseWithHouseLord
+  IsPlanetStrongInShadbala
+  IsPlanetYogakarakaToLagna
+  IsPlanetsInSignsFromLagna
+  IsPlanetsInSignsFromPlanet
+  IsUpagraha
+  IsWaningMoon
+  IsWaterSign
+  IsWaxingMoon
+  IshtaKaala
+  KaalaLongitude
+  Karana
+  KhavedamshaSignAtLongitude
+  KhavedamshaSignName
+  LagnaSignName
+  ListAPICalls
+  LmtToStd
+  LmtToUtc
+  LocalApparentTime
+  LocalMeanTime
+  LocalStandardTime
+  LongitudeAtZodiacSign
+  LongitudeToLMTOffset
+  LordOfConstellation
+  LordOfHoraFromTime
+  LordOfHoraFromWeekday
+  LordOfHouse
+  LordOfHouseList
+  LordOfWeekday
+  LordOfZodiacSign
+  LunarDay
+  LunarMonth
+  MaandiLongitude
+  Madhya
+  MainActivity
+  MaleficHouseListByShadbala
+  MaleficPlanetList
+  MaleficPlanetListByShadbala
+  MaleficPlanetListInSign
+  MarriagePartnerNameAutoAIFill
+  MarriageTagsAutoAIFill
+  MatchChat
+  MatchReport
+  MoonChestaBala
+  MoonConstellation
+  MoonSignName
+  MrityuLongitude
+  Murthi
+  NameNumber
+  NameNumberPrediction
+  NavamshaSignAtLongitude
+  NavamshaSignAtLongitudeOLD
+  NavamshaSignName
+  NextHouseNumber
+  NextLunarEclipse
+  NextNewMoon
+  NextSolarEclipse
+  NextZodiacSign
+  NithyaYoga
+  NoonTime
+  NorthIndianChart
+  Nutation
+  PanchaPakshiBirthBird
+  PanchaPakshiBirthBirdFromName
+  Panchaka
+  PanchangaTable
+  PariveshaLongitude
+  ParseJHDFiles
+  PickOutStrongestPlanet
+  PlanetAbdaBala
+  PlanetAkshavedamshaD45Sign
+  PlanetAshtakvargaBindu
+  PlanetAshtakvargaBinduByPlanet
+  PlanetAspectDegree
+  PlanetAvasta
+  PlanetAyanaBala
+  PlanetBhamshaD27Sign
+  PlanetChaturthamshaD4Sign
+  PlanetChaturvimshamshaD24Sign
+  PlanetChestaBala
+  PlanetCirculationTime
+  PlanetCombinedRelationshipWithPlanet
+  PlanetConstellation
+  PlanetDasaNature
+  PlanetDashamamshaD10Sign
+  PlanetDebilitationPoint
+  PlanetDeclination
+  PlanetDigBala
+  PlanetDivisionalLongitude
+  PlanetDrekkanaBala
+  PlanetDrekkanaD3Sign
+  PlanetDrikBala
+  PlanetDwadashamshaD12Sign
+  PlanetDwadashamshaSignOLD
+  PlanetEphemerisLongitude
+  PlanetExaltationPoint
+  PlanetHoraBala
+  PlanetHoraD2Signs
+  PlanetInSign
+  PlanetIshtaKashtaScoreDegree
+  PlanetIshtaScore
+  PlanetKalaBala
+  PlanetKashtaScore
+  PlanetKendraBala
+  PlanetKhavedamshaD40Sign
+  PlanetLordOfConstellation
+  PlanetLordOfZodiacSign
+  PlanetMasaBala
+  PlanetMotionName
+  PlanetNaisargikaBala
+  PlanetNathonnathaBala
+  PlanetNatureScore
+  PlanetNavamshaD9Sign
+  PlanetNirayanaLongitude
+  PlanetOchchaBala
+  PlanetOjayugmarasyamsaBala
+  PlanetOwnAshtakvargaBindu
+  PlanetPakshaBala
+  PlanetPermanentRelationshipWithPlanet
+  PlanetPowerPercentage
+  PlanetRasiD1Sign
+  PlanetRelationshipWithHouse
+  PlanetRelationshipWithSign
+  PlanetSaptamshaD7Sign
+  PlanetSaptamshaSignOLD
+  PlanetSaptavargajaBala
+  PlanetSayanaLatitude
+  PlanetSayanaLongitude
+  PlanetShadbalaPinda
+  PlanetShashtyamshaD60Sign
+  PlanetShodashamshaD16Sign
+  PlanetSignTransit
+  PlanetSpeed
+  PlanetSthanaBala
+  PlanetSthanaBalaNeutralPoint
+  PlanetStrength
+  PlanetTajikaConstellation
+  PlanetTajikaLongitude
+  PlanetTajikaZodiacSign
+  PlanetTemporaryFriendList
+  PlanetTemporaryRelationshipWithPlanet
+  PlanetTribhagaBala
+  PlanetTrimshamshaD30Sign
+  PlanetVaraBala
+  PlanetVimshamshaD20Sign
+  PlanetYuddhaBala
+  PlanetZodiacSignBasedOnHouseLongitudes
+  PlanetsAspectingHouse
+  PlanetsAspectingPlanet
+  PlanetsInAspect
+  PlanetsInConjunction
+  PlanetsInGocharaHouse
+  PlanetsInHouse
+  PlanetsInHouseBasedOnSign
+  PlanetsInSign
+  PreviousNewMoon
+  ResidentialStrength
+  SaptamshaSignAtLongitude
+  SaptamshaSignName
+  SarvashtakavargaChart
+  SearchLocation
+  SetAPIKey
+  ShashtyamshaSignAtLongitude
+  ShashtyamshaSignName
+  ShodashamshaSignAtLongitude
+  ShodashamshaSignName
+  SignCountedFromInputSign
+  SignCountedFromLagnaSign
+  SignCountedFromPlanetSign
+  SignDistanceFromPlanetToPlanet
+  SignProperties
+  SignsPlanetIsAspecting
+  SkyChart
+  SkyChartGIF
+  SouthIndianChart
+  SunChestaBala
+  SunMoonConjunctionAngle
+  SunSign
+  SunriseTime
+  SunsetTime
+  SwissEphemeris
+  SwissEphemerisAll
+  TajikaDateForYear
+  TajikaDateForYear2
+  Tarabala
+  TimeOffsetToLongitude
+  TimeSunEnteredCurrentSign
+  TimeSunLeavesCurrentSign
+  TimeToJulianDay
+  TimeToJulianEphemerisTime
+  TimeToJulianUniversalTime
+  TransitHouseFromLagna
+  TransitHouseFromMoon
+  TransitHouseFromNavamsaLagna
+  TransitHouseFromNavamsaMoon
+  TrimshamshaSignAtLongitude
+  TrimshamshaSignName
+  UpagrahaLongitude
+  UpagrahaPartNumber
+  UpaketuLongitude
+  Vedhanka
+  VedicDayStartTime
+  VimshamshaSignAtLongitude
+  VimshamshaSignName
+  VyatipaataLongitude
+  YamaghantakaLongitude
+  YearAndMonthLord
+  YoniKutaAnimal
+  YoniKutaAnimalFromConstellation
+  ZodiacSignAtLongitude
+  ZodiacSignsOwnedByPlanet
+
+PlanetName values: ['All', 'Jupiter', 'Ketu', 'Mars', 'Mercury', 'Moon', 'Rahu', 'Saturn', 'Sun', 'Venus']
+HouseName values: ['House1', 'House10', 'House11', 'House12', 'House2', 'House3', 'House4', 'House5', 'House6', 'House7', 'House8', 'House9']
+ZodiacName values: ['Aquarius', 'Aries', 'Cancer', 'Capricorn', 'Gemini', 'Leo', 'Libra', 'Pisces', 'Sagittarius', 'Scorpio', 'Taurus', 'Virgo']
+
+[OK] AllPlanetData_Sun: 135 items
+{
+  "AllBeneficPlanetsInGoodConjunctionWith": [],
+  "AllHarmfulPlanetsInBadConjunctionWith": [],
+  "AllMaleficPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsConjunctWith": [],
+  "AllPlanetsInBadAspectToPlanet": [],
+  "AllPlanetsInEnemyConjunctionWith": [],
+  "AllPlanetsInFriendConjunctionWith": [],
+  "AspectReceivedByDispositor": [],
+  "BeneficPlanetsAspectingPlanet": [],
+  "DispositorConjunctWith": [],
+  "DispositorFromLagna": "3",
+  "DispositorFromMoon": "3",
+  "DispositorFromOwnHouses": "6, 11",
+  "HousePlanetOccupiesBasedOnLongitudes": "House4",
+  "HousePlanetOccupiesBasedOnSign": "House5",
+  "HousesInAspect": "House11",
+  "HousesOwnedByPlanet": "House2",
+  "IsPlanetAfflicted": "False",
+  "IsPlanetAspectedByBeneficPlanets": "False",
+ 
+
+[OK] AllPlanetData_Moon: 135 items
+{
+  "AllBeneficPlanetsInGoodConjunctionWith": [],
+  "AllHarmfulPlanetsInBadConjunctionWith": [],
+  "AllMaleficPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsConjunctWith": [],
+  "AllPlanetsInBadAspectToPlanet": [],
+  "AllPlanetsInEnemyConjunctionWith": [],
+  "AllPlanetsInFriendConjunctionWith": [],
+  "AspectReceivedByDispositor": [],
+  "BeneficPlanetsAspectingPlanet": [],
+  "DispositorConjunctWith": [],
+  "DispositorFromLagna": "1",
+  "DispositorFromMoon": "1",
+  "DispositorFromOwnHouses": "1",
+  "HousePlanetOccupiesBasedOnLongitudes": "House1",
+  "HousePlanetOccupiesBasedOnSign": "House1",
+  "HousesInAspect": "House7",
+  "HousesOwnedByPlanet": "House1",
+  "IsPlanetAfflicted": "False",
+  "IsPlanetAspectedByBeneficPlanets": "False",
+  "IsP
+
+[OK] AllPlanetData_Jupiter: 135 items
+{
+  "AllBeneficPlanetsInGoodConjunctionWith": [],
+  "AllHarmfulPlanetsInBadConjunctionWith": [
+    "Ketu"
+  ],
+  "AllMaleficPlanetsAspecting": [
+    "Rahu"
+  ],
+  "AllPhysicallyHarmfulPlanetsAspecting": [
+    "Mars",
+    "Rahu"
+  ],
+  "AllPhysicallyHarmfulPlanetsConjunctWith": [
+    "Ketu"
+  ],
+  "AllPlanetsInBadAspectToPlanet": [
+    "Mars",
+    "Rahu"
+  ],
+  "AllPlanetsInEnemyConjunctionWith": [],
+  "AllPlanetsInFriendConjunctionWith": [],
+  "AspectReceivedByDispositor": [
+    "Mars",
+    "Rahu"
+  ],
+  "BeneficPlanetsAspectingPlanet": [
+    "Mars"
+  ],
+  "DispositorConjunctWith": [
+    "Ketu"
+  ],
+  "DispositorFromLagna": "6",
+  "DispositorFromMoon": "6",
+  "DispositorFromOwnHouses": "1, 10",
+  "HousePlanetOccupiesBasedOnLongitudes": "House6",
+  "HousePlanetOccupiesBasedOnSign": "House6"
+
+[OK] AllHouseData_H1: 40 items
+{
+  "AllPlanetsInBadAspectToHouse": [],
+  "ArudhaOfHouse": "House1",
+  "BeneficPlanetsAspectingHouse": [],
+  "HouseAkshavedamshaD45Sign": {
+    "Name": "Aries",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "11\u00b0 42' 0",
+      "TotalDegrees": "11.7"
+    }
+  },
+  "HouseBhamshaD27Sign": {
+    "Name": "Libra",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "25\u00b0 1' 12",
+      "TotalDegrees": "25.02"
+    }
+  },
+  "HouseBhavaChalitSign": {
+    "Name": "Cancer",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "24\u00b0 15' 36",
+      "TotalDegrees": "24.26"
+    }
+  },
+  "HouseChaturthamshaD4Sign": {
+    "Name": "Aries",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "7\u00b0 2' 24",
+      "TotalDegrees": "7.04"
+    }
+  },
+  "HouseChaturvimshamshaD24Sign": {
+    "Name": "Aquarius",
+    "D
+
+[OK] AllHouseData_H10: 40 items
+{
+  "AllPlanetsInBadAspectToHouse": [
+    "Mars"
+  ],
+  "ArudhaOfHouse": "House8",
+  "BeneficPlanetsAspectingHouse": [
+    "Mars",
+    "Jupiter"
+  ],
+  "HouseAkshavedamshaD45Sign": {
+    "Name": "Capricorn",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "11\u00b0 42' 0",
+      "TotalDegrees": "11.7"
+    }
+  },
+  "HouseBhamshaD27Sign": {
+    "Name": "Cancer",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "25\u00b0 1' 12",
+      "TotalDegrees": "25.02"
+    }
+  },
+  "HouseBhavaChalitSign": {
+    "Name": "Aries",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "19\u00b0 6' 19",
+      "TotalDegrees": "19.10527777777778"
+    }
+  },
+  "HouseChaturthamshaD4Sign": {
+    "Name": "Capricorn",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "7\u00b0 2' 24",
+      "TotalDegrees": "7.04"
+    }
+  },
+  "H
+
+[OK] HoroscopePredictions: 110 items
+[
+  {
+    "Name": "EvilPlanetsInGemini_ChestDeformity",
+    "Description": " The native experiences want of development or deformity in the chest. ",
+    "RelatedBody": {
+      "Planets": [
+        "Rahu"
+      ],
+      "Houses": [
+        "House12"
+      ],
+      "Zodiacs": []
+    },
+    "Weight": 0.0,
+    "Accuracy": 0.0,
+    "Tags": [
+      "MedicalAstrology"
+    ]
+  },
+  {
+    "Name": "EvilPlanetsInLibra_LowerBellyDeformity",
+    "Description": " The native experiences want of development or deformity in the lower belly. ",
+    "RelatedBody": {
+      "Planets": [
+        "Venus"
+      ],
+      "Houses": [
+        "House4"
+      ],
+      "Zodiacs": []
+    },
+    "Weight": 0.0,
+    "Accuracy": 0.0,
+    "Tags": [
+      "MedicalAstrology"
+    ]
+  },
+  {
+    "Name": "EvilPlanetsInSagittariu
+
+[EXISTS] Calculate.MatchReport
+
+[MISSING] Calculate.Numerology
+
+[EXISTS] Calculate.AllZodiacSignData
+
+[MISSING] Calculate.PlanetZodiacSign
+
+[EXISTS] Calculate.PlanetConstellation
+
+[MISSING] Calculate.HousePlanetIsIn
+
+[MISSING] Calculate.PlanetShadpilaStrength
+
+[EXISTS] Calculate.DasaForLife
+
+[MISSING] Calculate.CurrentDasa

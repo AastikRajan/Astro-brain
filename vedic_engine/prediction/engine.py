@@ -53,6 +53,20 @@ from vedic_engine.prediction.transits   import get_transit_positions, evaluate_a
 from vedic_engine.prediction.confidence import compute_confidence, multi_system_agreement
 from vedic_engine.prediction.fuzzy_confidence import compute_fuzzy_confidence, aggregate_for_fuzzy
 from vedic_engine.prediction.bayesian_layer import compute_bayesian_confidence
+from vedic_engine.prediction.classical_modifiers import (
+    DOMAIN_CONFIG,
+    DASHA_WEIGHTS,
+    compute_classical_modifier,
+    compute_bhava_effectiveness,
+    compute_dosha_modifier,
+    compute_planet_effectiveness,
+    compute_yoga_domain_boost,
+    get_convergence_confidence,
+    system_supports_domain,
+)
+from vedic_engine.prediction.domain_signal_weights import DOMAIN_SIGNALS
+from vedic_engine.prediction.prediction_overrides import check_master_overrides
+from vedic_engine.prediction.bridge_integration import compute_bridge_modifier
 from vedic_engine.prediction.dasha_transit  import analyze_dasha_lord_transit, compute_ingress_calendar
 from vedic_engine.prediction.calibration    import calibrate_confidence
 from vedic_engine.prediction.timing_optimizer import find_best_windows, find_worst_windows
@@ -415,6 +429,20 @@ try:
 except ImportError:
     _ADV_YOGAS_AVAILABLE = False
 
+# ── Phase 6: PyJHora Bridge (optional) ──────────────────────────
+try:
+    from vedic_engine.bridges.pyjhora_bridge import compute_all_pyjhora
+    _PYJHORA_AVAILABLE = True
+except ImportError:
+    _PYJHORA_AVAILABLE = False
+
+# ── Phase 6B: VedAstro Bridge (optional; isolated Python 3.12) ──
+try:
+    from vedic_engine.bridges.vedastro_bridge import compute_all_vedastro
+    _VEDASTRO_BRIDGE_AVAILABLE = True
+except ImportError:
+    _VEDASTRO_BRIDGE_AVAILABLE = False
+
 
 # ─── Domain definitions (KP-corrected) ──────────────────────────
 DOMAIN_HOUSES = {
@@ -490,12 +518,38 @@ class PredictionEngine:
         except Exception:
             birth_dt = datetime.now()
 
+        # ══════════════════════════════════════════════════════════
+        # Phase 6 (EARLY): PyJHora Bridge — must run BEFORE any
+        # core SWE computations to avoid ayanamsa state conflict.
+        # ══════════════════════════════════════════════════════════
+        _p6_pyjhora: Dict[str, Any] = {}
+        if _PYJHORA_AVAILABLE:
+            try:
+                _bi = chart.birth_info
+                _b_dt = datetime.fromisoformat(f"{_bi.date}T{_bi.time}")
+                _pj = compute_all_pyjhora(
+                    year=_b_dt.year, month=_b_dt.month, day=_b_dt.day,
+                    hour=_b_dt.hour, minute=_b_dt.minute, second=_b_dt.second,
+                    lat=_bi.latitude, lon=_bi.longitude, tz=_bi.timezone,
+                )
+                if isinstance(_pj, dict):
+                    _p6_pyjhora["pyjhora"] = _pj
+            except Exception:
+                _p6_pyjhora["pyjhora"] = {"available": False}
+
         # ── Divisional charts
         vargas = {p: compute_all_vargas(lon) for p, lon in planet_lons.items()}
 
         # ── Aspects (use house numbers, not longitudes)
         asp_map = get_aspect_map(planet_houses)
         drik_bala = compute_all_drik_bala(planet_houses)
+
+        # ── Bhava Chalit shift detection (Rashi vs cusp-based houses)
+        try:
+            from vedic_engine.core.swisseph_bridge import compute_chalit_shifts
+            chalit_shifts = compute_chalit_shifts(planet_lons, cusp_lons_list)
+        except Exception:
+            chalit_shifts = []
 
         # ── Shadbala
         try:
@@ -1728,6 +1782,40 @@ class PredictionEngine:
         except Exception:
             _sbc_grid = {}
 
+        # (PyJHora bridge moved to top of analyze_static — see "Phase 6 (EARLY)")
+
+        # ══════════════════════════════════════════════════════════
+        # Phase 6B: VedAstro Bridge (optional — never crash)
+        # ══════════════════════════════════════════════════════════
+        _p6_vedastro: Dict[str, Any] = {"vedastro": {"available": False}}
+        if _VEDASTRO_BRIDGE_AVAILABLE:
+            try:
+                _bi = chart.birth_info
+                _b_dt = datetime.fromisoformat(f"{_bi.date}T{_bi.time}")
+                _va_datetime = f"{_b_dt.hour:02d}:{_b_dt.minute:02d} {_b_dt.day:02d}/{_b_dt.month:02d}/{_b_dt.year}"
+
+                _tz = float(_bi.timezone)
+                _tz_sign = "+" if _tz >= 0 else "-"
+                _tz_abs = abs(_tz)
+                _tz_hours = int(_tz_abs)
+                _tz_minutes = int(round((_tz_abs - _tz_hours) * 60))
+                if _tz_minutes == 60:
+                    _tz_hours += 1
+                    _tz_minutes = 0
+                _va_tz = f"{_tz_sign}{_tz_hours:02d}:{_tz_minutes:02d}"
+
+                _va = compute_all_vedastro(
+                    _bi.latitude,
+                    _bi.longitude,
+                    getattr(_bi, "place_name", None) or "Unknown",
+                    _va_datetime,
+                    _va_tz,
+                )
+                if isinstance(_va, dict):
+                    _p6_vedastro["vedastro"] = _va
+            except Exception:
+                _p6_vedastro["vedastro"] = {"available": False}
+
         return {
             "meta": {
                 "lagna_sign": lagna_sign,
@@ -1744,6 +1832,7 @@ class PredictionEngine:
             },
             "vargas": vargas,
             "aspects": {"asp_map": asp_map, "drik_bala": drik_bala},
+            "chalit_shifts": chalit_shifts,
             "shadbala": shadbala,
             "shadbala_ratios": shadbala_ratios,
             "ashtakvarga": av_data,
@@ -1812,11 +1901,15 @@ class PredictionEngine:
                 **_p4_computed,
                 # ── Phase 5: Final Modules
                 **_p5_computed,
+                # ── Phase 6: PyJHora Bridge
+                **_p6_pyjhora,
+                # ── Phase 6B: VedAstro Bridge
+                **_p6_vedastro,
             },
         }
 
     # ── 2. Dynamic Analysis ─────────────────────────────────────
-    def analyze_dynamic(self, chart: VedicChart, static: Dict,
+    def analyze_dynamic(self, chart: VedicChart,    static: Dict,
                         on_date: Optional[datetime] = None) -> Dict[str, Any]:
         """
         Compute time-dependent features: dashas + transits for on_date.
@@ -2335,6 +2428,32 @@ class PredictionEngine:
             except Exception as _pe:
                 promise_result = None
 
+        # ── Phase 6 L2: master overrides (checked before normal score blending) ──
+        override_active = False
+        override_conf = None
+        override_desc = None
+        try:
+            _ovr_computed = {
+                "sade_sati": dynamic.get("sade_sati", {}),
+                "ashtakvarga": static.get("ashtakvarga", {}),
+                "moon_sign_index": static.get("meta", {}).get("moon_sign"),
+                "dasha_sandhi": bool((dynamic.get("vimshottari", {}).get("sandhi", {}) or {}).get("active", False)),
+                "active_dasha": {"lord": dasha_planet},
+                "yogas": static.get("yogas", []),
+                "vimshopak": static.get("vimshopak", {}),
+                "transit_positions": dynamic.get("transit_positions", {}),
+                "moon_longitude": static.get("chart_raw", {}).get("planet_lons", {}).get("MOON"),
+                "lagna_longitude": static.get("meta", {}).get("lagna_lon"),
+            }
+            override_active, override_conf, override_desc = check_master_overrides(
+                _ovr_computed,
+                domain,
+            )
+        except Exception:
+            override_active = False
+            override_conf = None
+            override_desc = None
+
         # ── Build Jaimini sub-score data (wire 4 pre-computed modules → confidence) ──
         jaimini_data: Optional[Dict] = None
         try:
@@ -2455,6 +2574,176 @@ class PredictionEngine:
             karaka_bav_data=karaka_bav_data,
         )
 
+        # ── Phase 6 L2: research-backed domain modifier + convergence flow ──
+        _computed_for_classical: Dict[str, Any] = dict(static.get("computed", {}) or {})
+
+        # Normalize Bhavabala shape: engine static uses List[Dict], while modifier expects keyed houses.
+        _bh_raw = static.get("bhavabala", {})
+        _bh_norm: Dict[int, Dict[str, Any]] = {}
+        if isinstance(_bh_raw, list):
+            for _row in _bh_raw:
+                if not isinstance(_row, dict):
+                    continue
+                _h = _row.get("house_num")
+                if isinstance(_h, int):
+                    _bh_norm[_h] = {
+                        "rupas": float(_row.get("total", 0.0) or 0.0),
+                        "tier": _row.get("tier", ""),
+                    }
+        elif isinstance(_bh_raw, dict):
+            _bh_norm = _bh_raw
+
+        # Normalize Avastha shape: Deeptadi exposes `avastha` key; modifier expects `state`.
+        _av_raw = static.get("avasthas", {})
+        _av_norm: Dict[str, Any] = _av_raw if isinstance(_av_raw, dict) else {}
+        _deeptadi_raw = _av_norm.get("deeptadi", {}) if isinstance(_av_norm, dict) else {}
+        if isinstance(_deeptadi_raw, dict):
+            _deeptadi_state: Dict[str, Dict[str, Any]] = {}
+            for _p, _pdata in _deeptadi_raw.items():
+                if isinstance(_pdata, dict):
+                    _deeptadi_state[_p] = {
+                        "state": str(_pdata.get("state", _pdata.get("avastha", "normal"))).lower(),
+                        "multiplier": _pdata.get("multiplier", 1.0),
+                    }
+            _av_norm["deeptadi"] = _deeptadi_state
+
+        _computed_for_classical["graha_yuddha"] = static.get("graha_yuddha", [])
+        _computed_for_classical["ashtakvarga"] = static.get("ashtakvarga", {})
+        _computed_for_classical["shadbala"] = static.get("shadbala", {})
+        _computed_for_classical["shadbala_ratios"] = static.get("shadbala_ratios", {})
+        _computed_for_classical["vimshopak"] = static.get("vimshopak", {})
+        _computed_for_classical["bhavabala"] = _bh_norm
+        _computed_for_classical["avasthas"] = _av_norm
+        _computed_for_classical["yogas"] = static.get("yogas", [])
+        _computed_for_classical["active_dasha"] = {"lord": dasha_planet}
+        _computed_for_classical["transit_scores"] = transit_evals_adj
+
+        # Fallback shape if shadbala table is empty but ratios exist.
+        if (not _computed_for_classical.get("shadbala")) and _computed_for_classical.get("shadbala_ratios"):
+            _computed_for_classical["shadbala"] = {
+                _p: {"ratio": _r}
+                for _p, _r in (_computed_for_classical.get("shadbala_ratios", {}) or {}).items()
+            }
+
+        _sat_house = (transit_evals_adj.get("SATURN", {}) or {}).get("house_from_moon")
+        _jup_house = (transit_evals_adj.get("JUPITER", {}) or {}).get("house_from_moon")
+        _computed_for_classical["transit_activations"] = {
+            "SATURN": {"houses_activated": [_sat_house] if _sat_house else []},
+            "JUPITER": {"houses_activated": [_jup_house] if _jup_house else []},
+        }
+        _computed_for_classical["doshas"] = {
+            "manglik": _computed_for_classical.get("manglik", {}),
+            "kala_sarpa": _computed_for_classical.get("kala_sarpa", {}),
+            "pitru": _computed_for_classical.get("pitru_dosha", {}),
+        }
+
+        _computed_for_classical["house_lords"] = {int(k): v for k, v in static.get("house_lords", {}).items()}
+        _computed_for_classical["planet_signs"] = static.get("chart_raw", {}).get("planet_signs", {})
+
+        domain_norm = str(domain or "").lower()
+        domain_cfg = DOMAIN_CONFIG.get(domain_norm, {})
+        house_lords_map = _computed_for_classical.get("house_lords", {})
+        karaka = str(domain_cfg.get("karaka", "SUN"))
+        house_lord_key = int(domain_cfg.get("house_lord_key", domain_cfg.get("primary_house", 10) or 10))
+        lord_planet = house_lords_map.get(house_lord_key, house_lords_map.get(str(house_lord_key), karaka))
+
+        planet_eff = compute_planet_effectiveness(str(lord_planet), _computed_for_classical)
+        bhava_eff = compute_bhava_effectiveness(
+            int(domain_cfg.get("primary_house", 10) or 10),
+            str(lord_planet),
+            _computed_for_classical,
+        )
+        classical_mod = compute_classical_modifier(_computed_for_classical, domain_norm)
+
+        _raw_base = float(confidence.get("overall", 0.5))
+        raw_adjusted = min(1.0, max(0.0, _raw_base * max(classical_mod, 0.10)))
+
+        # Multi-system support map for research dasha convergence table.
+        _chara_dyn = dynamic.get("chara_dasha", {}) or {}
+        _chara_enrichment = _chara_dyn.get("enrichment", {}) or {}
+        _chara_house = _chara_enrichment.get("house_from_lagna", 0)
+        _domain_map = static.get("domain_map", {}) or {}
+        _vim_supports = domain_norm in [d.lower() for d in _domain_map.get(dasha_planet, [])]
+        _yogini_supports = domain_norm in [d.lower() for d in _domain_map.get(yogini_lord, [])]
+        _chara_supports = bool(_chara_house in domain_houses)
+        _ashto = dynamic.get("ashtottari", {}) or {}
+        _ashto_active = (_ashto.get("active", {}) or {}).get("mahadasha", "")
+        _ashto_supports = bool(
+            _ashto.get("eligible", False)
+            and _ashto_active
+            and domain_norm in [d.lower() for d in _domain_map.get(_ashto_active, [])]
+        )
+
+        _health_stack = static.get("file5_analysis", {}) if domain_norm == "health" else {}
+        _support_map = {
+            "vimshottari": _vim_supports,
+            "chara": _chara_supports,
+            "yogini": _yogini_supports,
+            "ashtottari": _ashto_supports,
+            "niryana_shoola": bool(_health_stack.get("niryana_shoola")),
+            "kalachakra": bool(_health_stack.get("kalachakra")),
+            "sudarshana": bool(dynamic.get("sudarshana", {})),
+            "other": False,
+        }
+
+        weighted_agreement = 0.0
+        dasha_weights = DASHA_WEIGHTS.get(domain_norm, {})
+        for system_name, system_weight in dasha_weights.items():
+            if system_supports_domain(system_name, _support_map):
+                weighted_agreement += float(system_weight)
+
+        convergence_conf = get_convergence_confidence(weighted_agreement)
+        dosha_mod = compute_dosha_modifier(_computed_for_classical, domain_norm)
+        yoga_boost = compute_yoga_domain_boost(_computed_for_classical, domain_norm)
+
+        adjusted_input = raw_adjusted * convergence_conf * dosha_mod
+        base_final = min(adjusted_input * (1.0 + yoga_boost), 0.999)
+
+        # ── Phase 6 L3: Bridge Cross-Validation modifier ─────────────
+        # Consumes PyJHora + VedAstro data (computed["pyjhora"] / computed["vedastro"])
+        # to cross-validate yogas, doshas, dashas, strengths, and predictions.
+        _bridge_result: Dict[str, Any] = {"modifier": 1.0, "available": False}
+        try:
+            _bridge_pj = _computed_for_classical.get("pyjhora", {})
+            _bridge_va = _computed_for_classical.get("vedastro", {})
+            _bridge_our_doshas = _computed_for_classical.get("doshas", {})
+            _bridge_our_av = static.get("ashtakvarga", {})
+            _bridge_result = compute_bridge_modifier(
+                pyjhora=_bridge_pj,
+                vedastro=_bridge_va,
+                our_yogas=yogas,
+                our_doshas=_bridge_our_doshas,
+                our_av=_bridge_our_av,
+                domain=domain_norm,
+                dasha_planet=dasha_planet,
+                domain_planets=domain_planets_list,
+                domain_houses=domain_houses,
+            )
+            _bridge_mod = float(_bridge_result.get("modifier", 1.0))
+            base_final = min(base_final * _bridge_mod, 0.999)
+        except Exception:
+            _bridge_result = {"modifier": 1.0, "available": False}
+
+        confidence["raw"] = round(_raw_base, 3)
+        confidence["planet_effectiveness"] = round(planet_eff, 4)
+        confidence["bhava_effectiveness"] = round(bhava_eff, 4)
+        confidence["classical_modifier"] = round(classical_mod, 4)
+        confidence["raw_adjusted"] = round(raw_adjusted, 3)
+        confidence["convergence"] = round(convergence_conf, 4)
+        confidence["dosha_modifier"] = round(dosha_mod, 4)
+        confidence["yoga_boost"] = round(yoga_boost, 4)
+        confidence["bridge_cross_validation"] = _bridge_result
+        confidence["domain_signals"] = DOMAIN_SIGNALS.get(domain_norm, {})
+        confidence["overall"] = round(base_final, 3)
+        confidence["final"] = round(base_final, 3)
+
+        if override_active and override_conf is not None:
+            confidence["override"] = True
+            confidence["override_description"] = override_desc
+            confidence["override_confidence"] = round(float(override_conf), 3)
+            confidence["overall"] = round(float(override_conf), 3)
+            confidence["final"] = round(float(override_conf), 3)
+
         # ── Double Transit Gate (§5.1) ──────────────────────────────────
         # If Jupiter+Saturn are NOT in beneficial houses from natal Moon,
         # cap the confidence at 0.50 (event unlikely to manifest fully).
@@ -2509,16 +2798,17 @@ class PredictionEngine:
             except Exception:
                 consensus_result = {}
 
-        # Apply consensus multiplier to confidence
-        if consensus_result:
-            c_mult = consensus_result.get("confidence_multiplier", 1.0)
-            if consensus_result.get("blocked"):
-                # Hard denial: Vim denies → major capacity blocked
-                confidence["overall"] = min(confidence["overall"], 0.20)
-            elif c_mult != 1.0:
-                confidence["overall"] = round(
-                    min(1.0, max(0.0, confidence["overall"] * c_mult)), 3
-                )
+        # Layer 2: keep consensus diagnostics for transparency only.
+        dasha_signals = [
+            {"system": "vimshottari", "supports_domain": bool(vim_supports)},
+            {"system": "yogini", "supports_domain": bool(yogini_supports)},
+            {"system": "chara", "supports_domain": bool(chara_supports)},
+        ]
+        agreeing = sum(1 for s in dasha_signals if s.get("supports_domain", False))
+        total = max(len(dasha_signals), 1)
+        consensus_ratio = agreeing / total
+        confidence["consensus_ratio"] = round(consensus_ratio, 3)
+        confidence["consensus_modifier"] = 1.0
 
         agreement = multi_system_agreement(
             vimshottari_active=dasha_planet,
@@ -2829,8 +3119,11 @@ class PredictionEngine:
                 domain_yoga_names.append(getattr(y, "name", str(y)))
 
         # ── Prediction text
+        # Use the finalized confidence after all active layers/modifiers so
+        # narrative text matches the displayed domain confidence percentages.
+        narrative_score = confidence.get("overall_boosted", boosted)
         prediction_text = _generate_prediction_text(
-            domain, confidence["level"], boosted,
+            domain, confidence["level"], narrative_score,
             dasha_planet, antar_planet, yogini_lord,
             favorable_transits, vedha_blocked, domain_yoga_names,
         )
@@ -2846,6 +3139,12 @@ class PredictionEngine:
             )
         except Exception as e:
             dispositor_analysis = {"error": str(e)}
+
+        # ── Phase 6 L2 override short-circuit on final score ──────────────
+        if override_active and override_conf is not None:
+            confidence["overall"] = round(float(override_conf), 3)
+            confidence["overall_boosted"] = round(float(override_conf), 3)
+            confidence["final"] = round(float(override_conf), 3)
 
         # ── Calibrate confidence score ─────────────────────────────────────
         raw_conf = confidence.get("overall_boosted", confidence.get("overall", 0.5))

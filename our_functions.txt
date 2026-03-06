@@ -1,0 +1,1218 @@
+
+vedic_engine\config.py (2 functions):
+  get_nakshatra_lord
+  get_house_category
+
+vedic_engine\ai\agent_swarm.py (8 functions):
+  _make_llm
+  node_parashara
+  node_kp
+  node_jaimini
+  node_medical
+  node_synthesizer
+  build_swarm_graph
+  run_agent_swarm
+
+vedic_engine\ai\gpt_reasoner.py (9 functions):
+  _cache_key
+  _call_gpt
+  resolve_yoga_fructification
+  resolve_dasha_conflict
+  _fallback_dasha_synthesis
+  analyze_multi_dasha_consensus
+  resolve_kp_ambiguity
+  get_adaptive_weights
+  apply_yoga_fructification
+
+vedic_engine\ai\interpreter.py (13 functions):
+  _fmt_sign
+  build_natal_context
+  build_dynamic_context
+  build_domain_context
+  __init__
+  available
+  _call
+  interpret_natal
+  interpret_domain
+  synthesize_timing
+  chat
+  full_reading
+  __repr__
+
+vedic_engine\analysis\advanced_techniques.py (16 functions):
+  lookup_bhrigu_sutra
+  lookup_bhrigu_all_planets
+  compute_nadi_amsa
+  compute_chaturthamsha
+  analyze_d4_property
+  compute_parashari_drekkana
+  compute_parivritta_drekkana
+  compute_somnath_drekkana
+  compute_ashtamsha
+  analyze_d8_health
+  check_neechabhanga_extended
+  check_saptha_shalaka_vedha
+  check_theft_litigation
+  check_travel_relocation
+  check_competition_success
+  check_jataka_tatva_arishta
+
+vedic_engine\analysis\advanced_yogas.py (28 functions):
+  _sign_of
+  _house_from
+  _is_conjunct
+  _angular_distance
+  _is_strong
+  _modality
+  _modality_pair_lifespan
+  detect_kemadruma_bhanga
+  detect_chandra_mangala
+  detect_budhaditya_filtered
+  detect_dhana_matrix
+  detect_chandika_yoga
+  detect_shankha_yoga
+  detect_tapasvi_yoga
+  detect_sharada_yoga
+  detect_vidya_yoga
+  compute_jaimini_longevity
+  detect_foreign_yogas
+  detect_bandhana_yogas
+  detect_vehicular_yoga
+  detect_graha_malika
+  detect_parijata_yoga
+  detect_gauri_yoga
+  detect_vidyut_yoga
+  detect_siva_yoga
+  detect_puskala_yoga
+  compute_all_advanced_yogas
+  in_trine
+
+vedic_engine\analysis\argala.py (8 functions):
+  _house_from
+  _planets_in_house
+  _is_benefic
+  _apply_ketu_reversal
+  _is_malefic
+  _shadbala_count
+  compute_argala
+  compute_all_argala
+
+vedic_engine\analysis\arudha_padas.py (6 functions):
+  compute_arudha
+  compute_all_arudhas
+  analyze_arudha_influences
+  arudha_summary
+  _has_rashidrishti
+  compute_arudha_extended_analysis
+
+vedic_engine\analysis\avasthas.py (5 functions):
+  _get_dignity_order
+  compute_baladi_avasthas
+  compute_shayanadi_avasthas
+  compute_deeptadi_avasthas
+  compute_all_avasthas
+
+vedic_engine\analysis\badhaka.py (4 functions):
+  _modality_of
+  get_badhaka_house
+  compute_badhaka_friction
+  apply_badhaka_to_confidence
+
+vedic_engine\analysis\career_checklist.py (10 functions):
+  _house_of
+  _trine_relation
+  _dusthana_relation
+  _step1_d1_foundation
+  _step2_jaimini
+  _step3_d10
+  _step4_d3_karmic
+  _step5_dasha_transit
+  compute_career_checklist
+  _house_quality
+
+vedic_engine\analysis\compatibility.py (10 functions):
+  _varna_kuta
+  _vashya_kuta
+  _tara_kuta
+  _yoni_kuta
+  _planetary_relation
+  _graha_maitri
+  _gana_kuta
+  _bhakoot_kuta
+  _nadi_kuta
+  ashtakoota_score
+
+vedic_engine\analysis\dispositor.py (14 functions):
+  _is_own_or_moola
+  _is_exalted
+  _is_debilitated
+  _get_sign_lord
+  _planet_sign
+  _dignity_score
+  _placement_score
+  compute_dispositor_chain
+  compute_all_chains
+  analyze_dasha_lord_dispositor
+  compute_dispositor_graph
+  _chain_strength
+  _final_disp_name
+  _has_trik_link
+
+vedic_engine\analysis\doshas.py (16 functions):
+  detect_kala_sarpa
+  detect_manglik_dosha
+  detect_pitru_dosha
+  compute_combustion
+  compute_gandanta_detailed
+  get_graha_shanti
+  compute_agni_vasa
+  compute_ashtamangala_number
+  compute_tambula_lagna
+  compute_trisphutam
+  is_pushkara_navamsha
+  is_pushkara_bhaga
+  is_abhijit_nakshatra
+  _in_arc
+  _conjunct
+  _parse
+
+vedic_engine\analysis\functional.py (10 functions):
+  get_house_lord
+  get_house_lords_all
+  get_owned_houses
+  _house_quality
+  classify_planet
+  get_badhaka_planet
+  get_maraka_planets
+  get_yogakaraka_planets
+  compute_functional_analysis
+  score_planet_functional
+
+vedic_engine\analysis\graha_yuddha.py (4 functions):
+  _compute_yuddha_bala
+  detect_planetary_wars
+  apply_war_penalties
+  war_summary
+
+vedic_engine\analysis\karakamsha.py (10 functions):
+  _has_rashi_drishti
+  _planets_in_sign
+  compute_svamsha
+  compute_karakamsha_lagna
+  analyze_karakamsha
+  compute_jaimini_yogas
+  check_marriage_timing
+  check_career_timing
+  analyze_al_ul_relationship
+  _conjunct_or_aspect
+
+vedic_engine\analysis\karakas.py (4 functions):
+  compute_chara_karakas
+  get_atma_karaka
+  get_amatya_karaka
+  analyze_karaka_relationships
+
+vedic_engine\analysis\kota_chakra.py (5 functions):
+  _offset
+  nakshatra_of_lon
+  compute_kota_chakra
+  evaluate_kota_transit
+  compute_kota_status
+
+vedic_engine\analysis\lal_kitab.py (6 functions):
+  detect_sleeping_planets
+  detect_karmic_debts
+  compute_lalkitab_varshphal
+  compute_all_lalkitab
+  planets_in
+  house_has_malefic
+
+vedic_engine\analysis\longevity.py (8 functions):
+  _sign_modality
+  _pindayu_reductions
+  compute_pindayu
+  compute_amsayu
+  compute_nisargayu
+  compute_three_pairs_band
+  _band_label
+  compute_longevity
+
+vedic_engine\analysis\lunations.py (14 functions):
+  _lahiri_ayanamsa
+  _ephem_to_sidereal
+  _ephem_date_to_dt
+  _moon_longitude_at
+  _sun_longitude_at
+  _nakshatra_of
+  _tithi_of
+  _angular_distance
+  _check_eclipse
+  _near_natal_planets
+  _lunation_significance
+  compute_upcoming_lunations
+  get_eclipse_alerts
+  get_high_significance_lunations
+
+vedic_engine\analysis\marriage_synthesis.py (11 functions):
+  _score_from_house
+  _house_of
+  _score_venus
+  _score_seventh_lord
+  _score_dk
+  _score_ul
+  _apply_rule1_override
+  _apply_rule2_d9_override
+  _synthesise_pattern
+  analyse_second_marriage
+  compute_marriage_synthesis
+
+vedic_engine\analysis\medical_astrology.py (13 functions):
+  _house_of
+  analyze_disease_potential
+  compute_22nd_drekkana
+  analyze_health_timing
+  _effective_arc
+  _apply_haranas
+  compute_pindayu
+  compute_nisargayu
+  compute_amsayu
+  check_balarishta
+  synthesize_longevity
+  compute_medical_analysis
+  in_dusthana
+
+vedic_engine\analysis\medical_extended.py (15 functions):
+  get_triple_map
+  get_drekkana_body_part
+  assess_dasha_disease_risk
+  identify_marakas
+  assess_maraka_period
+  detect_arishta_yoga
+  check_arishta_cancellation
+  check_disease_yogas
+  detect_psychiatric_yogas
+  compute_beeja_sphuta
+  compute_kshetra_sphuta
+  predict_gender_vighati
+  predict_gender_sign_method
+  compute_decumbiture_critical_days
+  assess_decumbiture_prognosis
+
+vedic_engine\analysis\nadi_amsha.py (3 functions):
+  _sign_modality
+  longitude_to_nadi_amsha
+  compute_nadi_amsha
+
+vedic_engine\analysis\nakshatra_analysis.py (10 functions):
+  get_nakshatra_extended
+  get_pada_syllable
+  compute_tarabala_enhanced
+  compute_chandrabala_enhanced
+  check_pushkara
+  is_vargottama
+  compute_vargottama_planets
+  check_dwisaptati_eligibility
+  get_transit_theme
+  compute_full_nakshatra_analysis
+
+vedic_engine\analysis\nakshatra_extended.py (8 functions):
+  compute_rajju
+  check_vedha_nakshatra
+  compute_stree_deergha
+  check_nadi_dosha_enhanced
+  compute_panchaka
+  get_nakshatra_classification
+  compute_tarabala_extended
+  compute_extended_compatibility
+
+vedic_engine\analysis\panchadha_maitri.py (8 functions):
+  naisargika_relation
+  tatkalika_relation
+  panchadha_score
+  panchadha_label
+  compute_all_panchadha
+  panchadha_to_dignity
+  get_panchadha_dignity
+  panchadha_summary
+
+vedic_engine\analysis\rashi_drishti.py (9 functions):
+  _sign_category
+  _build_aspect_table
+  get_sign_category
+  signs_aspected_by
+  does_sign_aspect
+  get_aspecting_signs
+  planets_with_rashi_drishti
+  activated_houses_in_dasha
+  rashi_drishti_summary
+
+vedic_engine\analysis\remedial.py (5 functions):
+  _is_debilitated
+  _is_exalted
+  compute_affliction_score
+  get_remedies
+  format_remedies_text
+
+vedic_engine\analysis\sarvatobhadra.py (5 functions):
+  nakshatra_of_lon
+  _edge_of
+  _cast_ray
+  construct_sbc_grid
+  check_sbc_vedha
+
+vedic_engine\analysis\significations.py (2 functions):
+  build_planet_significations
+  rank_planets_for_domain
+
+vedic_engine\analysis\special_degrees.py (7 functions):
+  is_mrityu_bhaga
+  mrityu_bhaga_modifier
+  compute_all_mrityu_bhaga
+  gandanta_severity
+  compute_all_gandanta
+  pushkara_bhaga_check
+  compute_all_special_degrees
+
+vedic_engine\analysis\special_points.py (21 functions):
+  _weekday_sun_zero
+  compute_gulika
+  compute_hora_lagna
+  compute_ghati_lagna
+  compute_indu_lagna
+  compute_varnada_lagna
+  compute_pranapada_lagna
+  compute_sri_lagna
+  compute_natal_sahams
+  compute_tarabala
+  compute_chandrabala
+  compute_mandi
+  compute_upagrahas
+  _nak_lord_from_lon
+  compute_yogi_avayogi
+  compute_bhrigu_bindu
+  check_bhrigu_bindu_transit
+  classify_drekkana
+  compute_all_special_points
+  _resolve
+  _describe
+
+vedic_engine\analysis\sthira_karakas.py (4 functions):
+  _pick_stronger
+  compute_sthira_karakas
+  get_sthira_karaka_for_role
+  sthira_karaka_routing
+
+vedic_engine\analysis\varga_analysis.py (17 functions):
+  _dignity
+  is_vargottama
+  is_pushkara_navamsa
+  analyze_d9
+  analyze_d10
+  analyze_d7
+  analyze_d4
+  d60_segment
+  is_d60_shubha
+  analyze_d60
+  _sign_lord
+  d9_dignity_multiplier
+  d1_d9_fructification_score
+  compute_all_fcs
+  compute_varga_report
+  planets_in_house
+  planets_in_house
+
+vedic_engine\analysis\yogas.py (61 functions):
+  _planet_house
+  _is_in_kendra
+  _is_in_trikona
+  _is_in_upachaya
+  _is_exalted
+  _is_debilitated
+  _is_own_sign
+  _is_strong
+  _avg_strength
+  _is_combust
+  _budha_aditya
+  _gajakesari
+  _chandra_mangal
+  _detect_pancha_mahapurusha
+  _vipreet_raj_yoga
+  _parivartana_yoga
+  _kalasarpa_yoga
+  _kemadrum_yoga
+  _neechabhanga_raj_yoga
+  _adhi_yoga
+  _amala_yoga
+  _sunapha_anapha_durudhara
+  _saraswati_yoga
+  _dhana_yogas
+  _raj_yoga
+  _dharma_karmadhipati_yoga
+  _kahala_yoga
+  _lakshmi_yoga
+  _voshi_veshi_ubhayachari_yoga
+  _mangal_budha_yoga
+  _uttamadi_yoga
+  _akhanda_samrajya_yoga
+  _detect_graha_yuddha
+  _apply_graha_yuddha_cancellations
+  get_effective_retrograde_dignity
+  apply_retrograde_yoga_modifiers
+  score_md_ad_relationship
+  get_manduka_gati_life_phase
+  is_combust_enhanced
+  _detect_nabhasa_yogas
+  compute_panchamahapurusha_raja_symbiosis
+  compute_dhana_stacking_tier
+  _assign_tier
+  score_yoga_activation_dasha
+  compute_yoga_compounding
+  has_sambandha
+  grade_yoga
+  _daridra_yogas
+  _aristha_yogas
+  _pravrajya_yogas
+  compute_all_extended_yogas
+  detect_all_yogas
+  _sun_yoga_quality
+  _all_in
+  _house_list
+  _in_set
+  _confined_to
+  _confined_to_exactly
+  _consecutive_from
+  _connected_component
+  _bhanga_check
+
+vedic_engine\core\aspects.py (7 functions):
+  houses_aspected
+  planet_aspects_planet
+  compute_drik_bala
+  compute_all_drik_bala
+  get_aspect_map
+  _is_benefic
+  _get_planet_enum
+
+vedic_engine\core\btr_montecarlo.py (7 functions):
+  run_btr_simulation
+  lagna_sensitivity
+  compute_brittleness_score
+  compute_stats
+  summary
+  to_dict
+  _run_one
+
+vedic_engine\core\coordinates.py (15 functions):
+  normalize
+  sign_of
+  degree_in_sign
+  nakshatra_of
+  pada_of
+  nakshatra_lord_of
+  angular_distance
+  signed_distance
+  house_from
+  house_from_moon
+  sign_name
+  full_position_info
+  get_topocentric_moon
+  topocentric_moon_correction
+  apply_topocentric_moon
+
+vedic_engine\core\divisional.py (20 functions):
+  _navamsa_start
+  _generic_division
+  D1
+  D2
+  D3
+  D4
+  D7
+  D9
+  D10
+  D12
+  D16
+  D20
+  D24
+  D27
+  D30
+  D40
+  D45
+  D60
+  get_varga
+  compute_all_vargas
+
+vedic_engine\core\jyotishganit_bridge.py (3 functions):
+  get_positions_jyotishganit
+  get_panchanga_with_endtimes
+  cross_check_positions
+
+vedic_engine\core\skyfield_audit.py (10 functions):
+  _lahiri_ayanamsa
+  _get_skyfield_loader
+  _get_timescale
+  _get_ephemeris
+  get_positions_skyfield
+  _compute_rahu_meeus
+  audit_chart
+  audit_random_sample
+  get_planet_speeds_skyfield
+  print_audit_report
+
+vedic_engine\core\sunrise_utils.py (7 functions):
+  _julian_day
+  _solar_declination_and_eot
+  calc_sunrise_sunset
+  compute_is_daytime
+  compute_paksha
+  get_sunrise_sunset_hours
+  _h_to_dt
+
+vedic_engine\core\swisseph_bridge.py (24 functions):
+  _init_swe
+  _datetime_to_jd
+  compute_natal_positions
+  compute_house_cusps
+  build_chart_from_birth_data
+  get_transit_positions_swe
+  get_transit_speeds_swe
+  compute_solar_return
+  get_ayanamsa
+  detect_graha_yuddha_precise
+  compute_sunrise_sunset_swe
+  compute_topocentric_moon_swe
+  compute_solar_declination
+  _elongation_at
+  _find_lunation_jd
+  compute_next_new_moon_jd
+  compute_next_full_moon_jd
+  get_sidereal_longitude_at
+  jd_to_datetime
+  datetime_to_jd_utc
+  compute_mesha_sankranti_jd
+  self_test
+  _diff
+  _jd_to_dt
+
+vedic_engine\core\timezone_utils.py (2 functions):
+  resolve_timezone
+  get_iana_timezone_name
+
+vedic_engine\core\varga_interpretations.py (13 functions):
+  get_d60_deity
+  analyze_d60_full
+  get_d30_ruler
+  analyze_d30
+  compute_sapta_varga
+  compute_dasha_varga
+  _compute_scheme
+  compute_all_sapta_varga
+  compute_all_dasha_varga
+  analyze_kashinath_hora
+  get_d10_career_vector
+  is_vargottama
+  get_varga_domain
+
+vedic_engine\data\loader.py (9 functions):
+  _planet_enum
+  _sign_index
+  _dms_to_deg
+  load_from_json
+  load_from_dict
+  _parse_dasha_list
+  _parse_date
+  build_chart_swe
+  load_sample_chart
+
+vedic_engine\data\lookup_tables.py (10 functions):
+  get_yoni_score
+  get_vashya_category
+  get_vashya_score
+  check_bhakoot_cancellation
+  get_bhakoot_score
+  check_surgical_contraindication
+  compute_extended_saham
+  get_d60_even_sign_entry
+  compute_all_compatibility
+  resolve
+
+vedic_engine\data\models.py (4 functions):
+  compute
+  compute
+  is_active
+  days_remaining
+
+vedic_engine\data\nakshatra_db.py (6 functions):
+  get_nakshatra
+  get_nakshatra_index
+  get_nakshatra_by_index
+  get_nakshatra_by_name
+  nakshatra_pada
+  yoni_score
+
+vedic_engine\data\validation_data.py (8 functions):
+  check_rashi_sandhi
+  check_high_latitude
+  check_eclipse_birth
+  check_kala_sarpa
+  check_neechabhanga
+  get_benchmark_chart
+  get_all_benchmark_ids
+  evaluate_bvb_parameters
+
+vedic_engine\ml\ml_pipeline.py (13 functions):
+  extract_features
+  train_model
+  save_model
+  load_model
+  predict_with_ml
+  scrape_astrodatabank_stub
+  to_dict
+  _get
+  __init__
+  _load_existing
+  add_example
+  save
+  build_matrix
+
+vedic_engine\mundane\mundane.py (8 functions):
+  _sign_of
+  _sign_element
+  _sign_modality
+  compute_ingress_validity
+  compute_eclipse_impact
+  compute_great_conjunction_phase
+  compute_gann_price_to_degree
+  check_gann_planet_alignment
+
+vedic_engine\prashna\prashna.py (12 functions):
+  _tajika_orb
+  _aspect_distance
+  _is_faster
+  _check_ithasala_ishrafa
+  evaluate_yes_no
+  evaluate_lost_object
+  evaluate_medical_prashna
+  evaluate_legal_prashna
+  evaluate_travel_prashna
+  evaluate_pregnancy_prashna
+  compute_prashna_timing
+  compute_number_prashna
+
+vedic_engine\prashna\prashna_advanced.py (12 functions):
+  compute_ashtamangala_enhanced
+  compute_tambula_number
+  cell_to_temporal_domain
+  check_final_birth
+  get_aksharachakra_sign
+  check_arudha_lagna_harmony
+  classify_nimitta
+  compute_prashna_timing
+  compute_trisphutam
+  validate_prashna_chart
+  compute_all_advanced_prashna
+  mod8
+
+vedic_engine\prediction\aspect_transits.py (5 functions):
+  _separation
+  _is_applying
+  compute_transit_aspects
+  compute_natal_activation_score
+  top_transit_aspects
+
+vedic_engine\prediction\astropy_positions.py (4 functions):
+  _lahiri_ayanamsa
+  _rahu_tropical
+  get_positions_astropy
+  get_accuracy_note
+
+vedic_engine\prediction\bayesian_layer.py (5 functions):
+  _structural_prior
+  _dasha_evidence
+  _transit_evidence
+  _kp_evidence
+  compute_bayesian_confidence
+
+vedic_engine\prediction\calibration.py (4 functions):
+  _interpolate_isotonic
+  calibrate_confidence
+  calibrate_all_domains
+  update_calibration_pair
+
+vedic_engine\prediction\confidence.py (15 functions):
+  _clamp
+  score_dasha_alignment
+  score_transit_support
+  _tiered_bav
+  score_ashtakvarga
+  score_yoga_activation
+  score_kp_sublord
+  score_functional_alignment
+  score_house_lord_strength
+  score_jaimini_sub
+  compute_confidence
+  multi_system_agreement
+  sig_overlap
+  _is_good_sign
+  _is_good_sign
+
+vedic_engine\prediction\dasha_transit.py (7 functions):
+  house_from_moon
+  house_from_lagna
+  gochar_score
+  days_to_next_sign_change
+  check_natal_activation
+  analyze_dasha_lord_transit
+  compute_ingress_calendar
+
+vedic_engine\prediction\engine.py (17 functions):
+  _planet_domain_map
+  _compute_dispositor_graph_safe
+  _compute_varga_report_safe
+  _compute_remedies_safe
+  _compute_lunations_safe
+  _compute_timing_windows_safe
+  _generate_prediction_text
+  _compute_bb_transit_safe
+  _compute_dasha_quality_safe
+  _compute_retrograde_dasha_safe
+  _compute_predict_badhaka
+  _compute_career_checklist_safe
+  analyze_static
+  analyze_dynamic
+  predict
+  full_report
+  _trim
+
+vedic_engine\prediction\ephemeris_audit.py (14 functions):
+  _angular_diff
+  _sign
+  _nakshatra
+  _get_skyfield
+  _get_astropy
+  _get_swisseph
+  _get_ephem
+  _planet_stats
+  compare_backends
+  spot_check
+  random_audit
+  boundary_audit
+  full_report
+  _print_report
+
+vedic_engine\prediction\fuzzy_confidence.py (5 functions):
+  _clamp01
+  _build_fuzzy_system
+  compute_fuzzy_confidence
+  _format_result
+  aggregate_for_fuzzy
+
+vedic_engine\prediction\promise.py (10 functions):
+  _score_bhava
+  _score_bhavesha
+  _score_karaka
+  compute_promise
+  check_marriage_promise
+  _marriage_detail
+  check_career_promise
+  _career_detail
+  check_wealth_promise
+  _wealth_detail
+
+vedic_engine\prediction\skyfield_positions.py (7 functions):
+  _ensure_ephemeris
+  _lahiri_ayanamsa
+  _rahu_tropical
+  _get_skyfield_eph
+  get_positions_skyfield
+  get_speeds_skyfield
+  get_ephemeris_info
+
+vedic_engine\prediction\timing_optimizer.py (7 functions):
+  _daily_transit_score
+  _compute_approximate_transit_lons
+  find_best_windows
+  _describe_window
+  find_worst_windows
+  _da
+  _da
+
+vedic_engine\prediction\transits.py (17 functions):
+  check_vedha
+  get_transit_positions
+  _get_positions_astropy
+  _get_positions_skyfield
+  _get_positions_ephem
+  _get_positions_swisseph
+  _get_positions_approximate
+  run_ephemeris_audit
+  _get_naisargika_relationship
+  _vedha_reduction_factor
+  _manifestation_multiplier
+  _kakshya_info
+  evaluate_transit
+  _gochar_interpretation
+  evaluate_all_transits
+  detect_sade_sati
+  _compute_paya
+
+vedic_engine\science\correlations.py (5 functions):
+  _date_to_jd
+  compute_lunar_phase
+  compute_birth_month_risk
+  compute_hora_chronotherapy
+  compute_all_science_signals
+
+vedic_engine\strength\ashtakvarga.py (15 functions):
+  compute_bhinna_ashtakvarga
+  compute_all_bhinna
+  compute_sarvashtakvarga
+  validate_checksum
+  trikona_shodhana
+  ekadhipatya_shodhana
+  pinda_sadhana
+  compute_full_ashtakvarga
+  transit_av_score
+  compute_shodhya_pinda
+  compute_prastharashtakavarga
+  kakshya_lord_of_degree
+  get_kaksha_lord
+  domain_specific_bav_score
+  _lookup_bav
+
+vedic_engine\strength\bhavabala.py (7 functions):
+  get_shadbala_ratio
+  classify_bhavabala
+  bhava_drishti_bala
+  _occupant_modifier
+  compute_bhavabala
+  compute_all_bhavabala
+  get_bhavabala_modifier_for_domain
+
+vedic_engine\strength\shadbala.py (22 functions):
+  uccha_bala
+  _get_dignity
+  saptavargaja_bala
+  ojhayugma_bala
+  kendradi_bala
+  drekkana_bala
+  sthana_bala
+  dig_bala
+  nathonnatha_bala
+  paksha_bala
+  vara_bala
+  hora_bala
+  abda_bala
+  masa_bala
+  tribhaga_bala
+  ayana_bala
+  kala_bala
+  cheshta_bala
+  compute_yuddha_adjustments
+  naisargika_bala
+  compute_shadbala
+  compute_all_shadbala
+
+vedic_engine\strength\vimshopak.py (6 functions):
+  interpret_vimshopak_score
+  compute_vimshopak
+  compute_shadvarga_vimshopak
+  compute_all_vimshopak
+  compute_all_shadvarga
+  get_karakatwa_quality
+
+vedic_engine\timing\advanced_dashas.py (6 functions):
+  compute_sudarshana_balance
+  compute_sudarshana_dasha_sequence
+  check_sudarshana_event
+  compute_patyayini_dasha
+  compute_ashtaka_dasha
+  conjoined_or_aspected
+
+vedic_engine\timing\ashtottari.py (8 functions):
+  is_ashtottari_eligible
+  _birth_dasha_balance
+  _sequence_from
+  _compute_sub_periods
+  compute_ashtottari_periods
+  get_active_ashtottari
+  ashtottari_details_on_date
+  _find
+
+vedic_engine\timing\chara_dasha.py (13 functions):
+  _sign_of
+  _is_exalted
+  _is_debilitated
+  chara_dasha_direction
+  _generate_sign_order
+  _count_houses_to_lord
+  _compute_dasha_years
+  _antardasha_order
+  compute_chara_dasha
+  get_active_chara_dasha
+  chara_dasha_details_on_date
+  _house_meaning
+  planets_with_rashi_drishti
+
+vedic_engine\timing\conditional_dashas.py (23 functions):
+  _nak_idx
+  _nak_number
+  _nak_balance
+  _sign_of
+  _sign_name
+  check_shodashottari_eligible
+  compute_shodashottari
+  check_dwadasottari_eligible
+  compute_dwadasottari
+  check_panchottari_eligible
+  compute_panchottari
+  check_shatabdika_eligible
+  compute_shatabdika
+  check_chaturaashiti_eligible
+  compute_chaturaashiti
+  check_dwisaptati_eligible
+  compute_dwisaptati
+  check_shat_trimsa_eligible
+  compute_shat_trimsa
+  compute_moola_dasha
+  compute_tara_dasha
+  check_all_conditional_eligibility
+  tara_of_nak
+
+vedic_engine\timing\dasha_quality.py (4 functions):
+  compute_ishta_kashta
+  maturity_modifier
+  dasha_quality_score
+  dasha_quality_for_all_planets
+
+vedic_engine\timing\hellenistic.py (10 functions):
+  _normalize
+  _sign_of
+  _zr_period_days
+  compute_annual_profection
+  compute_hellenistic_sect
+  compute_lot_of_fortune
+  compute_lot_of_spirit
+  compute_zodiacal_releasing
+  compute_midpoints
+  compute_all_hellenistic_signals
+
+vedic_engine\timing\jaimini_dashas.py (34 functions):
+  _has_rashi_drishti
+  _sign_of
+  _degree_in_sign
+  _is_exalted
+  _is_debilitated
+  _planet_sign
+  _shadbala_stronger
+  _chara_duration
+  _format_date
+  compute_shoola_dasha
+  compute_niryana_shoola_dasha
+  _find_brahma_planet
+  compute_brahma_dasha
+  compute_navamsha_dasha
+  compute_sree_lagna
+  compute_sudasa
+  compute_drig_dasha
+  compute_trikona_dasha
+  get_active_period
+  check_death_timing_window
+  _narayana_duration
+  _narayana_sequence
+  _narayana_start_sign
+  compute_narayana_dasha
+  get_active_narayana
+  _d9_duration
+  _sudasa_years
+  _get_rd_targets
+  _sign_strength
+  planet_count
+  has_benefic_aspect
+  has_exalted
+  modality_strength
+  odd_even_lord_bonus
+
+vedic_engine\timing\kalachakra.py (7 functions):
+  _get_nak_pada
+  _remaining_pada_fraction
+  _is_savya
+  _detect_gati
+  compute_kalachakra_dasha
+  get_active_kalachakra_period
+  analyze_deha_jeeva_transits
+
+vedic_engine\timing\kp.py (9 functions):
+  _sub_span
+  get_kp_layers
+  build_kp_significations
+  build_cusp_significations
+  compute_ruling_planets
+  resolve_prashna_query
+  compute_prashna_panchaka
+  analyze_ithasala_yoga
+  analyze_missing_person_prashna
+
+vedic_engine\timing\muhurta.py (3 functions):
+  score_window
+  find_muhurta_windows
+  check_muhurta_date
+
+vedic_engine\timing\muhurta_extended.py (30 functions):
+  classify_tithi
+  get_vara_element
+  compute_panchanga_shuddhi
+  compute_hora
+  get_full_hora_sequence
+  compute_choghadiya
+  get_full_choghadiya_schedule
+  compute_abhijit_muhurta
+  compute_durmuhurta
+  _compute_sector_window
+  compute_rahu_kaal
+  compute_yamagandam
+  compute_gulika_kaal
+  compute_all_inauspicious_windows
+  check_directional_shoola
+  check_marriage_muhurta
+  check_griha_pravesh
+  check_business_muhurta
+  check_travel_muhurta
+  check_surgery_muhurta
+  get_forbidden_surgery_zones
+  analyze_daily_muhurta
+  _mins_to_time
+  _mins_to_time
+  _mins_to_time
+  _mins_to_time
+  _mins_to_time
+  _m2t
+  _m2t
+  _m2t
+
+vedic_engine\timing\nadi_timing.py (10 functions):
+  compute_bcp_active_house
+  compute_bcp_active_planets
+  check_nadi_saturn_activation
+  _days_to_date
+  compute_patel_marriage_dates
+  _bnn_edge_weight
+  compute_bnn_graph
+  compute_bnn_connectivity_scores
+  compute_spouse_career_sign
+  compute_all_nadi_signals
+
+vedic_engine\timing\pancha_pakshi.py (6 functions):
+  nakshatra_group
+  get_birth_bird
+  get_current_activity
+  get_all_segments
+  get_pakshi_compatibility
+  compute_pancha_pakshi
+
+vedic_engine\timing\panchanga.py (6 functions):
+  tithi
+  vara
+  nakshatra_info
+  yoga
+  karana
+  compute_panchanga
+
+vedic_engine\timing\progressions.py (5 functions):
+  _sign_of
+  _separation
+  compute_secondary_progressions
+  score_progression_activation
+  compute_solar_terms
+
+vedic_engine\timing\rare_dashas.py (10 functions):
+  _is_odd_sign
+  _sign_of
+  _format_date
+  check_mandooka_eligible
+  compute_mandooka_dasha
+  _generate_mandooka_sequence
+  _get_padanadhamsha_sequence
+  _padanadhamsha_duration
+  compute_padanadhamsha_dasha
+  compute_all_rare_dashas
+
+vedic_engine\timing\sudarshana.py (5 functions):
+  _sudarshana_house_score
+  evaluate_sudarshana
+  compute_sudarshana_dasha
+  evaluate_sudarshana_all_planets
+  _house
+
+vedic_engine\timing\tithi_pravesh.py (5 functions):
+  _lagna_relation_quality
+  compute_natal_tithi_angle
+  get_natal_tithi_number
+  compute_tithi_pravesh
+  solve_tithi_pravesh_iterative
+
+vedic_engine\timing\varshaphala.py (35 functions):
+  _friendship
+  _sign_lord
+  _angular_diff
+  _house_count
+  tajika_aspect
+  _get_kshetra_bala
+  _get_uchcha_bala
+  _get_hudda_lord
+  _get_hudda_bala
+  _get_drekkana_bala
+  _get_navamsha_sign
+  _get_navamsha_bala
+  compute_pvb
+  compute_muntha
+  get_muntha_house
+  get_muntha_interpretation
+  _planet_aspects_lagna
+  compute_varsha_pati
+  compute_varshesha
+  _is_itthasala
+  detect_tajika_yogas
+  classify_tajika_yoga
+  compute_all_tajika_yogas
+  compute_saham
+  compute_all_sahams
+  check_saham_activation
+  compute_mudda_dasha
+  get_current_mudda
+  compute_solar_return_dt
+  compute_varsha_analysis
+  compute_varshaphala
+  _add
+  _house
+  _resolve
+  _diff
+
+vedic_engine\timing\vimshottari.py (21 functions):
+  _years_to_days
+  _add_calendar_years
+  _birth_dasha_balance
+  _dasha_sequence_from
+  compute_mahadasha_periods
+  _compute_sub_periods
+  get_active_dasha
+  dasha_details_on_date
+  detect_dasha_sandhi
+  dasha_diagnostic_matrix
+  analyze_retrograde_dasha_lord
+  _find_active
+  _parse
+  _check_boundary
+  _is_combust
+  _house_of
+  _lorded_houses
+  _is_trikona_lord
+  _is_dusthana_lord
+  _is_kendra_lord
+  _dignities
+
+vedic_engine\timing\yogini.py (5 functions):
+  _yogini_start
+  compute_yogini_periods
+  _yogini_sub_periods
+  get_active_yogini
+  _find

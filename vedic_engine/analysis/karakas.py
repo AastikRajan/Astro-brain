@@ -72,8 +72,12 @@ def compute_chara_karakas(
             rahu_deg = 30.0 - degree_in_sign(rahu_lon)
             degrees.append(("RAHU", rahu_deg))
 
-    # Sort DESCENDING by degree within sign
-    degrees.sort(key=lambda x: x[1], reverse=True)
+    # Sort DESCENDING by degree within sign.
+    # Tie-breaking: when degrees match, higher natural order wins
+    # (Sun=0 highest precedence through Saturn=6 lowest).
+    _NATURAL_ORDER = {p: i for i, p in enumerate(PLANET_NAMES_7)}
+    _NATURAL_ORDER["RAHU"] = 7
+    degrees.sort(key=lambda x: (x[1], -_NATURAL_ORDER.get(x[0], 99)), reverse=True)
 
     karakas = []
     for i, (pname, deg) in enumerate(degrees[:7]):

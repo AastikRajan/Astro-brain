@@ -1,0 +1,226 @@
+{
+  "EventEndTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime, eventData, precisionInHours)"
+  },
+  "EventStartEndTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime, nameOfEvent)"
+  },
+  "EventStartTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime, eventData, precisionInHours)"
+  },
+  "EventsAtRange": {
+    "exists": true,
+    "signature": "(birthTime, startTime, endTime, eventTagList, precisionHours)"
+  },
+  "EventsAtTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime, eventTagList)"
+  },
+  "GetAllEventDataGroupedByTag": {
+    "exists": true,
+    "signature": "()"
+  },
+  "GetAllEventsChartAlgorithms": {
+    "exists": true,
+    "signature": "()"
+  },
+  "HoroscopeChat": {
+    "exists": true,
+    "signature": "(birthTime, userQuestion, userId, sessionId)"
+  },
+  "HoroscopeChat2": {
+    "exists": true,
+    "signature": "(birthTime, userQuestion, userId, sessionId)"
+  },
+  "HoroscopeChatFeedback": {
+    "exists": true,
+    "signature": "(answerHash, feedbackScore)"
+  },
+  "HoroscopeFollowUpChat": {
+    "exists": true,
+    "signature": "(birthTime, followUpQuestion, primaryAnswerHash, userId, sessionId)"
+  },
+  "HoroscopeLLMSearch": {
+    "exists": true,
+    "signature": "(birthTime, textInput)"
+  },
+  "HoroscopePredictionAlpacaTemplateLoRA": {
+    "exists": true,
+    "signature": "(birthTime)"
+  },
+  "HoroscopePredictionNames": {
+    "exists": true,
+    "signature": "(birthTime)"
+  },
+  "HoroscopePredictions": {
+    "exists": true,
+    "signature": "(birthTime, filterTag)"
+  },
+  "NameNumberPrediction": {
+    "exists": true,
+    "signature": "(fullName)"
+  },
+  "AllHouseDashamamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "AllHouseDwadashamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "AllHouseShodashamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "AllPlanetDashamamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "AllPlanetDwadashamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "AllPlanetShodashamshaSign": {
+    "exists": true,
+    "signature": "(time)"
+  },
+  "DasaAtRange": {
+    "exists": true,
+    "signature": "(birthTime, startTime, endTime, levels, precisionHours)"
+  },
+  "DasaAtTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime, levels)"
+  },
+  "DasaForLife": {
+    "exists": true,
+    "signature": "(birthTime, levels, precisionHours, scanYears)"
+  },
+  "DasaForNow": {
+    "exists": true,
+    "signature": "(birthTime, levels)"
+  },
+  "DashamamshaSignAtLongitude": {
+    "exists": true,
+    "signature": "(longitude)"
+  },
+  "DashamamshaSignName": {
+    "exists": true,
+    "signature": "(zodiacSign)"
+  },
+  "DwadashamshaSignAtLongitude": {
+    "exists": true,
+    "signature": "(longitude)"
+  },
+  "DwadashamshaSignName": {
+    "exists": true,
+    "signature": "(zodiacSign)"
+  },
+  "GetCharaDasaAtTime": {
+    "exists": true,
+    "signature": "(birthTime, checkTime)"
+  },
+  "GetDasaInfoForAscendant": {
+    "exists": true,
+    "signature": "(ascendantName)"
+  },
+  "HouseDashamamshaD10Sign": {
+    "exists": true,
+    "signature": "(houseNumber, time)"
+  },
+  "HouseDwadashamshaD12Sign": {
+    "exists": true,
+    "signature": "(houseNumber, time)"
+  },
+  "HouseShodashamshaD16Sign": {
+    "exists": true,
+    "signature": "(houseNumber, time)"
+  },
+  "PlanetDasaNature": {
+    "exists": true,
+    "signature": "(birthTime, planet)"
+  },
+  "PlanetDashamamshaD10Sign": {
+    "exists": true,
+    "signature": "(planetName, time)"
+  },
+  "PlanetDwadashamshaD12Sign": {
+    "exists": true,
+    "signature": "(planetName, time)"
+  },
+  "PlanetDwadashamshaSignOLD": {
+    "exists": true,
+    "signature": "(planetName, time)"
+  },
+  "PlanetShodashamshaD16Sign": {
+    "exists": true,
+    "signature": "(planetName, time)"
+  },
+  "ShodashamshaSignAtLongitude": {
+    "exists": true,
+    "signature": "(longitude)"
+  },
+  "ShodashamshaSignName": {
+    "exists": true,
+    "signature": "(zodiacSign)"
+  },
+  "MatchChat": {
+    "exists": true,
+    "signature": "(maleBirthTime, femaleBirthTime, userQuestion, chatSession)"
+  },
+  "MatchReport": {
+    "exists": true,
+    "signature": "(maleBirthTime, femaleBirthTime)"
+  },
+  "GetConstellationTransitStartTime": {
+    "exists": true,
+    "signature": "(startTime, endTime, planetName)"
+  },
+  "GocharaKakshas": {
+    "exists": true,
+    "signature": "(checkTime, birthTime)"
+  },
+  "GocharaZodiacSignCountFromMoon": {
+    "exists": true,
+    "signature": "(birthTime, currentTime, planet)"
+  },
+  "IsGocharaObstructed": {
+    "exists": true,
+    "signature": "(planet, gocharaHouse, birthTime, currentTime)"
+  },
+  "IsGocharaOccurring": {
+    "exists": true,
+    "signature": "(birthTime, time, planet, gocharaHouse)"
+  },
+  "IsPlanetGocharaBindu": {
+    "exists": true,
+    "signature": "(birthTime, nowTime, planet, bindu)"
+  },
+  "PlanetSignTransit": {
+    "exists": true,
+    "signature": "(startTime, endTime, planetName)"
+  },
+  "PlanetsInGocharaHouse": {
+    "exists": true,
+    "signature": "(birthTime, currentTime, gocharaHouse)"
+  },
+  "TransitHouseFromLagna": {
+    "exists": true,
+    "signature": "(transitPlanet, checkTime, birthTime)"
+  },
+  "TransitHouseFromMoon": {
+    "exists": true,
+    "signature": "(transitPlanet, checkTime, birthTime)"
+  },
+  "TransitHouseFromNavamsaLagna": {
+    "exists": true,
+    "signature": "(transitPlanet, checkTime, birthTime)"
+  },
+  "TransitHouseFromNavamsaMoon": {
+    "exists": true,
+    "signature": "(transitPlanet, checkTime, birthTime)"
+  }
+}

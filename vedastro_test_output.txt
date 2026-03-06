@@ -1,0 +1,89 @@
+﻿VedAstro - Made & Funded by Users - https://vedastro.org/Donate
+
+=== STEP 3: BASIC FUNCTIONALITY TEST ===
+API key set: FreeAPIUser
+GeoLocation: Allahabad, India (81.8463, 25.4358)
+Birth time: 23:26 14/11/1889 +05:30 at Allahabad, India (81.8463, 25.4358)
+Sun data OK: {
+  "AllBeneficPlanetsInGoodConjunctionWith": [],
+  "AllHarmfulPlanetsInBadConjunctionWith": [],
+  "AllMaleficPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsAspecting": [],
+  "AllPhysicallyHarmfulPlanetsConjunctWith": [],
+  "AllPlanetsInBadAspectToPlanet": [],
+  "AllPlanetsInEnemyConjunctionWith": [],
+  "AllPlanetsInFriendConjunctionWith": [],
+  "AspectReceivedByDispositor": [],
+  "BeneficPlanetsAspectingPlanet": [],
+  "DispositorConjunctWith": [],
+  "DispositorFromLagna": "3",
+  "Disposit
+House1 data OK: {
+  "AllPlanetsInBadAspectToHouse": [],
+  "ArudhaOfHouse": "House1",
+  "BeneficPlanetsAspectingHouse": [],
+  "HouseAkshavedamshaD45Sign": {
+    "Name": "Aries",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "11\u00b0 42' 0",
+      "TotalDegrees": "11.7"
+    }
+  },
+  "HouseBhamshaD27Sign": {
+    "Name": "Libra",
+    "DegreesIn": {
+      "DegreeMinuteSecond": "25\u00b0 1' 12",
+      "TotalDegrees": "25.02"
+    }
+  },
+  "HouseBhavaChalitSign": {
+    "Name": "Cancer",
+    "DegreesIn": {
+      "Degr
+Predictions type: list
+Predictions len: 110
+Predictions OK: [
+  {
+    "Name": "EvilPlanetsInGemini_ChestDeformity",
+    "Description": " The native experiences want of development or deformity in the chest. ",
+    "RelatedBody": {
+      "Planets": [
+        "Rahu"
+      ],
+      "Houses": [
+        "House12"
+      ],
+      "Zodiacs": []
+    },
+    "Weight": 0.0,
+    "Accuracy": 0.0,
+    "Tags": [
+      "MedicalAstrology"
+    ]
+  },
+  {
+    "Name": "EvilPlanetsInLibra_LowerBellyDeformity",
+    "Description": " The native experiences want of development or deformity in the lower belly. ",
+    "RelatedBody": {
+      "Planets": [
+        "Venus"
+      ],
+      "Houses": [
+        "House4"
+      ],
+      "Zodiacs": []
+    },
+    "Weight": 0.0,
+    "Accuracy": 0.0,
+    "Tags": [
+      "MedicalAstrology"
+    ]
+  },
+  {
+    "Name": "EvilPlanetsInSagittarius_ThighsDeformity",
+    "Description": " The native experiences want of development or deformity in the two thighs. ",
+    "RelatedBody": {
+      "Planets": [
+        "Ketu"
+      ],
+      "Houses": [

@@ -1,0 +1,206 @@
+﻿hora C:\Users\aasti added to system path ['C:\\Users\\aasti\\Downloads\\New folder (3)', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\python313.zip', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\DLLs', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\Lib', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\.venv', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\.venv\\Lib\\site-packages', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\pyjhora_reference\\src', 'C:\\Users\\aasti']
+C:\Users added to system path ['C:\\Users\\aasti\\Downloads\\New folder (3)', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\python313.zip', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\DLLs', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\\Lib', 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\.venv', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\.venv\\Lib\\site-packages', 'C:\\Users\\aasti\\Downloads\\New folder (3)\\pyjhora_reference\\src', 'C:\\Users\\aasti', 'C:\\Users']
+=== CHART MODULES ===
+arudhas: ['bhava_arudhas', 'bhava_arudhas_from_chart', 'bhava_arudhas_from_planet_positions', 'chandra_arudhas_from_planet_positions', 'graha_arudhas', 'graha_arudhas_from_planet_positions', 'surya_arudhas_from_planet_positions']
+ashtakavarga: ['get_ashtaka_varga', 'raasi_index', 'sodhaya_pindas']
+charts: ['akshavedamsa_chart', 'ashtamsa_chart', 'ashtotharamsa_chart', 'benefics', 'benefics_and_malefics', 'bhava_chart', 'bhava_chart_houses', 'bhava_houses', 'chaturthamsa_chart', 'chaturvimsamsa_chart', 'custom_divisional_chart', 'dasamsa_chart', 'divisional_chart', 'divisional_positions_from_rasi_positions', 'drekkana_chart', 'dwadas_dwadasamsa_chart', 'dwadasamsa_chart', 'get_22nd_drekkana', 'get_64th_navamsa', 'get_KP_lords_from_planet_positions']
+dosha: ['ganda_moola', 'get_dosha_details', 'get_dosha_resources', 'ghata', 'guru_chandala_dosha', 'kala_sarpa', 'kalathra', 'manglik', 'pitru_dosha', 'shrapit']
+house: ['apoklimas_of_the_raasi', 'are_planets_in_apoklimas', 'are_planets_in_chathusras', 'are_planets_in_dushthanas', 'are_planets_in_panapharas', 'are_planets_in_quadrants', 'are_planets_in_trines', 'are_planets_in_upachayas', 'aspected_houses_of_the_planet', 'aspected_houses_of_the_raasi', 'aspected_kendras_of_raasi', 'aspected_planets_of_the_planet', 'aspected_planets_of_the_raasi', 'aspected_raasis_of_the_raasi', 'aspected_rasis_of_the_planet', 'associations_of_the_planet', 'baadhakas_of_raasi', 'brahma', 'chara_karakas', 'chathusra_aspects_of_the_raasi']
+raja_yoga: ['check_other_raja_yoga_1', 'check_other_raja_yoga_2', 'check_other_raja_yoga_3', 'dharma_karmadhipati_raja_yoga', 'dharma_karmadhipati_raja_yoga_from_planet_positions', 'get_raja_yoga_details', 'get_raja_yoga_details_for_all_charts', 'get_raja_yoga_pairs', 'get_raja_yoga_pairs_from_planet_positions', 'get_raja_yoga_resources', 'lords_of_quadrants', 'lords_of_quadrants_from_planet_positions', 'lords_of_trines', 'lords_of_trines_from_planet_positions', 'neecha_bhanga_raja_yoga', 'neecha_bhanga_raja_yoga_from_planet_positions', 'vipareetha_raja_yoga', 'vipareetha_raja_yoga_from_planet_positions']
+raja_yoga_bv_raman: []
+sphuta: ['avayogi_sphuta', 'avayogi_sphuta_mixed_chart', 'beeja_sphuta', 'beeja_sphuta_mixed_chart', 'chatur_sphuta', 'chatur_sphuta_mixed_chart', 'deha_sphuta', 'deha_sphuta_mixed_chart', 'kshetra_sphuta', 'kshetra_sphuta_mixed_chart', 'mrityu_sphuta', 'mrityu_sphuta_mixed_chart', 'pancha_sphuta', 'pancha_sphuta_mixed_chart', 'prana_sphuta', 'prana_sphuta_mixed_chart', 'rahu_tithi_sphuta', 'rahu_tithi_sphuta_mixed_chart', 'sookshma_tri_sphuta', 'sookshma_tri_sphuta_mixed_chart']
+strength: ['apoklimas', 'bhava_bala', 'bhava_drishti_bala', 'dwadhasa_vargeeya_bala', 'get_planet_mean_longitude', 'get_planet_mean_longitude_using_epoch_table', 'harsha_bala', 'is_leap_year', 'kendras', 'leap_count_between_years', 'list_of_leap_years_between_years', 'panapharas', 'pancha_vargeeya_bala', 'planet_aspect_relationship_table', 'planet_aspect_relationship_table_pvr', 'planet_longitude_correction', 'shad_bala']
+yoga: ['adhi_yoga', 'adhi_yoga_from_jd_place', 'adhi_yoga_from_planet_positions', 'amala_yoga', 'amala_yoga_from_jd_place', 'amala_yoga_from_planet_positions', 'amaranantha_dhana_yoga', 'amaranantha_dhana_yoga_from_jd_place', 'amaranantha_dhana_yoga_from_planet_positions', 'amsaavatara_yoga', 'amsaavatara_yoga_from_jd_place', 'amsaavatara_yoga_from_planet_positions', 'anapathya_yoga', 'anapathya_yoga_from_jd_place', 'anapathya_yoga_from_planet_positions', 'anaphaa_yoga', 'anaphaa_yoga_from_jd_place', 'anaphaa_yoga_from_planet_positions', 'andha_yoga', 'andha_yoga_288']
+
+=== OTHER MODULES ===
+ashtakavarga: 3 funcs - ['get_ashtaka_varga', 'raasi_index', 'sodhaya_pindas']
+yoga: 780 funcs - ['adhi_yoga', 'adhi_yoga_from_jd_place', 'adhi_yoga_from_planet_positions', 'amala_yoga', 'amala_yoga_from_jd_place', 'amala_yoga_from_planet_positions', 'amaranantha_dhana_yoga', 'amaranantha_dhana_yoga_from_jd_place', 'amaranantha_dhana_yoga_from_planet_positions', 'amsaavatara_yoga', 'amsaavatara_yoga_from_jd_place', 'amsaavatara_yoga_from_planet_positions', 'anapathya_yoga', 'anapathya_yoga_from_jd_place', 'anapathya_yoga_from_planet_positions']
+strength: 17 funcs - ['apoklimas', 'bhava_bala', 'bhava_drishti_bala', 'dwadhasa_vargeeya_bala', 'get_planet_mean_longitude', 'get_planet_mean_longitude_using_epoch_table', 'harsha_bala', 'is_leap_year', 'kendras', 'leap_count_between_years', 'list_of_leap_years_between_years', 'panapharas', 'pancha_vargeeya_bala', 'planet_aspect_relationship_table', 'planet_aspect_relationship_table_pvr']
+raja_yoga: 18 funcs - ['check_other_raja_yoga_1', 'check_other_raja_yoga_2', 'check_other_raja_yoga_3', 'dharma_karmadhipati_raja_yoga', 'dharma_karmadhipati_raja_yoga_from_planet_positions', 'get_raja_yoga_details', 'get_raja_yoga_details_for_all_charts', 'get_raja_yoga_pairs', 'get_raja_yoga_pairs_from_planet_positions', 'get_raja_yoga_resources', 'lords_of_quadrants', 'lords_of_quadrants_from_planet_positions', 'lords_of_trines', 'lords_of_trines_from_planet_positions', 'neecha_bhanga_raja_yoga']
+house: 85 funcs - ['apoklimas_of_the_raasi', 'are_planets_in_apoklimas', 'are_planets_in_chathusras', 'are_planets_in_dushthanas', 'are_planets_in_panapharas', 'are_planets_in_quadrants', 'are_planets_in_trines', 'are_planets_in_upachayas', 'aspected_houses_of_the_planet', 'aspected_houses_of_the_raasi', 'aspected_kendras_of_raasi', 'aspected_planets_of_the_planet', 'aspected_planets_of_the_raasi', 'aspected_raasis_of_the_raasi', 'aspected_rasis_of_the_planet']
+charts: 69 funcs - ['akshavedamsa_chart', 'ashtamsa_chart', 'ashtotharamsa_chart', 'benefics', 'benefics_and_malefics', 'bhava_chart', 'bhava_chart_houses', 'bhava_houses', 'chaturthamsa_chart', 'chaturvimsamsa_chart', 'custom_divisional_chart', 'dasamsa_chart', 'divisional_chart', 'divisional_positions_from_rasi_positions', 'drekkana_chart']
+dosha: 10 funcs - ['ganda_moola', 'get_dosha_details', 'get_dosha_resources', 'ghata', 'guru_chandala_dosha', 'kala_sarpa', 'kalathra', 'manglik', 'pitru_dosha', 'shrapit']
+sphuta: 28 funcs - ['avayogi_sphuta', 'avayogi_sphuta_mixed_chart', 'beeja_sphuta', 'beeja_sphuta_mixed_chart', 'chatur_sphuta', 'chatur_sphuta_mixed_chart', 'deha_sphuta', 'deha_sphuta_mixed_chart', 'kshetra_sphuta', 'kshetra_sphuta_mixed_chart', 'mrityu_sphuta', 'mrityu_sphuta_mixed_chart', 'pancha_sphuta', 'pancha_sphuta_mixed_chart', 'prana_sphuta']
+drik: 180 funcs - ['Date', 'Place', 'aadal_yoga', 'abhijit_muhurta', 'agni_vaasa', 'ahargana', 'amrit_kaalam', 'amrita_gadiya', 'anandhaadhi_yoga', 'ardra_pravesha_date', 'artha_praharaka_longitude', 'ascendant', 'ascendant_speed', 'bhaava_madhya', 'bhaava_madhya_bv_raman']
+
+=== DRIK PANCHANGA FUNCTIONS ===
+  Date
+  Place
+  aadal_yoga
+  abhijit_muhurta
+  agni_vaasa
+  ahargana
+  amrit_kaalam
+  amrita_gadiya
+  anandhaadhi_yoga
+  ardra_pravesha_date
+  artha_praharaka_longitude
+  ascendant
+  ascendant_speed
+  bhaava_madhya
+  bhaava_madhya_bv_raman
+  bhaava_madhya_kp
+  bhaava_madhya_sripathi
+  bhaava_madhya_swe
+  bhava_lagna
+  bhava_lagna_mixed_chart
+  bhrigu_bindhu_lagna
+  bhrigu_bindhu_lagna_mixed_chart
+  brahma_muhurtha
+  ceil
+  chandrabalam
+  chandrashtama
+  daily_moon_speed
+  daily_planet_speed
+  daily_sun_speed
+  dasavarga_from_long
+  date
+  datetime
+  day_length
+  days_in_tamil_month
+  declination_of_planets
+  dhasavarga
+  disha_shool
+  durmuhurtam
+  elapsed_year
+  ephemeris_planet_index
+  float_hours_to_vedic_time
+  float_hours_to_vedic_time_equal_day_night_ghati
+  fraction_moon_yet_to_traverse
+  full_moon
+  gauri_choghadiya
+  get_ayanamsa_value
+  ghati_lagna
+  ghati_lagna_mixed_chart
+  godhuli_muhurtha
+  graha_drekkana
+  gulika_longitude
+  gulikai_kaalam
+  hora_lagna
+  hora_lagna_mixed_chart
+  indu_lagna
+  indu_lagna_mixed_chart
+  is_night_birth
+  is_solar_eclipse
+  jd_to_gregorian
+  kaala_longitude
+  kali_ahargana_days
+  karaka_tithi
+  karaka_yogam
+  karana
+  ketu
+  kunda_lagna
+  kunda_lagna_mixed_chart
+  lunar_longitude
+  lunar_month
+  lunar_month_date
+  lunar_phase
+  lunar_year_index
+  maandi_longitude
+  midday
+  midnight
+  moonrise
+  moonset
+  mrityu_longitude
+  muhurthas
+  nakshatra
+  nakshatra_new
+  nakshatra_pada
+  nava_thaara
+  navamsa_from_long
+  navamsa_from_long_old
+  new_moon
+  next_annual_solar_date_approximate
+  next_ascendant_entry_date
+  next_conjunction_of_planet_pair
+  next_lunar_eclipse
+  next_lunar_month
+  next_lunar_year
+  next_panchaka_days
+  next_planet_entry_date
+  next_planet_entry_date_general
+  next_planet_nakshathra_pravesha_date
+  next_planet_retrograde_change_date
+  next_sankranti_date
+  next_solar_date
+  next_solar_eclipse
+  next_solar_month
+  next_solar_year
+  next_tithi
+  night_length
+  nishita_kaala
+  nishita_muhurtha
+  panchaka_rahitha
+  planetary_positions
+  planets_in_graha_yudh
+  planets_in_retrograde
+  planets_speed_info
+  pranapada_lagna
+  pranapada_lagna_mixed_chart
+  previous_ascendant_entry_date
+  previous_conjunction_of_planet_pair
+  previous_lunar_month
+  previous_lunar_year
+  previous_planet_entry_date
+  previous_sankranti_date
+  previous_solar_month
+  previous_solar_year
+  pushkara_yoga
+  raahu_kaalam
+  raasi
+  rahu
+  reset_ayanamsa_mode
+  ritu
+  sahasra_chandrodayam
+  sahasra_chandrodayam_old
+  samvatsara
+  sandhya_periods
+  set_ayanamsa_mode
+  set_planet_list
+  set_sideral_planets
+  set_tropical_planets
+  shiva_vaasa
+  shubha_hora
+  sidereal_longitude
+  solar_longitude
+  solar_upagraha_longitudes
+  special_ascendant
+  special_ascendant_mixed_chart
+  special_thaara
+  special_tithis
+  sree_lagna
+  sree_lagna_from_moon_asc_longitudes
+  sree_lagna_mixed_chart
+  struct
+  sunrise
+  sunset
+  tamil_jaamam
+  tamil_solar_month_and_date
+  tamil_solar_month_and_date_RaviAnnnaswamy
+  tamil_solar_month_and_date_V4_3_5
+  tamil_solar_month_and_date_V4_3_8
+  tamil_solar_month_and_date_from_jd
+  tamil_solar_month_and_date_new
+  tamil_yogam
+  thaaraabalam
+  timedelta
+  tithi
+  tithi_using_inverse_lagrange
+  tithi_using_planet_speed
+  triguna
+  trikalam
+  udhaya_lagna_muhurtha
+  upagraha_longitude
+  vaara
+  varjyam
+  vedic_date
+  vidaal_yoga
+  vighati_lagna
+  vighati_lagna_mixed_chart
+  vijaya_muhurtha
+  vivaha_chakra_palan
+  yama_ghantaka_longitude
+  yamaganda_kaalam
+  yogam
+  yogam_old
+  yogini_vaasa

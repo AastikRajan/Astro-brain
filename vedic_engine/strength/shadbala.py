@@ -790,6 +790,8 @@ def compute_shadbala(
       per-planet tropical longitude propagation.
     """
     sb = sthana_bala(planet, longitude, planet_house, planet_signs=planet_signs)
+    # Compute saptavargaja separately for net Shadbala (avoids Vimshopak overlap)
+    svb = saptavargaja_bala(planet, longitude, planet_signs=planet_signs)
     db = dig_bala(planet, longitude, cusp_longitudes)
     kb = kala_bala(planet, birth_dt, moon_lon, sun_lon,
                    sunrise_hour, sunset_hour, tz_offset,
@@ -813,8 +815,15 @@ def compute_shadbala(
     min_req = SHADBALA_MINIMUMS.get(p, 5.0) if p else 5.0
     ratio = rupas / min_req if min_req > 0 else 0.0
 
+    # Net Shadbala = Total - Saptavargaja (Research File 1: avoids
+    # double-counting with Vimshopak which also measures varga dignity)
+    net_total = total - svb
+    net_rupas = net_total / 60.0
+    net_ratio = net_rupas / min_req if min_req > 0 else 0.0
+
     return {
         "sthana_bala": round(sb, 2),
+        "saptavargaja_bala": round(svb, 2),
         "dig_bala": round(db, 2),
         "kala_bala": round(kb, 2),
         "cheshta_bala": round(cb, 2),
@@ -824,6 +833,7 @@ def compute_shadbala(
         "rupas": round(rupas, 3),
         "minimum_required": min_req,
         "ratio": round(ratio, 3),
+        "net_ratio": round(net_ratio, 3),
         "meets_minimum": ratio >= 1.0,
     }
 

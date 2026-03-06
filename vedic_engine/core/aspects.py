@@ -20,6 +20,7 @@ from vedic_engine.config import (
 )
 
 PLANET_NAMES_7 = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"]
+PLANET_NAMES_9 = PLANET_NAMES_7 + ["RAHU", "KETU"]
 
 
 def houses_aspected(aspector_house: int, planet: Planet) -> Dict[int, float]:
@@ -134,5 +135,6 @@ def _get_planet_enum(name: str):
         "SUN": Planet.SUN, "MOON": Planet.MOON, "MARS": Planet.MARS,
         "MERCURY": Planet.MERCURY, "JUPITER": Planet.JUPITER,
         "VENUS": Planet.VENUS, "SATURN": Planet.SATURN,
+        "RAHU": Planet.RAHU, "KETU": Planet.KETU,
     }
     return mapping.get(name.upper())

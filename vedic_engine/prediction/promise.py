@@ -33,7 +33,7 @@ _NATURAL_MALEFICS = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
 # Universal Karakas per domain
 DOMAIN_KARAKA: Dict[str, str] = {
     "marriage":  "VENUS",
-    "career":    "SUN",
+    "career":    "SATURN",
     "finance":   "JUPITER",
     "health":    "SUN",
     "spiritual": "KETU",
