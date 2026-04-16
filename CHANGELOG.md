@@ -144,3 +144,61 @@
 2026-03-02 analysis/yogas.py ADD -- _pravrajya_yogas(): 4+ planets in sign; flavored by highest Shadbala; Ketu 12th trigger; combust cancel (Phase 1D.8)
 2026-03-02 analysis/yogas.py ADD -- compute_all_extended_yogas(): unified List[Dict] output with name/type/planets/grade/score/domain/active/cancellation (Phase 1D.9)
 2026-03-02 prediction/engine.py ADD -- compute_all_extended_yogas imported; called after detect_all_yogas; stored in static["computed"]["yogas"] (Phase 1D.9)
+2026-04-14 core/swisseph_bridge.py FIX — compute_solar_return now solves against natal sidereal Sun longitude with return-time ayanamsa → affects prediction/engine.py annual chart sourcing
+2026-04-14 prediction/engine.py WIRE — dynamic annual context now resolves the active solar-return year and prefers dynamic Varshaphala/Tithi Pravesh in Phase 2H + report output → affects timing/varshaphala.py annual scoring inputs
+2026-04-14 TECHNICAL_IMPLEMENTATION_AUDIT.md SYNC — reconciled stale "missing native" claims with implemented Milestones B-L and current confidence/arbitration/pravesha/tripataki code state
+2026-04-14 remaining_vs_system_architecture_code_audit.md SYNC — refreshed audit conclusions to match live implementation and removed superseded mismatch narratives
+2026-04-14 SYSTEM_ARCHITECTURE.md UPDATE — aligned module inventory and architecture status notes with current code paths and milestone completion state
+2026-04-14 MEMORY_INDEX.md UPDATE — synchronized operational constants/flags/status to post-L behavior (confidence arbitration ON default, tropical-month pravesha default ON)
+2026-04-14 MEMORY_MODULES/engine.memory.md UPDATE — updated orchestrator memory for dynamic annual context, dasha-pravesha multiplier path, and deterministic arbitration gate flow
+2026-04-14 MEMORY_MODULES/confidence.memory.md UPDATE — updated confidence module memory to current return schema (`gate_status`, component payload incl. `dasha_pravesha_mult`, caps/diagnostics behavior)
+2026-04-14 prediction/engine.py REFACTOR — Shodasha fusion now uses domain-specific varga subsets with breakdown-aware scoring fallback and policy diagnostics
+2026-04-14 test_shodasha_fusion.py ADD — regression coverage for domain-varga policy selection and percentage-only fallback path
+2026-04-14 MEMORY_MODULES/engine.memory.md UPDATE — documented `_compute_shodasha_domain_fusion` policy map behavior and new diagnostics payload
+2026-04-14 MEMORY_INDEX.md UPDATE — recorded engine last-modified note and `_SHODASHA_DOMAIN_VARGA_POLICY` constant in Section D
+2026-04-15 prediction/engine.py REFACTOR — Arbitration R2 added structural-first precedence tiers (`structural_promise`, `structural_dasha`, `full`), suppressing non-structural penalties in promise-failed states and emitting calibration metadata (`profile_version`, `calibration_snapshot`)
+2026-04-15 test_confidence_arbitration_gate.py ADD — regression coverage for arbitration precedence behavior under promise-failed and dasha-not-confirmed structural stages
+2026-04-15 MEMORY_MODULES/engine.memory.md UPDATE — documented arbitration precedence-stage logic and diagnostics payload fields
+2026-04-15 MEMORY_INDEX.md UPDATE — synchronized engine module status and arbitration profile-version constant in Section D
+2026-04-15 prediction/engine.py REFACTOR — Arbitration R3 domain cap profile re-fit against 29-report corpus snapshot; metadata source moved to `research_prompts/arbitration_calibration_snapshot_2026-04-15.md`
+2026-04-15 research_prompts/arbitration_calibration_snapshot_2026-04-15.md ADD — new calibration snapshot with 29 usable reports and updated per-domain profile values
+2026-04-15 test_confidence_arbitration_gate.py UPDATE — adjusted strict domain-cap regression expectations for R3 profile outputs
+2026-04-15 research_prompts/full_corpus_implementation_tracker.md UPDATE — advanced confidence arbitration baseline wording from 28-report to 29-report R3 snapshot
+2026-04-15 MEMORY_MODULES/engine.memory.md UPDATE — added Arbitration R3 calibration re-fit note in recent changes
+2026-04-15 MEMORY_INDEX.md UPDATE — updated arbitration update banner and `ARBITRATION_PROFILE_VERSION` to `2026-04-15-r3`
+2026-04-15 timing/moorti_nirnaya.py ADD — dedicated Moorti Nirnaya/Paya module (Gold/Silver/Copper/Iron mapping + house/sign helpers)
+2026-04-15 prediction/transits.py REFACTOR — transit Moorti/Paya scoring now consumes centralized `timing/moorti_nirnaya.py` instead of local duplicate mapping
+2026-04-15 test_moorti_nirnaya.py ADD — regression coverage for Paya metal classification and transit-sign to house-from-Moon mapping
+2026-04-15 remaining_vs_system_architecture_code_audit.md UPDATE — removed stale “Moorti module missing” item and marked dedicated transit Moorti modularization as resolved
+2026-04-15 remaing.md UPDATE — transit-technique checklist now marks Vipareeta Vedha, Moorti Nirnaya, and Kakshya Transit as implemented
+2026-04-15 timing/latta.py ADD — dedicated Latta (planetary kick) helper module with reference constant table and cyclic star-count algorithm parity
+2026-04-15 prediction/transits.py REFACTOR — transit payload now includes per-planet Latta diagnostics (diagnostic-only, no score-path impact)
+2026-04-15 test_latta.py ADD — regression coverage for source-reference Latta star outputs and transit payload wiring
+2026-04-15 remaining_vs_system_architecture_code_audit.md UPDATE — removed stale Latta missing claim and retained Chandravali as remaining dedicated transit gap
+2026-04-15 remaing.md UPDATE — transit-technique checklist now marks Latta (Kick) as implemented
+2026-04-15 timing/chandravali.py ADD — dedicated Chandravali helper module for Moon daily-transit strength (transit profile + pyjhora-aligned muhurta profile)
+2026-04-15 prediction/transits.py REFACTOR — transit Moon Chandrabala payload now sourced from centralized `timing/chandravali.py`
+2026-04-15 test_chandravali.py ADD — regression coverage for Chandravali profiles and transit payload wiring
+2026-04-15 remaining_vs_system_architecture_code_audit.md UPDATE — removed stale “Chandravali module missing” claim under transit modularization
+2026-04-15 remaing.md UPDATE — transit-technique checklist now marks Chandravali as implemented
+2026-04-16 remaing.md UPDATE — Sarvatobhadra Chakra and Kota Chakra corrected from missing to partial (native modules + static payload integration present)
+2026-04-16 remaining_vs_system_architecture_code_audit.md UPDATE — documented Sarvatobhadra/Kota as baseline integrated with pending transit-evaluator scoring wiring
+2026-04-16 analysis/sarvatobhadra.py FIX — normalized natal nakshatra input handling and corrected sensitive-cell filtering to exclude invalid tuples
+2026-04-16 analysis/kota_chakra.py FIX — normalized janma nakshatra input handling for str/int (0-based and fallback 1-based)
+2026-04-16 prediction/engine.py FIX — static Phase 1E now passes Moon nakshatra names (not indices) into Kota/SBC constructors
+2026-04-16 prediction/transits.py ENHANCEMENT — evaluate_all_transits now attaches per-planet SBC Vedha and Kota diagnostics when natal grids are available
+2026-04-16 prediction/engine.py ENHANCEMENT — confidence transit adjustment flow now consumes SBC/Kota diagnostics (core scoring-path wiring)
+2026-04-16 test_sbc_kota_integration.py ADD — regression coverage for SBC/Kota normalization and transit payload integration
+2026-04-16 remaing.md UPDATE — Sarvatobhadra Chakra and Kota Chakra promoted from partial to core implemented status
+2026-04-16 remaining_vs_system_architecture_code_audit.md UPDATE — removed stale partial-wiring claim for Sarvatobhadra/Kota and marked Sanghatta as remaining gap
+2026-04-16 analysis/sanghatta_chakra.py ADD — dedicated Sanghatta Chakra module based on special-tara mapping (Sanghatika offset=16) with per-planet collision evaluation
+2026-04-16 prediction/transits.py ENHANCEMENT — evaluate_all_transits now attaches per-planet Sanghatta diagnostics and overall collision impact when natal Sanghatta context is available
+2026-04-16 prediction/engine.py ENHANCEMENT — static Phase 1E now computes Sanghatta Chakra and dynamic Phase 2 transit-adjustment path now applies Sanghatta collision impact
+2026-04-16 test_sanghatta_integration.py ADD — regression coverage for Sanghatta normalization, per-planet hit classification, and transit payload integration
+2026-04-16 remaing.md UPDATE — Sanghatta Chakra promoted from missing to core implemented status
+2026-04-16 remaining_vs_system_architecture_code_audit.md UPDATE — removed stale Sanghatta missing claim and documented dedicated module + scoring-path integration
+2026-04-16 prediction/engine.py HARDENING — added non-fatal runtime warning capture in predict-path fallbacks (Phase 2 transit adjustment, promise gate, override gate, calibration) and surfaced warnings via `runtime_warnings`
+2026-04-16 prediction/confidence.py HARDENING — narrowed broad D9/dignity fallback catches and added debug diagnostics instead of fully silent suppression
+2026-04-16 bridges/pyjhora_bridge.py HARDENING — panchanga extra-function fallback path now logs failures instead of silent pass-through
+2026-04-16 test_runtime_warning_capture.py ADD — regression coverage for runtime warning capture helper behavior
+2026-04-16 remaining_vs_system_architecture_code_audit.md UPDATE — runtime-risk watchlist marked as partially mitigated for exception swallowing with broader sweep still pending

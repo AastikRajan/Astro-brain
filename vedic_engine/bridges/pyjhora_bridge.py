@@ -558,8 +558,10 @@ def get_panchanga(jd, place) -> Dict[str, Any]:
                 r = fn(jd, place)
             if r is not None:
                 results[fn_name] = r
-        except Exception:
-            pass
+        except (TypeError, ValueError, AttributeError) as exc:
+            logger.debug("panchanga extra fn %s fallback: %s", fn_name, exc)
+        except Exception as exc:
+            logger.debug("panchanga extra fn %s unexpected fallback: %s", fn_name, exc)
 
     return results
 

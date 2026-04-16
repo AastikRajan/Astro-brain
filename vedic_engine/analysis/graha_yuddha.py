@@ -133,9 +133,13 @@ def detect_planetary_wars(planet_lons: Dict[str, float]) -> List[Dict]:
             if sep > WAR_ORB_DEG:
                 continue
 
-            s1 = _NAT_STRENGTH.get(p1, 0.0)
-            s2 = _NAT_STRENGTH.get(p2, 0.0)
-            winner, loser = (p1, p2) if s1 >= s2 else (p2, p1)
+            # Classical exception: Venus is declared victor in any Graha Yuddha.
+            if p1 == "VENUS" or p2 == "VENUS":
+                winner, loser = ("VENUS", p2 if p1 == "VENUS" else p1)
+            else:
+                s1 = _NAT_STRENGTH.get(p1, 0.0)
+                s2 = _NAT_STRENGTH.get(p2, 0.0)
+                winner, loser = (p1, p2) if s1 >= s2 else (p2, p1)
 
             # Penalty scales from 0 (at 1°) to 0.50 (exact conjunction)
             penalty = (WAR_ORB_DEG - sep) / WAR_ORB_DEG * 0.50

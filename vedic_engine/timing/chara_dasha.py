@@ -257,24 +257,56 @@ def get_active_chara_dasha(periods: List[Dict], on_date: datetime) -> Dict:
     """
     Return the active Chara Dasha (and optionally Antardasha) for a given date.
     """
+    def _active_from_period(period: Dict) -> Dict:
+        result = {
+            "mahadasha": period["sign_name"],
+            "mahadasha_sign": period["sign"],
+            "mahadasha_years": period["years"],
+            "mahadasha_start": period["start"],
+            "mahadasha_end": period["end"],
+        }
+        for sp in period.get("sub_periods", []):
+            if sp["start"] <= on_date < sp["end"]:
+                result["antardasha"] = sp["sign_name"]
+                result["antardasha_sign"] = sp["sign"]
+                result["antardasha_months"] = sp["months"]
+                result["antardasha_start"] = sp["start"]
+                result["antardasha_end"] = sp["end"]
+                break
+        return result
+
     for p in periods:
         if p["start"] <= on_date < p["end"]:
-            result = {
-                "mahadasha": p["sign_name"],
-                "mahadasha_sign": p["sign"],
-                "mahadasha_years": p["years"],
-                "mahadasha_start": p["start"],
-                "mahadasha_end": p["end"],
-            }
-            for sp in p.get("sub_periods", []):
-                if sp["start"] <= on_date < sp["end"]:
-                    result["antardasha"] = sp["sign_name"]
-                    result["antardasha_sign"] = sp["sign"]
-                    result["antardasha_months"] = sp["months"]
-                    result["antardasha_start"] = sp["start"]
-                    result["antardasha_end"] = sp["end"]
-                    break
-            return result
+            return _active_from_period(p)
+
+    # If date is outside the first computed cycle, wrap by cycle length.
+    # Chara dasha is cyclical by sign order; this avoids empty active periods
+    # for late-life queries where only one cycle was precomputed.
+    if periods:
+        first_start = periods[0]["start"]
+        last_end = periods[-1]["end"]
+        cycle_seconds = (last_end - first_start).total_seconds()
+        if cycle_seconds > 0:
+            offset_seconds = (on_date - first_start).total_seconds() % cycle_seconds
+            wrapped_date = first_start + timedelta(seconds=offset_seconds)
+            for p in periods:
+                if p["start"] <= wrapped_date < p["end"]:
+                    result = {
+                        "mahadasha": p["sign_name"],
+                        "mahadasha_sign": p["sign"],
+                        "mahadasha_years": p["years"],
+                        "mahadasha_start": p["start"],
+                        "mahadasha_end": p["end"],
+                    }
+                    for sp in p.get("sub_periods", []):
+                        if sp["start"] <= wrapped_date < sp["end"]:
+                            result["antardasha"] = sp["sign_name"]
+                            result["antardasha_sign"] = sp["sign"]
+                            result["antardasha_months"] = sp["months"]
+                            result["antardasha_start"] = sp["start"]
+                            result["antardasha_end"] = sp["end"]
+                            break
+                    return result
     return {}
 
 

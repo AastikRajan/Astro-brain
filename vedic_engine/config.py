@@ -521,8 +521,9 @@ VEDHA_TABLE: Dict[Planet, Dict[int, int]] = {
     Planet.JUPITER: {2: 12, 5: 4, 7: 3, 9: 10, 11: 8},
     Planet.VENUS:   {1: 8, 2: 7, 3: 1, 4: 10, 5: 9, 8: 5, 9: 11, 11: 3, 12: 6},
     Planet.SATURN:  {3: 12, 6: 9, 11: 5},
-    Planet.RAHU:    {3: 12, 6: 9, 11: 5},
-    Planet.KETU:    {3: 12, 6: 9, 11: 5},
+    # Nodes follow classical gochara Vedha pairs similar to Sun pattern.
+    Planet.RAHU:    {3: 9, 6: 12, 10: 4, 11: 5},
+    Planet.KETU:    {3: 9, 6: 12, 10: 4, 11: 5},
 }
 
 # Vipareeta Vedha: when transit planet is in INAUSPICIOUS house, if another
@@ -536,8 +537,9 @@ VIPAREETA_VEDHA_TABLE: Dict[Planet, Dict[int, int]] = {
     Planet.JUPITER: {3: 7, 4: 5, 8: 11, 10: 9, 12: 2},
     Planet.VENUS:   {6: 11, 7: 2, 10: 4},
     Planet.SATURN:  {5: 11, 9: 6, 12: 3},
-    Planet.RAHU:    {5: 11, 9: 6, 12: 3},
-    Planet.KETU:    {5: 11, 9: 6, 12: 3},
+    # Reverse-obstruction complements the favorable-node houses above.
+    Planet.RAHU:    {4: 10, 5: 11, 9: 3, 12: 6},
+    Planet.KETU:    {4: 10, 5: 11, 9: 3, 12: 6},
 }
 
 # Exception: Sun and Saturn do NOT obstruct each other
@@ -607,12 +609,12 @@ TRANSIT_FAVORABLE: Dict[Planet, List[int]] = {
     Planet.SUN:     [3, 6, 10, 11],
     Planet.MOON:    [1, 3, 6, 7, 10, 11],
     Planet.MARS:    [3, 6, 11],
-    Planet.MERCURY: [6, 8, 10, 11],          # Research: 6,8,10,11 only (NOT 2,4)
+    Planet.MERCURY: [2, 4, 6, 8, 10, 11],
     Planet.JUPITER: [2, 5, 7, 9, 11],
     Planet.VENUS:   [1, 2, 3, 4, 5, 8, 9, 11, 12],
     Planet.SATURN:  [3, 6, 11],
-    Planet.RAHU:    [3, 6, 11],              # Research: 3,6,11 only (NOT 10)
-    Planet.KETU:    [3, 6, 11],              # Research: 3,6,11 only (NOT 10)
+    Planet.RAHU:    [3, 6, 10, 11],
+    Planet.KETU:    [3, 6, 10, 11],
 }
 
 # =============================================================================
@@ -690,11 +692,12 @@ GOCHAR_EFFECTS: Dict = {
     ("MARS", 11):("gains",         "Income through effort and initiative, goals achieved"),
     ("MARS", 7): ("relationships", "Quarrel, loss, maximum malefic results for partnerships"),
     ("MARS", 10):("career",        "Sorrows, defeat, career setbacks"),
+    ("MERCURY", 2):  ("speech",    "Speech, learning, and finances improve through intellect and planning"),
+    ("MERCURY", 4):  ("home",      "Domestic ease, studies, and practical decision-making improve"),
     ("MERCURY", 6):  ("work",      "Good health, happiness, education, income, problem-solving"),
     ("MERCURY", 8):  ("finances",  "Good health, overall happiness, income, occult gains"),
     ("MERCURY", 10): ("career",    "Happiness, income, career gains through intellect"),
     ("MERCURY", 11): ("gains",     "Networking, gains through intellect and communication"),
-    ("MERCURY", 2):  ("speech",    "Maximum bad results, obstruction, loss of wealth"),
     ("JUPITER", 2):  ("wealth",    "Wealth increase, speech improvement, family growth"),
     ("JUPITER", 5):  ("children",  "Intelligence, creativity, good news around children"),
     ("JUPITER", 7):  ("marriage",  "Relationships and partnerships prosper"),
@@ -719,7 +722,7 @@ GOCHAR_EFFECTS: Dict = {
     ("VENUS", 10): ("career",      "Bad results, sorrow, loss of comforts"),
     ("SATURN", 3): ("courage",     "Gains, comforts, income, effort rewarded"),
     ("SATURN", 6): ("enemies",     "Victory over enemies, health improvement, recognition"),
-    ("SATURN", 9): ("luck",        "Gains, comforts, spiritual progress"),
+    ("SATURN", 9): ("luck",        "Delays in fortune, heavy duties, and tests of faith/discipline"),
     ("SATURN", 11):("gains",       "Steady income, discipline rewarded, long-term gains"),
     ("SATURN", 1): ("health",      "Excess expenditure, loans, physical challenges"),
     ("SATURN", 2): ("family",      "Excess expenditure, financial strain"),
@@ -729,10 +732,12 @@ GOCHAR_EFFECTS: Dict = {
     ("SATURN", 12):("expenses",    "Malefic results, isolation, losses"),
     ("RAHU", 3):  ("communication","Success, gains, prosperity, good health"),
     ("RAHU", 6):  ("enemies",      "Victory, gains, success over obstacles"),
+    ("RAHU", 10): ("career",       "Career surge through unconventional opportunities and visibility"),
     ("RAHU", 11): ("gains",        "Good health, income, social success, gains"),
     ("RAHU", 9):  ("luck",         "Severe obstacles, diseases — most malefic house for Rahu"),
     ("KETU", 3):  ("communication","Success, gains, prosperity, spiritual gains"),
     ("KETU", 6):  ("enemies",      "Victory, gains, success over obstacles"),
+    ("KETU", 10): ("career",       "Detachment-driven career shifts, decisive cuts, and karmic realignment"),
     ("KETU", 11): ("gains",        "Good health, income, gains, fulfillment"),
     ("KETU", 9):  ("luck",         "Severe obstacles, diseases — most malefic house for Ketu"),
 }

@@ -561,11 +561,13 @@ def compute_solar_return(
     birth_jd = _datetime_to_jd(birth_dt, tz_offset)
     ayanamsa_birth = swe.get_ayanamsa(birth_jd)
 
-    # Get natal Sun tropical longitude
+    # Tajika annual charts are anchored to the natal sidereal Sun longitude.
     natal_sun, _ = swe.calc_ut(birth_jd, _SWE_PLANETS["SUN"])
     natal_sun_trop = natal_sun[0]
+    natal_sun_sid = (natal_sun_trop - ayanamsa_birth) % 360.0
 
-    # Search for the moment Sun reaches the same tropical longitude in target year
+    # Search for the moment the transiting sidereal Sun reaches the same
+    # sidereal longitude in the target year.
     # Start searching from ~10 days before the birthday in the target year
     search_start = datetime(year, birth_dt.month, max(1, birth_dt.day - 10))
     jd_search = swe.julday(search_start.year, search_start.month, search_start.day, 12.0)
@@ -573,7 +575,9 @@ def compute_solar_return(
     # Iterative search (Newton-Raphson style)
     for _iteration in range(50):
         sun_now, _ = swe.calc_ut(jd_search, _SWE_PLANETS["SUN"])
-        diff = (sun_now[0] - natal_sun_trop + 180.0) % 360.0 - 180.0
+        ayanamsa_now = swe.get_ayanamsa(jd_search)
+        sun_now_sid = (sun_now[0] - ayanamsa_now) % 360.0
+        diff = (sun_now_sid - natal_sun_sid + 180.0) % 360.0 - 180.0
         if abs(diff) < 0.0001:  # < 0.36 arc-seconds
             break
         speed = sun_now[3]  # deg/day
@@ -608,6 +612,7 @@ def compute_solar_return(
         "solar_return_utc":   sr_dt.isoformat(),
         "solar_return_local": sr_local.isoformat(),
         "natal_sun_tropical": round(natal_sun_trop, 6),
+        "natal_sun_sidereal": round(natal_sun_sid, 6),
         "chart":              chart,
     }
 

@@ -1,5 +1,5 @@
 # Module: varshaphala.py
-## Last Updated: 2026-03-02
+## Last Updated: 2026-04-14
 
 ## PURPOSE
 Implements the Tajika (Persian-derived) Varshaphala (Annual Chart) system. Computes the Solar Return chart, Varsha (annual) Lagna, Muntha, Varshesha (year lord), Panchavargheeya Bala (PVB), Mudda Dasha (monthly periods), all Tajika yogas, and Sahams (Arabic Parts). Full Varshaphala analysis for the solar return year.
@@ -16,6 +16,7 @@ Implements the Tajika (Persian-derived) Varshaphala (Annual Chart) system. Compu
 ### compute_varsha_analysis(varsha_lagna, positions, natal_positions) → dict
 - **Purpose:** Inner analysis of the annual chart positions
 - **Calls:** `compute_muntha()`, `compute_varsha_pati()`, `compute_pahama_bala()`
+- **Runtime note:** Date-specific scoring now expects SWE solar-return positions from `core/swisseph_bridge.py`, routed in by `prediction/engine.py:_build_dynamic_annual_context()`
 
 ### detect_tajika_yogas(positions, lagna_lon) → List[dict]
 - **Purpose:** Detect all Tajika-specific yogas (Itthasala, Ishrafa, Nakta, etc.)
@@ -36,4 +37,5 @@ Implements the Tajika (Persian-derived) Varshaphala (Annual Chart) system. Compu
 config.py, coordinates.py
 
 ## RECENT CHANGES
+- 2026-04-14: Engine wiring now feeds `compute_varsha_analysis()` with active solar-return chart positions for date-specific annual scoring
 - 2026-03-02: Full implementation added (Sahams, Mudda Dasha, Tajika yogas, PVB, Muntha, Varshesha)

@@ -196,6 +196,7 @@ TARA_DATA: List[Dict] = [
 def compute_tarabala_enhanced(
     natal_moon_nak: int,
     transit_moon_nak: int,
+    transit_moon_pada: int | None = None,
 ) -> Dict:
     """
     Enhanced Tarabala with precise 9-category multipliers.
@@ -203,24 +204,63 @@ def compute_tarabala_enhanced(
         natal_moon_nak: birth Moon nakshatra index (0-26)
         transit_moon_nak: transit Moon nakshatra index (0-26)
     Returns:
-        tara_num, tara_name, nature, multiplier, transit_boost_factor
+        tara_num, tara_name, nature, multiplier, effective_multiplier,
+        paryaya_cycle, paryaya_malefic_decay, transit_boost_factor
     """
     diff = (transit_moon_nak - natal_moon_nak) % 27
     tara_idx_0based = diff % 9
     tara_num = tara_idx_0based + 1
     tara = TARA_DATA[tara_idx_0based]
 
+    # Inclusive nakshatra count from natal Moon to transit Moon (1..27)
+    count_inclusive = diff + 1
+
+    # Paryaya cycles from Muhurta tradition:
+    # 1st cycle (1-9)  -> full malefic effect
+    # 2nd cycle (10-18)-> half malefic effect
+    # 3rd cycle (19-27)-> negligible malefic effect
+    paryaya_cycle = 1 if count_inclusive <= 9 else (2 if count_inclusive <= 18 else 3)
+    paryaya_malefic_decay = 1.0 if paryaya_cycle == 1 else (0.5 if paryaya_cycle == 2 else 0.0)
+
+    base_multiplier = float(tara["multiplier"])
+
+    # Apply classical decay only to malefic Taras (Vipat/Pratyak/Naidhana).
+    if tara_num in (3, 5, 7) and base_multiplier < 0:
+        effective_multiplier = base_multiplier * paryaya_malefic_decay
+    else:
+        effective_multiplier = base_multiplier
+
+    # 2nd paryaya concentration rule: specific padas carry most malefic intensity.
+    # Vipat->pada1, Pratyak->pada4, Naidhana->pada3.
+    concentrated_pada = {3: 1, 5: 4, 7: 3}.get(tara_num)
+    concentrated_pada_hit = bool(
+        paryaya_cycle == 2 and
+        concentrated_pada is not None and
+        transit_moon_pada in (1, 2, 3, 4) and
+        transit_moon_pada == concentrated_pada
+    )
+
+    if concentrated_pada_hit and effective_multiplier < 0:
+        # Reinstate full malefic intensity inside the concentration pada.
+        effective_multiplier = base_multiplier
+
     # Transit boost factor for confidence scoring:  +/- based on multiplier
     # Map multiplier -1.0→+1.0 to a ±0.20 confidence adjustment
-    transit_boost = tara["multiplier"] * 0.20
+    transit_boost = effective_multiplier * 0.20
 
     return {
         "tara_num": tara_num,
         "tara_name": tara["name"],
         "nature": tara["nature"],
-        "multiplier": tara["multiplier"],
+        "multiplier": round(base_multiplier, 3),
+        "effective_multiplier": round(effective_multiplier, 3),
+        "count": count_inclusive,
+        "paryaya_cycle": paryaya_cycle,
+        "paryaya_malefic_decay": paryaya_malefic_decay,
+        "concentrated_pada": concentrated_pada,
+        "concentrated_pada_hit": concentrated_pada_hit,
         "transit_boost_factor": round(transit_boost, 3),
-        "is_favorable": tara["multiplier"] > 0,
+        "is_favorable": effective_multiplier > 0,
         "is_highly_negative": tara["nature"] == "highly_negative",
     }
 
@@ -474,6 +514,7 @@ def check_dwisaptati_eligibility(
     seventh_lord_in_1st = (l7 and planet_houses.get(l7, 0) == 1)
 
     eligible = lagna_lord_in_7th or seventh_lord_in_1st
+    dwisaptati_total_years = int(sum(_DWISAPTATI_YEARS.values()))
     if lagna_lord_in_7th:
         reason = f"Lagna lord ({l1}) placed in 7th house"
     elif seventh_lord_in_1st:
@@ -485,10 +526,10 @@ def check_dwisaptati_eligibility(
         "eligible": eligible,
         "reason": reason,
         "dasha_system": "dwisaptati" if eligible else "vimshottari",
-        "dasha_period_years": 72 if eligible else 120,
+        "dasha_period_years": dwisaptati_total_years if eligible else 120,
         "dasha_planets": _DWISAPTATI_ORDER if eligible else None,
         "note": (
-            "DWISAPTATI SAMA DASHA: 72-year cycle with 8 planets (9 years each). "
+            f"DWISAPTATI SAMA DASHA: {dwisaptati_total_years}-year cycle with 8 planets (9 years each). "
             "Ketu excluded. Overrides Vimshottari per BPHS conditional rule."
             if eligible else ""
         ),
@@ -641,11 +682,39 @@ def compute_full_nakshatra_analysis(
     )
 
     # Pushkara analysis for each planet
+    # Expose both classical raw multiplier and effective (house-aware) multiplier.
+    # Non-destructive: existing `multiplier` field is preserved for compatibility.
+    _DUSTHANA_HOUSES = {6, 8, 12}
     pushkara_data = {}
+    _pushkara_raw_vals: List[float] = []
+    _pushkara_eff_vals: List[float] = []
     for pname, lon in planet_lons.items():
         pk = check_pushkara(lon, pname)
         if pk["multiplier"] > 1.0:
+            d1_house = int(planet_houses.get(pname, 0) or 0)
+            effective_multiplier = float(pk.get("multiplier", 1.0))
+            dusthana_nullified = False
+
+            # Classical exception used in this project flow:
+            # Pushkara Navamsa benefit is nullified in 6/8/12 in D1.
+            if (
+                bool(pk.get("is_pushkara_navamsa"))
+                and not bool(pk.get("is_pushkara_bhaga"))
+                and d1_house in _DUSTHANA_HOUSES
+            ):
+                effective_multiplier = 1.0
+                dusthana_nullified = True
+
+            pk["d1_house"] = d1_house
+            pk["effective_multiplier"] = round(effective_multiplier, 3)
+            pk["dusthana_nullified"] = dusthana_nullified
+            pk["source"] = "Jataka Parijata / classical Pushkara exception"
             pushkara_data[pname] = pk
+            _pushkara_raw_vals.append(float(pk.get("multiplier", 1.0)))
+            _pushkara_eff_vals.append(float(pk.get("effective_multiplier", 1.0)))
+
+    pushkara_raw_factor = round(sum(_pushkara_raw_vals) / len(_pushkara_raw_vals), 3) if _pushkara_raw_vals else 1.0
+    pushkara_effective_factor = round(sum(_pushkara_eff_vals) / len(_pushkara_eff_vals), 3) if _pushkara_eff_vals else 1.0
 
     # Vargottama
     vargottama_planets = compute_vargottama_planets(planet_lons)
@@ -669,6 +738,13 @@ def compute_full_nakshatra_analysis(
             (tara["transit_boost_factor"] + chandra["transit_boost_factor"]) / 2, 3
         ),
         "pushkara_planets":   pushkara_data,
+        "pushkara_diagnostic": {
+            "raw_factor": pushkara_raw_factor,
+            "effective_factor": pushkara_effective_factor,
+            "planet_count": len(pushkara_data),
+            "a_b_delta": round(pushkara_effective_factor - pushkara_raw_factor, 3),
+            "source": "Classical Pushkara (raw) vs dusthana-aware effective",
+        },
         "vargottama_planets": vargottama_list,
         "moon_naming_star":   moon_pada_info,
         "dwisaptati":         dwisaptati,

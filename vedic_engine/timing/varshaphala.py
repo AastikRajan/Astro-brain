@@ -1018,6 +1018,336 @@ def get_current_mudda(sequence: List[Dict[str, Any]],
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# 7B. HARSHA BALA (Native Tajika 20-point model)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Classical fixed Sthana houses (from Tajika/Varshaphala presentation)
+_HARSHA_STHANA_HOUSE: Dict[str, int] = {
+    "SUN": 9,
+    "MOON": 3,
+    "MARS": 6,
+    "SATURN": 12,
+    "MERCURY": 1,
+    "JUPITER": 11,
+    "VENUS": 5,
+}
+
+# Classical Stri-Purusha planet groups used by this rule set.
+_HARSHA_MALE_PLANETS = {"SUN", "MARS", "JUPITER"}
+_HARSHA_FEMALE_PLANETS = {"MOON", "MERCURY", "VENUS", "SATURN"}
+
+# Classical house-gender mapping used by Harsha Bala.
+_HARSHA_FEMALE_HOUSES = {1, 2, 3, 7, 8, 9}
+_HARSHA_MALE_HOUSES = {4, 5, 6, 10, 11, 12}
+
+
+def _harsha_is_own_exalt_or_moola(planet: str, longitude: float) -> bool:
+    """True when planet is in own/exaltation/moolatrikona sign-state."""
+    p = str(planet).upper()
+    if p not in _HARSHA_STHANA_HOUSE:
+        return False
+
+    sign_idx = int(longitude / 30) % 12
+    deg_in_sign = float(longitude % 30.0)
+
+    try:
+        from vedic_engine.config import Planet, OWN_SIGNS, MOOLATRIKONA, EXALTATION_DEGREES
+    except Exception:
+        return False
+
+    try:
+        p_enum = Planet[p]
+    except Exception:
+        return False
+
+    own_ok = any(int(s.value) == sign_idx for s in OWN_SIGNS.get(p_enum, []))
+    exalt_lon = float(EXALTATION_DEGREES.get(p_enum, -999.0))
+    exalt_sign = int(exalt_lon / 30.0) % 12 if exalt_lon >= 0 else -1
+    exalt_ok = sign_idx == exalt_sign
+
+    moola = MOOLATRIKONA.get(p_enum)
+    moola_ok = False
+    if isinstance(moola, tuple) and len(moola) == 3:
+        m_sign, m_start, m_end = moola
+        moola_ok = int(m_sign.value) == sign_idx and float(m_start) <= deg_in_sign < float(m_end)
+
+    return bool(own_ok or exalt_ok or moola_ok)
+
+
+def compute_harsha_bala(
+    planet: str,
+    longitude: float,
+    lagna_sign: int,
+    is_day_chart: bool,
+) -> Dict[str, Any]:
+    """
+    Compute native Harsha Bala (0-20), 5 points per classical condition:
+      1. Sthana Bala (fixed house per planet)
+      2. Own/Exaltation/Moolatrikona
+      3. Stri-Purusha (planet gender vs occupied house gender)
+      4. Dina-Ratri (male planets by day, female planets by night)
+    """
+    p = str(planet).upper()
+    if p not in _HARSHA_STHANA_HOUSE:
+        return {
+            "planet": p,
+            "score": 0,
+            "max": 20,
+            "eligible": False,
+            "reason": "unsupported_planet",
+        }
+
+    sign_idx = int(longitude / 30) % 12
+    house_num = ((sign_idx - int(lagna_sign)) % 12) + 1
+
+    sthana_ok = house_num == int(_HARSHA_STHANA_HOUSE[p])
+    dignity_ok = _harsha_is_own_exalt_or_moola(p, longitude)
+
+    if p in _HARSHA_MALE_PLANETS:
+        gender_ok = house_num in _HARSHA_MALE_HOUSES
+        day_night_ok = bool(is_day_chart)
+    else:
+        gender_ok = house_num in _HARSHA_FEMALE_HOUSES
+        day_night_ok = not bool(is_day_chart)
+
+    score = 0
+    score += 5 if sthana_ok else 0
+    score += 5 if dignity_ok else 0
+    score += 5 if gender_ok else 0
+    score += 5 if day_night_ok else 0
+
+    return {
+        "planet": p,
+        "score": int(score),
+        "max": 20,
+        "eligible": True,
+        "house": int(house_num),
+        "sign_idx": int(sign_idx),
+        "is_day_chart": bool(is_day_chart),
+        "components": {
+            "sthana": bool(sthana_ok),
+            "own_exalt_moola": bool(dignity_ok),
+            "stri_purusha": bool(gender_ok),
+            "dina_ratri": bool(day_night_ok),
+        },
+    }
+
+
+def compute_all_harsha_bala(
+    planet_lons: Dict[str, float],
+    lagna_sign: int,
+    is_day_chart: bool,
+) -> Dict[str, Any]:
+    """Compute Harsha Bala for the 7 classical planets in annual chart context."""
+    planets = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"]
+    per_planet: Dict[str, Any] = {}
+    for p in planets:
+        if p in planet_lons:
+            per_planet[p] = compute_harsha_bala(p, float(planet_lons[p]), lagna_sign, is_day_chart)
+
+    avg_score = 0.0
+    if per_planet:
+        avg_score = sum(float(v.get("score", 0.0)) for v in per_planet.values()) / float(len(per_planet))
+
+    return {
+        "by_planet": per_planet,
+        "avg_score": round(avg_score, 3),
+        "scale": "0_to_20",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 7C. TRIPATAKI CHAKRA (progression core; vedha geometry pending)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_TRIPATAKI_MODULO_9 = {"MOON"}
+_TRIPATAKI_MODULO_4 = {"SUN", "MERCURY", "JUPITER", "VENUS", "SATURN"}
+_TRIPATAKI_MODULO_6 = {"MARS", "RAHU", "KETU"}
+
+# Runtime line map sourced from bundled pyjhora Tripataki chakra geometry.
+_TRIPATAKI_POINT_RING: List[Tuple[int, int]] = [
+    (1, 3), (1, 4), (2, 5), (3, 5), (4, 5), (5, 4),
+    (5, 3), (5, 2), (4, 1), (3, 1), (2, 1), (1, 2),
+]
+_TRIPATAKI_ANCHOR_POINT: Tuple[int, int] = (3, 5)  # Classical point 'a'.
+_TRIPATAKI_VEDHA_LINES: Dict[Tuple[int, int], List[Tuple[int, int]]] = {
+    (2, 5): [(1, 4), (2, 1), (5, 2)],
+    (3, 5): [(1, 3), (3, 1), (5, 3)],
+    (4, 5): [(1, 2), (4, 1), (5, 4)],
+    (2, 1): [(1, 2), (5, 4)],
+    (3, 1): [(1, 3), (5, 3)],
+    (4, 1): [(1, 4), (5, 2)],
+    (1, 2): [(5, 2)],
+    (1, 3): [(5, 3)],
+    (1, 4): [(5, 4)],
+}
+
+_TRIPATAKI_BENEFICS = {"JUPITER", "VENUS", "MERCURY"}
+_TRIPATAKI_MALEFICS = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
+
+
+def _tripataki_step(planet: str, running_year: int) -> int:
+    """Return classical Tripataki progression step for a planet."""
+    p = str(planet).upper()
+    if p in _TRIPATAKI_MODULO_9:
+        rem = running_year % 9
+        return rem if rem != 0 else 9
+    if p in _TRIPATAKI_MODULO_4:
+        rem = running_year % 4
+        return rem if rem != 0 else 4
+    if p in _TRIPATAKI_MODULO_6:
+        rem = running_year % 6
+        return rem if rem != 0 else 6
+    return 0
+
+
+def _tripataki_sign_map(annual_lagna_sign: int) -> Dict[Tuple[int, int], int]:
+    """Map Tripataki points to signs with annual lagna at point 'a'."""
+    lagna = int(annual_lagna_sign) % 12
+    a_idx = _TRIPATAKI_POINT_RING.index(_TRIPATAKI_ANCHOR_POINT)
+    mapping: Dict[Tuple[int, int], int] = {}
+    for idx, point in enumerate(_TRIPATAKI_POINT_RING):
+        # Classical instruction: distribute remaining signs anti-clockwise from point 'a'.
+        sign_idx = (lagna + ((a_idx - idx) % 12)) % 12
+        mapping[point] = sign_idx
+    return mapping
+
+
+def _tripataki_point_adjacency() -> Dict[Tuple[int, int], List[Tuple[int, int]]]:
+    """Build undirected vedha adjacency from the Tripataki line map."""
+    adj: Dict[Tuple[int, int], set] = {}
+    for start, ends in _TRIPATAKI_VEDHA_LINES.items():
+        adj.setdefault(start, set())
+        for end in ends:
+            adj.setdefault(start, set()).add(end)
+            adj.setdefault(end, set()).add(start)
+    return {k: sorted(v) for k, v in adj.items()}
+
+
+def compute_tripataki_progression(
+    natal_planet_signs: Dict[str, int],
+    completed_years: int,
+    annual_lagna_sign: int,
+) -> Dict[str, Any]:
+    """
+    Compute Tripataki progression indices/signs per classical modulo rules.
+
+    Uses runtime line-map geometry to evaluate Vedha on progressed Moon.
+    """
+    running_year = int(completed_years) + 1
+    progressed: Dict[str, Any] = {}
+
+    for p_raw, natal_sign in (natal_planet_signs or {}).items():
+        p = str(p_raw).upper()
+        if p not in (_TRIPATAKI_MODULO_9 | _TRIPATAKI_MODULO_4 | _TRIPATAKI_MODULO_6):
+            continue
+        step = _tripataki_step(p, running_year)
+        base_sign = int(natal_sign) % 12
+        if p in {"RAHU", "KETU"}:
+            prog_sign = (base_sign - step) % 12  # reverse progression for nodes
+            direction = "reverse"
+        else:
+            prog_sign = (base_sign + step) % 12
+            direction = "forward"
+
+        progressed[p] = {
+            "natal_sign": base_sign,
+            "index_step": int(step),
+            "direction": direction,
+            "progressed_sign": int(prog_sign),
+            "progressed_sign_name": _SIGN_NAMES[int(prog_sign)],
+        }
+
+    moon_prog_sign = progressed.get("MOON", {}).get("progressed_sign")
+
+    sign_by_point = _tripataki_sign_map(annual_lagna_sign)
+    point_by_sign = {sign: point for point, sign in sign_by_point.items()}
+    point_adj = _tripataki_point_adjacency()
+
+    moon_vedha: Dict[str, Any] = {
+        "status": "moon_progression_unavailable",
+        "moon_point": None,
+        "vedha_points": [],
+        "vedha_signs": [],
+        "vedha_sign_names": [],
+        "hit_planets": [],
+        "benefic_hits": 0,
+        "malefic_hits": 0,
+        "weighted_score": 0.0,
+    }
+
+    if isinstance(moon_prog_sign, int):
+        moon_point = point_by_sign.get(int(moon_prog_sign) % 12)
+        if moon_point in point_adj:
+            vedha_points = point_adj.get(moon_point, [])
+            vedha_signs = [int(sign_by_point[pt]) for pt in vedha_points if pt in sign_by_point]
+            benefic_hits = 0
+            malefic_hits = 0
+            hit_planets: List[Dict[str, Any]] = []
+
+            for p in sorted(progressed.keys()):
+                if p == "MOON":
+                    continue
+                p_sign = int((progressed.get(p, {}) or {}).get("progressed_sign", -1))
+                if p_sign not in vedha_signs:
+                    continue
+
+                cls = "neutral"
+                if p in _TRIPATAKI_BENEFICS:
+                    cls = "benefic"
+                    benefic_hits += 1
+                elif p in _TRIPATAKI_MALEFICS:
+                    cls = "malefic"
+                    malefic_hits += 1
+
+                hit_planets.append(
+                    {
+                        "planet": p,
+                        "classification": cls,
+                        "progressed_sign": p_sign,
+                        "progressed_sign_name": _SIGN_NAMES[p_sign],
+                    }
+                )
+
+            weighted_score = float(benefic_hits - malefic_hits)
+            moon_vedha = {
+                "status": "evaluated",
+                "moon_point": list(moon_point),
+                "vedha_points": [list(pt) for pt in vedha_points],
+                "vedha_signs": vedha_signs,
+                "vedha_sign_names": [_SIGN_NAMES[s] for s in vedha_signs],
+                "hit_planets": hit_planets,
+                "benefic_hits": benefic_hits,
+                "malefic_hits": malefic_hits,
+                "weighted_score": round(weighted_score, 3),
+            }
+        else:
+            moon_vedha["status"] = "moon_point_unmapped"
+
+    return {
+        "running_year": running_year,
+        "annual_lagna_sign": int(annual_lagna_sign) % 12,
+        "annual_lagna_sign_name": _SIGN_NAMES[int(annual_lagna_sign) % 12],
+        "sign_map": [
+            {
+                "point": list(point),
+                "sign_idx": int(sign_by_point[point]),
+                "sign_name": _SIGN_NAMES[int(sign_by_point[point])],
+            }
+            for point in _TRIPATAKI_POINT_RING
+        ],
+        "progressions": progressed,
+        "moon_progressed_sign": moon_prog_sign,
+        "moon_progressed_sign_name": _SIGN_NAMES[int(moon_prog_sign)] if isinstance(moon_prog_sign, int) else None,
+        "moon_vedha": moon_vedha,
+        "status": "vedha_scored",
+        "vedha_geometry_available": True,
+        "geometry_source": "pyjhora_tripataki_line_map",
+        "source_gap": None,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 8. SOLAR RETURN COMPUTATION (requires ephemeris callback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1125,6 +1455,21 @@ def compute_varsha_analysis(
     # PVB for all planets
     pvb_all = {p: compute_pvb(p, lon) for p, lon in planet_lons.items()}
 
+    # Native Harsha Bala (annual efficacy diagnostic)
+    harsha_bala = compute_all_harsha_bala(
+        planet_lons=planet_lons,
+        lagna_sign=lagna_sign,
+        is_day_chart=is_day_chart,
+    )
+
+    # Native Tripataki progression core (no invented vedha geometry)
+    _natal_signs = {str(p).upper(): (int(float(lon) / 30.0) % 12) for p, lon in planet_lons.items()}
+    tripataki = compute_tripataki_progression(
+        natal_planet_signs=_natal_signs,
+        completed_years=completed_years,
+        annual_lagna_sign=lagna_sign,
+    )
+
     # Varsha Pati
     vp = compute_varsha_pati(
         natal_lagna_sign  = natal_lagna_sign,
@@ -1157,6 +1502,8 @@ def compute_varsha_analysis(
             "interpretation": muntha_interp,
         },
         "pvb":             pvb_all,
+        "harsha_bala":     harsha_bala,
+        "tripataki":       tripataki,
         "varsha_pati":     vp,
         "tajika_yogas":    yogas,
         "sahams":          sahams,

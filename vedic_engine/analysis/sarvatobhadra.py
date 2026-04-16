@@ -95,6 +95,31 @@ def nakshatra_of_lon(longitude: float) -> str:
     return NAKSHATRAS_27[idx]
 
 
+def _normalize_natal_nakshatra(natal_nakshatra) -> Optional[str]:
+    """Normalize natal nakshatra input to a valid name.
+
+    Supported inputs:
+      - str nakshatra name
+      - int index (0-based preferred; 1-based fallback)
+    """
+    if isinstance(natal_nakshatra, str):
+        name = natal_nakshatra.strip()
+        if name in NAK_POSITIONS:
+            return name
+        return None
+
+    if isinstance(natal_nakshatra, int):
+        idx = int(natal_nakshatra)
+        # Prefer 0-based handling used by engine internals.
+        if 0 <= idx < len(NAKSHATRAS_27):
+            return NAKSHATRAS_27[idx]
+        # Fallback for 1-based indexing.
+        if 1 <= idx <= len(NAKSHATRAS_27):
+            return NAKSHATRAS_27[idx - 1]
+
+    return None
+
+
 def _edge_of(row: int, col: int) -> str:
     """Return which edge/location a cell is on."""
     if col == 8: return "east"
@@ -154,7 +179,7 @@ def _cast_ray(start_row: int, start_col: int, direction: str) -> List[Tuple[int,
 
 
 def construct_sbc_grid(
-        natal_nakshatra: str,
+    natal_nakshatra,
         natal_sign: int,           # 0-based
         birth_tithi: int,          # 1-30
         birth_weekday: int,        # 0=Sunday, 1=Monday, ...
@@ -179,14 +204,22 @@ def construct_sbc_grid(
     natal_sign_name  = _SIGN_NAMES[natal_sign % 12]
     birth_weekday_name = _WEEKDAY_NAMES[birth_weekday % 7]
 
+    normalized_nak = _normalize_natal_nakshatra(natal_nakshatra)
+
     # Natal nakshatra cell
-    nak_cell = NAK_POSITIONS.get(natal_nakshatra, (None, None))
+    nak_cell = NAK_POSITIONS.get(normalized_nak)
     sign_cell = SIGN_RING_CELLS.get(natal_sign_name)
     tithi_cells = TITHI_CELLS.get(birth_tithi_group, [])
     weekday_cell = WEEKDAY_CELLS.get(birth_weekday_name)
 
+    sensitive_cells = {
+        c
+        for c in [nak_cell, sign_cell, weekday_cell] + tithi_cells
+        if isinstance(c, tuple) and len(c) == 2 and None not in c
+    }
+
     return {
-        "natal_nakshatra":  natal_nakshatra,
+        "natal_nakshatra":  normalized_nak,
         "natal_sign":       natal_sign_name,
         "birth_tithi":      birth_tithi,
         "birth_tithi_group": birth_tithi_group,
@@ -196,10 +229,7 @@ def construct_sbc_grid(
         "tithi_cells":      tithi_cells,
         "weekday_cell":     weekday_cell,
         # Sensitive cells = all natal reference cells
-        "sensitive_cells":  {
-            c for c in [nak_cell, sign_cell, weekday_cell] + tithi_cells
-            if c is not None
-        },
+        "sensitive_cells":  sensitive_cells,
     }
 
 

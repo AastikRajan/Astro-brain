@@ -197,7 +197,7 @@ def run_btr_simulation(
     window_minutes: ± range in minutes for sampling
     n_simulations : number of Monte Carlo samples
     engine_fn     : callable(VedicChart, domain) → {"confidence": float, ...}
-                    If None, raises NotImplementedError (engine not wired yet)
+                    If None, returns an empty BTRResult and logs a warning.
     parallel_jobs : number of parallel workers
     seed          : random seed for reproducibility
 
@@ -205,15 +205,6 @@ def run_btr_simulation(
     -------
     BTRResult with .compute_stats() already called.
     """
-    if engine_fn is None:
-        raise NotImplementedError(
-            "BTR simulation requires engine_fn=PredictionEngine().predict_domain. "
-            "Wire the engine in main.py or the caller. See btr_montecarlo.py docstring."
-        )
-
-    if seed is not None:
-        random.seed(seed)
-
     # Parse base birth datetime
     bi = base_chart.birth_info
     try:
@@ -229,6 +220,17 @@ def run_btr_simulation(
         n_successful=0,
     )
 
+    if engine_fn is None:
+        logger.warning(
+            "[BTR] engine_fn is None; returning empty simulation result. "
+            "Pass engine_fn(chart, domain) to execute Monte Carlo BTR."
+        )
+        result.compute_stats()
+        return result
+
+    if seed is not None:
+        random.seed(seed)
+
     # Generate random birth times
     offsets_sec = [
         random.uniform(-window_minutes * 60, window_minutes * 60)
@@ -242,33 +244,51 @@ def run_btr_simulation(
         try:
             sim_dt = base_dt + timedelta(seconds=offset_sec)
 
-            # Rebuild chart dict with new birth time
-            sim_dict = {
-                "birth_info": {
-                    "name": bi.name, "date": sim_dt.strftime("%Y-%m-%d"),
-                    "time": sim_dt.strftime("%H:%M:%S"),
-                    "place": bi.place, "latitude": bi.latitude,
-                    "longitude": bi.longitude, "timezone": bi.timezone,
-                    "ayanamsa": bi.ayanamsa, "ayanamsa_model": bi.ayanamsa_model,
-                }
-            }
-
+            # Recompute natal chart for the sampled birth time.
+            from vedic_engine.core.swisseph_bridge import build_chart_from_birth_data
             from vedic_engine.data.loader import load_from_dict
-            # NOTE: load_from_dict re-reads planets from JSON; for BTR we need
-            # the full raw JSON including planets. This stub shows the pattern;
-            # caller must pass raw_json to this function when wiring.
-            # sim_chart = load_from_dict({**raw_json, "birth_info": sim_dict["birth_info"]})
 
-            # Placeholder — actual engine call:
-            # prediction = engine_fn(sim_chart, domain)
-            # return BTRSample(
-            #     birth_dt=sim_dt,
-            #     confidence=prediction.get("confidence", 0.5),
-            #     domain=domain,
-            #     prediction_level=prediction.get("prediction_level", "UNKNOWN"),
-            #     details=prediction,
-            # )
-            raise NotImplementedError("Wiring incomplete — see scaffold comment above.")
+            _ayanamsa_model = (bi.ayanamsa_model or "Lahiri").lower()
+            _house_system = "placidus"
+
+            sim_raw = build_chart_from_birth_data(
+                name=bi.name,
+                date_str=sim_dt.strftime("%Y-%m-%d"),
+                time_str=sim_dt.strftime("%H:%M:%S"),
+                place=bi.place,
+                latitude=bi.latitude,
+                longitude=bi.longitude,
+                tz_offset=bi.timezone,
+                ayanamsa=_ayanamsa_model,
+                house_system=_house_system,
+                use_true_node=False,
+            )
+            sim_chart = load_from_dict(sim_raw)
+
+            prediction = engine_fn(sim_chart, domain)
+
+            conf = 0.5
+            level = "UNKNOWN"
+            if isinstance(prediction, dict):
+                # Support both flat and nested confidence payloads.
+                c = prediction.get("confidence")
+                if isinstance(c, dict):
+                    conf = float(c.get("overall", c.get("final", 0.5)))
+                    level = str(c.get("level", prediction.get("prediction_level", "UNKNOWN")))
+                elif isinstance(c, (int, float)):
+                    conf = float(c)
+                    level = str(prediction.get("prediction_level", "UNKNOWN"))
+                else:
+                    conf = float(prediction.get("overall", prediction.get("final", 0.5)))
+                    level = str(prediction.get("prediction_level", "UNKNOWN"))
+
+            return BTRSample(
+                birth_dt=sim_dt,
+                confidence=max(0.0, min(1.0, conf)),
+                domain=domain,
+                prediction_level=level,
+                details=prediction if isinstance(prediction, dict) else {"raw": str(prediction)},
+            )
         except Exception as e:
             logger.debug(f"[BTR] sample failed: {e}")
             return None

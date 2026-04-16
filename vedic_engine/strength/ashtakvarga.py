@@ -20,6 +20,33 @@ PLANET_NAMES_7 = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN"
 SIGN_NAMES = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo",
               "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
 
+PLANET_BAV_GOOD_THRESHOLD = {
+    "SUN": 4,
+    "MOON": 5,
+    "MARS": 4,
+    "MERCURY": 5,
+    "JUPITER": 5,
+    "VENUS": 5,
+    "SATURN": 4,
+}
+
+SAV_HOUSE_MINIMUM = {
+    1: 25,
+    2: 22,
+    3: 29,
+    4: 24,
+    5: 25,
+    6: 34,
+    7: 19,
+    8: 24,
+    9: 29,
+    10: 36,
+    11: 54,
+    12: 16,
+}
+
+_DUSTHANA_HOUSES = {6, 8, 12}
+
 _P = {
     "SUN": Planet.SUN, "MOON": Planet.MOON, "MARS": Planet.MARS,
     "MERCURY": Planet.MERCURY, "JUPITER": Planet.JUPITER,
@@ -86,6 +113,67 @@ def compute_sarvashtakvarga(bhinna: Dict[str, List[int]]) -> List[int]:
         for i in range(12):
             sarva[i] += bav[i]
     return sarva
+
+
+def compute_sav_profile(sarva: List[int]) -> Dict:
+    """
+    Build advanced SAV diagnostics: house threshold status, wealth/loss ratios,
+    and core comparative rules used in prediction explanations.
+    """
+    if not isinstance(sarva, list) or len(sarva) < 12:
+        return {
+            "error": "Invalid SAV list",
+            "houses": {},
+        }
+
+    houses: Dict[int, Dict] = {}
+    for h in range(1, 13):
+        val = int(sarva[h - 1])
+        min_req = SAV_HOUSE_MINIMUM.get(h, 28)
+        if h in _DUSTHANA_HOUSES:
+            status = "PROTECTIVE" if val <= min_req else "VULNERABLE"
+        else:
+            status = "SUPPORTED" if val >= min_req else "UNDER_MIN"
+        houses[h] = {
+            "sav": val,
+            "minimum": min_req,
+            "status": status,
+            "reversed": h in _DUSTHANA_HOUSES,
+        }
+
+    vittya = int(sarva[1] + sarva[3] + sarva[8] + sarva[9] + sarva[10])
+    teertha = int(sarva[5] + sarva[7] + sarva[11])
+    h2 = int(sarva[1])
+    h12 = int(sarva[11])
+    h1 = int(sarva[0])
+    h8 = int(sarva[7])
+
+    return {
+        "houses": houses,
+        "vittya": {
+            "score": vittya,
+            "threshold": 164,
+            "status": "PROSPEROUS" if vittya > 164 else ("BALANCED" if vittya == 164 else "STRAINED"),
+            "ratio": round(vittya / 164.0, 3),
+        },
+        "teertha": {
+            "score": teertha,
+            "threshold": 76,
+            "status": "PROTECTED" if teertha < 76 else "VULNERABLE",
+            "ratio": round(teertha / 76.0, 3),
+        },
+        "savings_capacity": {
+            "h2": h2,
+            "h12": h12,
+            "can_save": h2 > h12,
+            "ratio": round((h2 / h12), 3) if h12 > 0 else None,
+        },
+        "h1_vs_h8": {
+            "h1": h1,
+            "h8": h8,
+            "healthy_balance": h1 > h8,
+        },
+    }
 
 
 def validate_checksum(bhinna: Dict[str, List[int]]) -> Dict[str, bool]:
@@ -235,6 +323,7 @@ def compute_full_ashtakvarga(
         "bhinna": bhinna,
         "sarva": sarva,
         "sarva_total": sum(sarva),
+        "sav_profile": compute_sav_profile(sarva),
         "checksums": checks,
         "shodhana": shodhana_results,
         "pinda": pinda_results,
@@ -267,6 +356,69 @@ def transit_av_score(
         "sav_above_average": sav_score > sav_avg,
         "bav_above_average": bav_score > 4,  # >4 of 8 is above average
         "overall_favorable": bav_score > 3 and sav_score > sav_avg,
+    }
+
+
+def calculate_transit_quality(
+        transiting_planet: str,
+        transit_sign: int,
+        bhinna: Dict[str, List[int]],
+) -> Dict:
+    """
+    Classify transit quality from planet-specific BAV threshold with a bounded
+    multiplier, suitable for optional use in scoring layers.
+    """
+    p = (transiting_planet or "").upper()
+    bav_list = bhinna.get(p, [4] * 12)
+    score = int(bav_list[transit_sign]) if transit_sign < len(bav_list) else 4
+    threshold = PLANET_BAV_GOOD_THRESHOLD.get(p, 5)
+
+    if score <= 1:
+        quality, mult = "HIGHLY_OBSTRUCTED", 0.20
+    elif score <= 3:
+        quality, mult = "WEAK", 0.50
+    elif score == 4:
+        quality, mult = "NEUTRAL", 1.00
+    elif score <= 6:
+        quality, mult = "STRONG", 1.30
+    else:
+        quality, mult = "EXCELLENT", 1.60
+
+    return {
+        "planet": p,
+        "sign": transit_sign,
+        "bav_score": score,
+        "planet_good_threshold": threshold,
+        "is_good_by_planet_rule": score >= threshold,
+        "quality": quality,
+        "multiplier": mult,
+    }
+
+
+def evaluate_kakshya_transit(
+        transiting_planet: str,
+        transit_sign: int,
+        degree_in_sign: float,
+        pav: Dict[str, Dict[str, List[int]]],
+) -> Dict:
+    """
+    Evaluate if a transit is favorable in the current kakshya using PAV.
+    Expects PAV from compute_prastharashtakavarga().
+    """
+    p = (transiting_planet or "").upper()
+    kakshya_ruler = kakshya_lord_of_degree(float(degree_in_sign))
+
+    p_pav = pav.get(p, {}) if isinstance(pav, dict) else {}
+    ruler_row = p_pav.get(kakshya_ruler, []) if isinstance(p_pav, dict) else []
+    bindu = int(ruler_row[transit_sign]) if isinstance(ruler_row, list) and transit_sign < len(ruler_row) else 0
+
+    return {
+        "planet": p,
+        "sign": transit_sign,
+        "degree_in_sign": round(float(degree_in_sign), 3),
+        "kakshya_ruler": kakshya_ruler,
+        "bindu": bindu,
+        "result": "AUSPICIOUS" if bindu == 1 else "BARREN",
     }
 
 

@@ -69,7 +69,36 @@ def nakshatra_of_lon(longitude: float, include_abhijit: bool = False) -> str:
     return _NAK27[idx]
 
 
-def compute_kota_chakra(moon_nakshatra: str) -> Dict:
+def _normalize_janma_nakshatra(moon_nakshatra) -> Optional[str]:
+    """Normalize janma nakshatra input to canonical name.
+
+    Supported inputs:
+      - str name
+      - int index (0-based preferred; 1-based fallback)
+    """
+    if isinstance(moon_nakshatra, str):
+        name = moon_nakshatra.strip()
+        if name in _NAK28_IDX or name in _NAK27_IDX:
+            return name
+        return None
+
+    if isinstance(moon_nakshatra, int):
+        idx = int(moon_nakshatra)
+        # Prefer 0-based indices used by runtime internals.
+        if 0 <= idx < len(_NAK27):
+            return _NAK27[idx]
+        if 0 <= idx < len(_NAK28):
+            return _NAK28[idx]
+        # Fallback for 1-based indexing.
+        if 1 <= idx <= len(_NAK27):
+            return _NAK27[idx - 1]
+        if 1 <= idx <= len(_NAK28):
+            return _NAK28[idx - 1]
+
+    return None
+
+
+def compute_kota_chakra(moon_nakshatra) -> Dict:
     """
     Build Kota Chakra from the native's Janma Nakshatra (natal Moon's star).
 
@@ -87,13 +116,17 @@ def compute_kota_chakra(moon_nakshatra: str) -> Dict:
           "nak_direction": Dict[str, str], # nakshatra → "diagonal" or "cardinal"
         }
     """
+    normalized_nak = _normalize_janma_nakshatra(moon_nakshatra)
+    if not normalized_nak:
+        normalized_nak = _NAK27[0]
+
     # Determine janma nakshatra index in 28-nak list
     # If 27-nak nakshatra, find in 28-nak by name
-    if moon_nakshatra in _NAK28_IDX:
-        janma_28 = _NAK28_IDX[moon_nakshatra]
-    elif moon_nakshatra in _NAK27_IDX:
+    if normalized_nak in _NAK28_IDX:
+        janma_28 = _NAK28_IDX[normalized_nak]
+    elif normalized_nak in _NAK27_IDX:
         # Map 27→28 by inserting Abhijit at its position
-        nak27_idx = _NAK27_IDX[moon_nakshatra]
+        nak27_idx = _NAK27_IDX[normalized_nak]
         # Abhijit is inserted between index 20 (Uttarashadha) and 21 (Shravana) in 28-nak
         janma_28 = nak27_idx if nak27_idx <= 20 else nak27_idx + 1
     else:
@@ -122,7 +155,7 @@ def compute_kota_chakra(moon_nakshatra: str) -> Dict:
     kota_swami = "unknown"
 
     return {
-        "janma_nakshatra": moon_nakshatra,
+        "janma_nakshatra": normalized_nak,
         "kota_swami":      kota_swami,
         "zones":           zones,
         "nak_zone":        nak_zone,

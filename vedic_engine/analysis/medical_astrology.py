@@ -336,8 +336,9 @@ def _apply_haranas(
     net = gross_years
     applied: List[str] = []
 
-    # Astangata (combustion): halve the value
-    if planet in combust_planets:
+    # Astangata (combustion): halve the value, except Venus/Saturn exemption
+    # in Ayurdaya frameworks (Phaladeepika/Horasara tradition).
+    if planet in combust_planets and planet not in {"VENUS", "SATURN"}:
         net /= 2.0
         applied.append(f"Astangata (combustion) → ÷2")
 
@@ -512,8 +513,9 @@ def compute_amsayu(
         net = gross
         haranas: List[str] = []
 
-        # Astangata (combustion): halve
-        if p in combust_planets:
+        # Astangata (combustion): halve, except Venus/Saturn exemption
+        # in Ayurdaya frameworks (Phaladeepika/Horasara tradition).
+        if p in combust_planets and p not in {"VENUS", "SATURN"}:
             net /= 2.0
             haranas.append("Astangata ÷2")
 

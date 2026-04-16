@@ -30,6 +30,7 @@ Integration into confidence:
   - Net argala strength becomes a modifier on the domain prediction
 """
 from __future__ import annotations
+import os
 from typing import Dict, List, Optional, Tuple
 
 from vedic_engine.config import Planet, NATURAL_BENEFICS, NATURAL_MALEFICS
@@ -50,6 +51,22 @@ NATURAL_MALEFIC_NAMES  = {"SUN", "MARS", "SATURN", "RAHU", "KETU"}
 ARGALA_BENEFIC_WT  = 0.08   # per strong benefic argala
 ARGALA_PAAPA_WT    = 0.06   # per malefic argala (negative)
 
+# Classical house weights: 2/4/11 primary full, 5 secondary half, 7 special half.
+ARGALA_HOUSE_WEIGHTS = {
+    2: 1.0,
+    4: 1.0,
+    11: 1.0,
+    5: 0.5,
+    7: 0.5,
+}
+
+# Node reversal mode:
+# - "ketu"  : backward-compatible legacy behavior
+# - "both"  : apply reverse-direction treatment to both nodes
+_ARGALA_NODE_REVERSE_MODE = os.getenv("VE_ARGALA_NODE_REVERSE_MODE", "ketu").strip().lower()
+if _ARGALA_NODE_REVERSE_MODE not in {"ketu", "both"}:
+    _ARGALA_NODE_REVERSE_MODE = "ketu"
+
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -66,25 +83,30 @@ def _is_benefic(planet: str) -> bool:
     return planet in NATURAL_BENEFIC_NAMES
 
 
-def _apply_ketu_reversal(
+def _apply_node_reversal(
     a_planets: List[str],
     v_planets: List[str],
 ) -> Tuple[List[str], List[str]]:
     """
-    Jaimini Ketu Exception: Ketu reverses ALL Argala directions.
+    Reverse-direction node rule for Argala.
 
-    Ketu in Argala house → moves to Virodha list (obstruction role).
-    Ketu in Virodha house → moves to Argala list (support role).
+    In "ketu" mode: only Ketu reverses direction.
+    In "both" mode: Ketu and Rahu reverse direction.
 
     This is applied PER argala pair, after house lookups.
     """
-    new_a = [p for p in a_planets if p != "KETU"]
-    new_v = [p for p in v_planets if p != "KETU"]
+    reverse_nodes = {"KETU"}
+    if _ARGALA_NODE_REVERSE_MODE == "both":
+        reverse_nodes.add("RAHU")
 
-    if "KETU" in a_planets:
-        new_v.append("KETU")   # Ketu flips from Argala → Virodha
-    if "KETU" in v_planets:
-        new_a.append("KETU")   # Ketu flips from Virodha → Argala
+    new_a = [p for p in a_planets if p not in reverse_nodes]
+    new_v = [p for p in v_planets if p not in reverse_nodes]
+
+    for node in reverse_nodes:
+        if node in a_planets:
+            new_v.append(node)
+        if node in v_planets:
+            new_a.append(node)
 
     return new_a, new_v
 
@@ -130,6 +152,7 @@ def compute_argala(
 
     argala_active   = []
     virodha_active  = []
+    unobstructable_count = 0
 
     # ── VIPARITA ARGALA check ─────────────────────────────────────
     # 3+ malefics in 3rd house from reference = totally unblockable worldly success
@@ -157,9 +180,38 @@ def compute_argala(
         a_planets = _planets_in_house(a_house, planet_houses)
         v_planets = _planets_in_house(v_house, planet_houses)
 
-        # ── Ketu Exception (Jaimini): Ketu reverses its Argala direction ──────
-        # Ketu in Argala house → shifts to Virodha role; in Virodha → Argala role
-        a_planets, v_planets = _apply_ketu_reversal(a_planets, v_planets)
+        # Reverse-direction node rule (Ketu-only by default, both nodes in strict mode).
+        a_planets, v_planets = _apply_node_reversal(a_planets, v_planets)
+
+        pair_weight = ARGALA_HOUSE_WEIGHTS.get(argala_offset, 1.0)
+
+        # Pure obstruction: empty Argala house but occupied virodha house.
+        if not a_planets and v_planets:
+            virodha_active.append({
+                "house": v_house,
+                "offset": virodha_offset,
+                "planets": v_planets,
+                "obstructs_argala_house": a_house,
+                "pure_obstruction": True,
+            })
+            argala_active.append({
+                "argala_house": a_house,
+                "argala_offset": argala_offset,
+                "argala_type": argala_type,
+                "house_weight": pair_weight,
+                "planets": [],
+                "benefics": [],
+                "malefics": [],
+                "virodha_house": v_house,
+                "virodha_planets": v_planets,
+                "cancelled": True,
+                "unobstructable": False,
+                "pure_virodha": True,
+                "viparita_argala_override": False,
+                "net_type": "PURE_VIRODHA",
+                "contribution": round(-ARGALA_PAAPA_WT * pair_weight * min(len(v_planets), 2), 4),
+            })
+            continue
 
         if not a_planets:
             continue  # no argala from this house
@@ -183,9 +235,14 @@ def compute_argala(
         v_benefics = [p for p in v_planets if _is_benefic(p)]
         v_has_benefic_aspect = bool(v_benefics)
 
-        # Special case: Viparita Argala overrides all obstruction
+        # Special case: 3+ planets in Argala house is unobstructable.
+        unobstructable = a_count >= 3
+
+        # Special case: Viparita Argala overrides all obstruction for primary houses.
         if viparita_argala_active and argala_type == "primary":
             cancelled = False  # unblockable
+        elif unobstructable:
+            cancelled = False
         elif a_count > v_count:
             # Priority 1: Quantity wins for argala
             cancelled = False
@@ -209,12 +266,15 @@ def compute_argala(
             "argala_house":   a_house,
             "argala_offset":  argala_offset,
             "argala_type":    argala_type,
+            "house_weight":   pair_weight,
             "planets":        a_planets,
             "benefics":       a_benefics,
             "malefics":       a_malefics,
             "virodha_house":  v_house,
             "virodha_planets":v_planets,
             "cancelled":      cancelled,
+            "unobstructable": unobstructable,
+            "pure_virodha":   False,
             "viparita_argala_override": viparita_argala_active and argala_type == "primary",
             "net_type":       None,
             "contribution":   0.0,
@@ -228,12 +288,21 @@ def compute_argala(
             count = len(a_benefics)
             strength_avg = _shadbala_count(a_benefics, shadbala_ratios) / max(count, 1)
             argala_entry["net_type"] = "POSITIVE"
-            argala_entry["contribution"] = ARGALA_BENEFIC_WT * count * min(strength_avg, 1.5) / 1.5
+            argala_entry["contribution"] = (
+                ARGALA_BENEFIC_WT
+                * pair_weight
+                * count
+                * min(strength_avg, 1.5)
+                / 1.5
+            )
         elif a_malefics:
             # Paapa Argala
             count = len(a_malefics)
             argala_entry["net_type"] = "PAAPA"
-            argala_entry["contribution"] = -ARGALA_PAAPA_WT * count
+            argala_entry["contribution"] = -ARGALA_PAAPA_WT * pair_weight * count
+
+        if unobstructable:
+            unobstructable_count += 1
 
         argala_active.append(argala_entry)
 
@@ -268,11 +337,13 @@ def compute_argala(
         "reference": label,
         "reference_house": reference_house,
         "viparita_argala": viparita_argala_active,
+        "node_reverse_mode": _ARGALA_NODE_REVERSE_MODE,
         "argala_list": argala_active,
         "virodha_list": virodha_active,
         "positive_count": positive_count,
         "paapa_count": paapa_count,
         "cancelled_count": cancelled_count,
+        "unobstructable_count": unobstructable_count,
         "net_strength": round(net, 4),
         "verdict": verdict,
         "confidence_mod": round(net * 0.5, 4),  # halved for conservative blending

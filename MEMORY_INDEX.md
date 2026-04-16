@@ -18,6 +18,8 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 
 **Phase 6 Layer 2 update:** Layer 1 chain is replaced with research-backed formulas. `prediction/classical_modifiers.py` now provides domain-config driven `compute_planet_effectiveness()`, `compute_bhava_effectiveness()`, dasha convergence interpolation (`CONVERGENCE_TABLE`), and yoga-domain boosts. `prediction/prediction_overrides.py:check_master_overrides()` runs before normal blending. `engine.py:predict()` now applies `raw_adjusted = raw × classical_modifier`, then convergence and dosha/yoga adjustments, with override short-circuit for final confidence.
 
+**Milestones G-L + Arbitration R3 update (2026-04-15):** Runtime now includes Dasha Pravesha commencement-chart gating (`dasha_pravesha_mult`), precise Pravesha anchor fidelity for Nakshatra/Yoga solvers, Tripataki vedha geometry annual delta mapping, deterministic final confidence arbitration with domain-calibrated profiles refreshed on a 29-report baseline, structural-first arbitration precedence tiers, and finalized default `VE_USE_TROPICAL_MONTH_FOR_PRAVESHA=1` (override retained).
+
 ---
 
 ## SECTION B: Module Registry
@@ -28,9 +30,9 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 | `vedic_engine/__init__.py` | Package init | — | — | 2026-03-02 |
 | `vedic_engine/config.py` | All constants, enums, lookup tables (single source of truth) | Planet, Sign, VIMSHOTTARI_YEARS, SIGN_LORDS, GOCHAR_EFFECTS, VEDHA_TABLE | — | 2026-03-02 |
 | **prediction/** | | | | |
-| `prediction/engine.py` | Main pipeline orchestrator; builds static + dynamic analysis | `analyze_static()`, `predict()`, `_build_domain_report()` | All submodules | 2026-03-02 |
+| `prediction/engine.py` | Main pipeline orchestrator; builds static + dynamic analysis | `analyze_static()`, `analyze_dynamic()`, `predict()` | All submodules | 2026-04-15 (Arbitration calibration re-fit R3) |
 | `prediction/promise.py` | Three Pillar natal promise evaluation; hard gate | `evaluate_promise()`, `_score_bhava()`, `_score_bhavesha()`, `_score_karaka()` | config.py | 2026-03-02 |
-| `prediction/confidence.py` | 8-component weighted confidence scoring | `compute_confidence()`, `score_dasha_alignment()`, `score_transit_support()`, `_tiered_bav()` | config.py | 2026-03-02 |
+| `prediction/confidence.py` | 9-component weighted confidence scoring + dasha-pravesha throttle and gate-state caps | `compute_confidence()`, `score_dasha_alignment()`, `score_transit_support()`, `_tiered_bav()`, `multi_system_agreement()` | config.py | 2026-04-14 |
 | `prediction/classical_modifiers.py` | Research-backed domain formulas: planet effectiveness, bhava effectiveness, convergence interpolation, yoga boost, dosha modifier | `compute_classical_modifier()`, `compute_planet_effectiveness()`, `compute_bhava_effectiveness()`, `get_convergence_confidence()`, `compute_yoga_domain_boost()` | static/dynamic computed feature bundles | 2026-03-05 |
 | `prediction/domain_signal_weights.py` | Domain signal priority registry (primary/secondary ranked weights) | `DOMAIN_SIGNALS` | research docs (`new6/`) | 2026-03-05 |
 | `prediction/prediction_overrides.py` | Master override interrupt logic (Sade Sati weak Moon, Sandhi, Saturn-Rahu, Vipreet activation, Vimshopak extreme) | `check_master_overrides()` | computed + dynamic transit bundle | 2026-03-05 |
@@ -57,12 +59,12 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 | `timing/kalachakra.py` | Kalachakra Dasha (nakshatra-pada based) | `compute_kalachakra_dasha()`, `get_active_kalachakra_period()`, `analyze_deha_jeeva_transits()` | config.py | 2026-03-02 |
 | `timing/jaimini_dashas.py` | Multiple Jaimini dasha variants | `compute_shoola_dasha()`, `compute_brahma_dasha()`, `compute_sudasa()`, `compute_drig_dasha()` | config.py | 2026-03-02 |
 | `timing/conditional_dashas.py` | 8 conditional dasha systems with eligibility checks | `check_all_conditional_eligibility()`, `compute_shodashottari()`, `compute_moola_dasha()` | config.py | 2026-03-02 |
-| `timing/varshaphala.py` | Annual solar return (Varshaphala / Tajika) | `compute_varshaphala()`, `compute_varsha_analysis()`, `detect_tajika_yogas()`, `compute_all_sahams()` | config.py | 2026-03-02 |
+| `timing/varshaphala.py` | Annual solar return (Varshaphala / Tajika) | `compute_varshaphala()`, `compute_varsha_analysis()`, `detect_tajika_yogas()`, `compute_all_sahams()` | config.py | 2026-04-14 |
 | `timing/panchanga.py` | Daily Panchanga (Tithi, Vara, Nakshatra, Yoga, Karana) | `compute_panchanga()`, `tithi()`, `vara()`, `nakshatra_info()` | config.py | 2026-03-02 |
 | `timing/muhurta.py` | Auspicious timing windows | `find_muhurta_windows()`, `score_window()`, `check_muhurta_date()` | panchanga.py | 2026-03-02 |
 | `timing/muhurta_extended.py` | Extended Muhurta: Panchanga Shuddhi, Hora, Choghadiya, Abhijit, inauspicious windows, domain muhurtas | `compute_panchanga_shuddhi()`, `compute_hora()`, `compute_choghadiya()`, `compute_abhijit_muhurta()`, `compute_all_inauspicious_windows()`, `check_marriage_muhurta()`, `check_surgery_muhurta()` | — | 2026-03-03 |
 | `timing/advanced_dashas.py` | Sudarshana degree balance, Patyayini Dasha (Tajika), Ashtaka Dasha (BAV-proportional) | `compute_sudarshana_balance()`, `compute_sudarshana_dasha_sequence()`, `compute_patyayini_dasha()`, `compute_ashtaka_dasha()` | — | 2026-03-03 |
-| `timing/tithi_pravesh.py` | Luni-Solar Annual Return (Tithi Pravesh) | `compute_natal_tithi_angle()`, `compute_tithi_pravesh()`, `solve_tithi_pravesh_iterative()` | — | 2026-03-03 |
+| `timing/tithi_pravesh.py` | Luni-Solar Annual Return with precise Nakshatra/Yoga Pravesha diagnostics | `compute_natal_tithi_angle()`, `compute_tithi_pravesh()`, `solve_tithi_pravesh_iterative()` | core/astronomy.py | 2026-04-14 |
 | `timing/pancha_pakshi.py` | Five Bird Timing System | `get_birth_bird()`, `get_current_activity()`, `compute_pancha_pakshi()` | — | 2026-03-03 |
 | `timing/rare_dashas.py` | Mandooka Dasha + Padanadhamsha Dasha (2 rare systems) | `check_mandooka_eligible()`, `compute_mandooka_dasha()`, `compute_padanadhamsha_dasha()`, `compute_all_rare_dashas()` | — | 2026-03-03 |
 | `timing/kp.py` | KP (Krishnamurti Paddhati) sub-lord system | `get_kp_layers()`, `build_kp_significations()`, `compute_ruling_planets()`, `resolve_prashna_query()` | config.py | 2026-03-02 |
@@ -116,7 +118,8 @@ This is a **Vedic astrology prediction engine** that generates domain-specific l
 | `core/varga_interpretations.py` | Varga interpretation: D60 deities, D30 rulers, Sapta/Dasha Varga, Kashinath Hora, D10 career, Vargottama | `analyze_d60_full()`, `analyze_d30()`, `compute_all_sapta_varga()`, `compute_all_dasha_varga()`, `analyze_kashinath_hora()`, `is_vargottama()` | divisional.py | 2026-03-03 |
 | `core/aspects.py` | Drik Bala (aspectual strength) | `compute_all_drik_bala()`, `get_aspect_map()` | config.py | 2026-03-02 |
 | `core/coordinates.py` | Longitude math utilities | `sign_of()`, `nakshatra_of()`, `angular_distance()`, `house_from_moon()`, `normalize()` | — | 2026-03-02 |
-| `core/swisseph_bridge.py` | pyswisseph wrapper for ephemeris | `compute_positions_swe()` | pyswisseph | 2026-03-02 |
+| `core/swisseph_bridge.py` | pyswisseph wrapper for ephemeris | `compute_positions_swe()`, `compute_solar_return()` | pyswisseph | 2026-04-14 |
+| `core/astronomy.py` | Precise Pravesha anchor + epoch solver utilities | `compute_natal_pravesha_anchors()`, `find_nakshatra_pravesha_epoch()`, `find_yoga_pravesha_epoch()` | swisseph_bridge.py | 2026-04-14 |
 | `core/jyotishganit_bridge.py` | JyotishGanit library wrapper | — | jyotishganit | 2026-03-02 |
 | `core/skyfield_audit.py` | Skyfield position audit tool | `run_skyfield_audit()` | skyfield | 2026-03-02 |
 | `core/btr_montecarlo.py` | Birth Time Rectification via Monte Carlo | `run_btr_montecarlo()` | engine.py | 2026-03-02 |
@@ -168,13 +171,14 @@ main.py:main()
       → vimshottari.py:get_active_dasha()
       → promise.py:evaluate_promise()          ← STAGE 1: Hard gate (min 0.15)
           └─ Returns: {promise_pct, promise_ceiling, pillars}
-      → confidence.py:compute_confidence()     ← Raw 8-component score
+      → confidence.py:compute_confidence()     ← Raw weighted confidence stack
           └─ score_dasha_alignment() × W_DASHA (0.25)
           └─ score_transit_support() × W_TRANSIT (0.20)
           └─ score_ashtakvarga() × W_ASHTAKVARGA (0.15)
           └─ score_yoga_activation() × W_YOGA (0.13)
           └─ score_kp_confirmation() × W_KP (0.12)
           └─ score_functional_role() × W_FUNCTIONAL (0.08)
+          └─ dasha_pravesha_mult (bounded 0.70..1.30) applied on c_dasha
           └─ W_HOUSE_LORD = 0.00 (zeroed, counted in Promise)
       → prediction_overrides.py:check_master_overrides()  ← Phase 6 L2 pre-check
       → classical_modifiers.py:compute_classical_modifier()  ← Phase 6 L2
@@ -189,6 +193,7 @@ main.py:main()
       → fuzzy_confidence.py:compute_fuzzy_confidence()   ← STAGE 3
           └─ Inputs: timing_support, transit_support, structural_support
           └─ Returns: {fuzzy_confidence, verdict, method}
+      → engine.py:_apply_confidence_arbitration_gate()  ← Final deterministic arbitration (Milestones J/K)
       → calibration.py:calibrate_confidence()
       → Returns: final prediction report dict
 ```
@@ -212,6 +217,11 @@ Multi-dasha consensus in `engine.py:predict()` now uses a graduated modifier (no
 | `W_FUNCTIONAL` | 0.08 | confidence.py:21 | Functional benefic/malefic weight |
 | `W_HOUSE_LORD` | 0.00 | confidence.py:22 | ZEROED — double-counted with Promise |
 | `PROMISE_HARD_GATE` | 0.15 | engine.py (check) | Min promise to proceed with prediction |
+| `DASHA_PRAVESHA_MULT_RANGE` | 0.70–1.30 | engine.py + confidence.py | Bounded dasha throttle range from commencement-chart gating |
+| `_SHODASHA_DOMAIN_VARGA_POLICY` | domain→varga subset map | engine.py | Domain-isolated Shodasha varga subsets used in Phase 2H fusion |
+| `VE_ENABLE_CONFIDENCE_ARBITRATION` | 1 (default ON) | engine.py feature flags | Enables final deterministic contradiction/cap gate |
+| `ARBITRATION_PROFILE_VERSION` | "2026-04-15-r3" | engine.py arbitration gate | Arbitration calibration/precedence profile identifier |
+| `VE_USE_TROPICAL_MONTH_FOR_PRAVESHA` | 1 (default ON) | engine.py feature flags | Default Pravesha month-basis policy (override supported) |
 | `PILLAR_STRENGTH_THRESHOLD` | 0.50 | promise.py:29 | Min score for pillar to be "strong" |
 | `DOMAIN_KARAKA_BAV_MAP` | dict | confidence.py:76 | Planet-domain BAV karaka mappings |
 | `VIMSHOTTARI_YEARS` | 120-yr cycle | config.py | Planet dasha year assignments |
@@ -261,3 +271,11 @@ Multi-dasha consensus in `engine.py:predict()` now uses a graduated modifier (no
 - [x] Phase 5 Engine Wiring — DONE (engine.py: 7 import blocks + §5.1–5.7 computation blocks + **_p5_computed spread → content40 Exit 0)
 - [x] Phase 6 Layer 1 Classical Modifiers — DONE (prediction/classical_modifiers.py + engine.py wiring for raw_adjusted + graduated consensus gate + content45 run)
 - [x] Phase 6 Layer 2 Research Formulas + Overrides — DONE (rewrote classical_modifiers formulas, added domain_signal_weights + prediction_overrides, rewired predict() flow, generated content46)
+- [x] Milestone G Dasha Pravesha Integration — DONE (`dasha_pravesha_mult` from commencement charts wired into confidence path)
+- [x] Milestone H Precise Pravesha Anchor Fidelity — DONE (computed natal anchors passed into precise Nakshatra/Yoga solver path)
+- [x] Milestone I Tripataki Vedha Activation — DONE (geometry-backed moon-vedha scoring mapped to annual delta)
+- [x] Milestone J Confidence Arbitration Final Gate — DONE (deterministic post-blend contradiction/cap logic)
+- [x] Milestone K Domain-Calibrated Arbitration Profiles — DONE (career/finance/health/marriage profile caps)
+- [x] Milestone L Pravesha Default Policy Finalization — DONE (`VE_USE_TROPICAL_MONTH_FOR_PRAVESHA` default ON)
+- [ ] Shodasha per-domain varga weighting policy refinement remains open.
+- [ ] Arbitration re-fit against outcome-labeled benchmark data remains open.

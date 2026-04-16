@@ -9,7 +9,10 @@ Multi-system agreement formula:
 Each component is normalised to 0-1 before weighting.
 """
 from __future__ import annotations
+import logging
 from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 # ─── Weight constants (module-level reference; actual weights are adaptive per gate) ──
@@ -24,6 +27,52 @@ W_HOUSE_LORD   = 0.00   # REMOVED (§9.3): already in Promise gate → zero weig
 
 def _clamp(v: float) -> float:
     return max(0.0, min(1.0, float(v)))
+
+
+def _detect_sambandha(
+    md: str,
+    ad: str,
+    planet_houses: Optional[Dict[str, int]],
+    house_lords: Optional[Dict[int, str]],
+) -> bool:
+    """
+    Conservative Sambandha detector for dasha gating.
+
+    Uses robust, already-available signals only:
+    - Conjunction (same house)
+    - 1/7 opposition (mutual visibility axis)
+    - Parivartana-like exchange by ruled-house occupancy
+    """
+    if not planet_houses:
+        return False
+
+    h_md = int(planet_houses.get(md, 0) or 0)
+    h_ad = int(planet_houses.get(ad, 0) or 0)
+    if h_md <= 0 or h_ad <= 0:
+        return False
+
+    # Conjunction
+    if h_md == h_ad:
+        return True
+
+    # Mutual 7th axis
+    if ((h_ad - h_md) % 12) == 6:
+        return True
+
+    if house_lords:
+        md_rules = {
+            int(h) for h, lord in house_lords.items()
+            if str(lord).upper() == md
+        }
+        ad_rules = {
+            int(h) for h, lord in house_lords.items()
+            if str(lord).upper() == ad
+        }
+        # Exchange of occupied/ruled houses
+        if h_md in ad_rules and h_ad in md_rules:
+            return True
+
+    return False
 
 
 # ── Manduka Gati (Frog's Leap) Age-Based Yoga Activation ─────────────────────
@@ -252,6 +301,8 @@ def score_ashtakvarga(
 def score_yoga_activation(
     active_yogas: List[Dict],
     domain: str,
+    dasha_planet: Optional[str] = None,
+    antardasha_planet: Optional[str] = None,
 ) -> float:
     """
     Quality and domain relevance of currently active yogas — Phase 2A upgrade.
@@ -290,8 +341,30 @@ def score_yoga_activation(
     if not active_yogas:
         return 0.05
 
-    domain_count     = 0
-    domain_grade_sum = 0.0
+    domain_count       = 0
+    domain_grade_sum   = 0.0
+    positive_support   = 0.0
+    negative_pressure  = 0.0
+
+    _md = (dasha_planet or "").upper()
+    _ad = (antardasha_planet or "").upper()
+
+    def _dasha_interlock_weight(carriers: List[str], yoga_type: str) -> float:
+        """
+        Classical delivery rule:
+        - Nabhasa yogas are always-on background traits (independent of dasha)
+        - Other yogas deliver strongest in MD/AD of carrier planets
+        """
+        if yoga_type == "nabhasa":
+            return 1.0
+        cset = {str(c).upper() for c in carriers if c}
+        if not cset:
+            return 0.50
+        if _md in cset and _ad in cset:
+            return 1.00
+        if _md in cset or _ad in cset:
+            return 0.75
+        return 0.35
 
     for yoga in active_yogas:
         # Unpack yoga fields (dict = extended, else = legacy YogaResult)
@@ -302,6 +375,7 @@ def score_yoga_activation(
             grade       = yoga.get("grade", "C")
             active      = yoga.get("active", True)
             gpt_mult    = float(yoga.get("_gpt_multiplier", 1.0))
+            carriers    = yoga.get("activating_dasha") or yoga.get("planets") or []
         else:
             name        = getattr(yoga, "name", str(yoga))
             yoga_domain = "general"
@@ -309,25 +383,40 @@ def score_yoga_activation(
             grade       = "C"
             active      = not bool(getattr(yoga, "cancellation_reason", None))
             gpt_mult    = 1.0
-
-        # Skip inherently negative categories — they don't add domain strength
-        if yoga_type in _NEGATIVE_TYPES:
-            continue
+            carriers    = list(getattr(yoga, "activating_dasha", None) or getattr(yoga, "planets", None) or [])
 
         # Cancelled yogas: weakened but not absent — 50% weight
         active_mult = 1.0 if active else 0.5
-        base = _GRADE_SCORE.get(grade, 0.25) * gpt_mult * active_mult
+        dasha_mult = _dasha_interlock_weight(carriers, str(yoga_type).lower())
+        base = _GRADE_SCORE.get(grade, 0.25) * gpt_mult * active_mult * dasha_mult
 
-        # Domain match: explicit field (extended) OR name-based (basic/general)
+        # Domain match: explicit field OR name-based fallback.
+        # Nabhasa yogas act as always-on background traits with reduced domain weight.
+        domain_match = False
         if yoga_domain == domain.lower():
-            domain_count += 1
-            domain_grade_sum += base
+            domain_match = True
         elif any(r.lower() in name.lower() for r in relevant_names):
+            domain_match = True
+        elif str(yoga_type).lower() == "nabhasa":
+            domain_match = True
+
+        if not domain_match:
+            continue
+
+        if str(yoga_type).lower() == "nabhasa":
+            base *= 0.35
+
+        if yoga_type in _NEGATIVE_TYPES:
+            negative_pressure += base
+        else:
             domain_count += 1
             domain_grade_sum += base
+            positive_support += base
 
     # ── Score computation ─────────────────────────────────────
     if domain_count == 0:
+        if negative_pressure > 0:
+            return 0.02
         return 0.05
 
     # Count baseline (identical scale to old formula, capped at 5 matches)
@@ -340,6 +429,17 @@ def score_yoga_activation(
     grade_premium = max(0.0, (avg_grade - 0.25) / 0.75)
 
     score = min(1.0, count_score * (1.0 + 0.5 * grade_premium))
+
+    # Contradiction resolver (Saravali): stronger cluster prevails.
+    if negative_pressure > 0.0:
+        total = positive_support + negative_pressure
+        if total > 0:
+            if positive_support >= negative_pressure:
+                conflict_mult = max(0.55, positive_support / total)
+            else:
+                conflict_mult = max(0.15, positive_support / total)
+            score *= conflict_mult
+
     return _clamp(score)
 
 
@@ -500,8 +600,10 @@ def score_d9_quality(
                                 factors.append(0.20)  # severely delayed/denied
                             else:
                                 factors.append(0.50)
-            except Exception:
-                pass
+            except (ImportError, TypeError, ValueError, KeyError) as exc:
+                logger.debug("D9 lagna-lord quality fallback: %s", exc)
+            except Exception as exc:
+                logger.debug("D9 lagna-lord quality unexpected fallback: %s", exc)
 
         # 2. D1 7th Lord's D9 dignity (research: if exalted D1 but debilitated D9 → broken)
         lord_7 = house_lords.get(7)
@@ -628,7 +730,13 @@ def score_house_lord_strength(
                     sign_idx == exalt_sign)
 
         has_dignity_check = True
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError) as exc:
+        logger.debug("House-lord dignity import fallback: %s", exc)
+        has_dignity_check = False
+        def _is_good_sign(planet_name: str, sign_idx: int) -> bool:
+            return False
+    except Exception as exc:
+        logger.debug("House-lord dignity import unexpected fallback: %s", exc)
         has_dignity_check = False
         def _is_good_sign(planet_name: str, sign_idx: int) -> bool:
             return False
@@ -802,6 +910,8 @@ def compute_confidence(
     planet_lons: Optional[Dict[str, float]] = None,
     # ── Dasha lord gochar multiplier (Fix 48) ───────────────
     dasha_lord_gochar_mult: float = 1.0,  # Pre-computed multiplicative throttle
+    # ── Dasha Pravesha multiplier (Milestone-F follow-through) ───────────
+    dasha_pravesha_mult: float = 1.0,
 ) -> Dict:
     """
     Multi-system confidence score using CONDITIONAL GATE LOGIC.
@@ -854,7 +964,12 @@ def compute_confidence(
                                        dasha_planet=dasha_planet)
     c_av       = score_ashtakvarga(sarva_av, relevant_signs, dasha_planet_bav,
                                     karaka_bav_data=karaka_bav_data, domain=domain)
-    c_yoga     = score_yoga_activation(active_yogas, domain)
+    c_yoga     = score_yoga_activation(
+        active_yogas,
+        domain,
+        dasha_planet=dasha_planet,
+        antardasha_planet=antardasha_planet,
+    )
 
     # ── Manduka Gati age modulation on yoga score ────────────────────────
     # Research: yogas remain dormant until their assigned chronological epoch.
@@ -910,9 +1025,22 @@ def compute_confidence(
     # AD lord in 2/12 from MD lord → Dwidwadasha friction (inauspicious per BPHS)
     # AD lord in Kendra (1/4/7/10) or Trikona (5/9) from MD lord → boost
     md_ad_geometry = "neutral"
-    if dasha_house > 0 and antardasha_house > 0:
+    _md = dasha_planet.upper()
+    _ad = antardasha_planet.upper()
+    _same_md_ad = _md == _ad
+
+    # Swabhukti paradox (MD=AD): classical texts treat this as a preparatory phase
+    # where major house-specific fruits are delayed rather than fully delivered.
+    if _same_md_ad:
+        c_dasha = _clamp(c_dasha * 0.60)
+        md_ad_geometry = "swabhukti_preparatory_delay"
+    elif dasha_house > 0 and antardasha_house > 0:
         ad_from_md = (antardasha_house - dasha_house) % 12 + 1
-        if ad_from_md in (6, 8):
+        if {dasha_planet.upper(), antardasha_planet.upper()} == {"SATURN", "VENUS"} and ad_from_md in (4, 10):
+            # Classical exception: Saturn-Venus in 4/10 can become materially harsh.
+            c_dasha = _clamp(c_dasha * 0.30)
+            md_ad_geometry = f"exception_saturn_venus_4_10_AD_{ad_from_md}th_from_MD"
+        elif ad_from_md in (6, 8):
             c_dasha = _clamp(c_dasha * 0.55)   # Shadashtaka: great danger, enmity
             md_ad_geometry = f"friction_shadashtaka_AD_{ad_from_md}th_from_MD"
         elif ad_from_md == 12:
@@ -949,16 +1077,29 @@ def compute_confidence(
         "VENUS":   {"SUN", "MOON"},
         "SATURN":  {"SUN", "MOON", "MARS"},
     }
-    _md = dasha_planet.upper()
-    _ad = antardasha_planet.upper()
-    if _ad in _NATURAL_ENEMIES.get(_md, set()):
-        # AD lord is natural enemy of MD lord → enmity friction
-        c_dasha = _clamp(c_dasha * 0.80)
-        md_ad_geometry += "_enemy"
-    elif _ad in _NATURAL_FRIENDS.get(_md, set()):
-        # AD lord is natural friend of MD → mild synergy boost
-        c_dasha = _clamp(c_dasha * 1.10)
-        md_ad_geometry += "_friend"
+    if not _same_md_ad:
+        if _ad in _NATURAL_ENEMIES.get(_md, set()):
+            # AD lord is natural enemy of MD lord → enmity friction
+            c_dasha = _clamp(c_dasha * 0.80)
+            md_ad_geometry += "_enemy"
+        elif _ad in _NATURAL_FRIENDS.get(_md, set()):
+            # AD lord is natural friend of MD → mild synergy boost
+            c_dasha = _clamp(c_dasha * 1.10)
+            md_ad_geometry += "_friend"
+
+        # ── Sambandha requirement (MD↔AD linkage) ───────────────────────────
+        # Without sambandha, AD expression is disjointed and diluted.
+        _has_sambandha = _detect_sambandha(
+            _md,
+            _ad,
+            planet_houses,
+            house_lords,
+        )
+        if _has_sambandha:
+            md_ad_geometry += "_sambandha"
+        else:
+            c_dasha = _clamp(c_dasha * 0.50)
+            md_ad_geometry += "_disconnected"
 
     # ── Dasha Lord Dignity Modifiers ─────────────────────────────────────────
     # Combustion — bifurcated classical logic (Phaladeepika):
@@ -980,27 +1121,85 @@ def compute_confidence(
             # Combust lord but not karaka → lordship survives, mild penalty
             c_dasha = _clamp(c_dasha * 0.70)
 
-    # Retrograde — bifurcated classical logic (Uttara Kalamrita):
-    # Retrograde grants Chesta Bala (extra directional strength); does NOT weaken.
-    # But it inverts/delays delivery:
-    #   - Retrograde natural benefic (Jupiter/Venus/Mercury/Moon): delayed then
-    #     massive spike — slight current reduction but eventual overperformance
-    #   - Retrograde natural malefic (Saturn/Mars/Sun/Rahu): erratic, unpredictable,
-    #     struggle-inducing — heavier current penalty
+    # Retrograde — classical paradox handling (Uttara Kalamrita digest):
+    # 1) Retrograde in exaltation sign behaves as weakened/inverted output.
+    # 2) Retrograde in debilitation sign gets a recovery/inversion boost.
+    # 3) Otherwise apply standard bifurcated retrograde delivery penalty.
     if dasha_lord_retrograde:
         _BENEFICS = {"JUPITER", "VENUS", "MERCURY", "MOON"}
-        if dasha_planet.upper() in _BENEFICS:
-            # Benefic retro: delay but eventually massive — mild current reduction
-            c_dasha = _clamp(c_dasha * 0.85)
-        else:
-            # Malefic retro: erratic, struggle, unpredictable outcomes
-            c_dasha = _clamp(c_dasha * 0.65)
+        _EXALT_SIGN = {
+            "SUN": 0, "MOON": 1, "MARS": 9, "MERCURY": 5,
+            "JUPITER": 3, "VENUS": 11, "SATURN": 6,
+        }
+        _DEBIL_SIGN = {
+            "SUN": 6, "MOON": 7, "MARS": 3, "MERCURY": 11,
+            "JUPITER": 9, "VENUS": 5, "SATURN": 0,
+        }
+
+        _retro_paradox_applied = False
+        _dl_lon = (planet_lons or {}).get(_md) if isinstance(planet_lons, dict) else None
+        if isinstance(_dl_lon, (int, float)):
+            _dl_sign = int(float(_dl_lon) % 360.0 / 30.0)
+            _ex_sign = _EXALT_SIGN.get(_md)
+            _db_sign = _DEBIL_SIGN.get(_md)
+
+            if _ex_sign is not None and _dl_sign == _ex_sign:
+                # Retrograde + exalted sign: inversion to a weakened output state.
+                c_dasha = _clamp(c_dasha * 0.45)
+                md_ad_geometry += "_retro_exalt_inverse"
+                _retro_paradox_applied = True
+            elif _db_sign is not None and _dl_sign == _db_sign:
+                # Retrograde + debilitated sign: double-negative inversion.
+                c_dasha = _clamp(c_dasha * 1.15)
+                md_ad_geometry += "_retro_debil_inverse"
+                _retro_paradox_applied = True
+
+        if not _retro_paradox_applied:
+            if _md in _BENEFICS:
+                # Benefic retro: delay but eventual delivery.
+                c_dasha = _clamp(c_dasha * 0.85)
+            else:
+                # Malefic retro: erratic, struggle-inducing pattern.
+                c_dasha = _clamp(c_dasha * 0.65)
+
+    # ── Domain karaka interaction modifier ───────────────────────────────────
+    # Classical digest integration: karaka periods amplify delivery, except
+    # Karako-Bhava-Nashaya style compression when karaka sits in own domain house.
+    _DOMAIN_KARAKA = {
+        "marriage": "VENUS",
+        "career": "SATURN",
+        "finance": "JUPITER",
+        "health": "SUN",
+        "spiritual": "KETU",
+        "children": "JUPITER",
+    }
+    _domain_karaka = _DOMAIN_KARAKA.get(domain.lower(), "")
+    if _domain_karaka:
+        _karaka_mult = 1.0
+        if _md == _domain_karaka:
+            _karaka_mult *= 1.15
+        elif _ad == _domain_karaka:
+            _karaka_mult *= 1.08
+
+        if planet_houses and _domain_karaka in planet_houses and domain_houses:
+            _karaka_house = int(planet_houses.get(_domain_karaka, 0) or 0)
+            _primary_house = int(domain_houses[0]) if domain_houses else 0
+            if _md == _domain_karaka and _primary_house > 0 and _karaka_house == _primary_house:
+                _karaka_mult *= 0.85
+
+        c_dasha = _clamp(c_dasha * _karaka_mult)
 
     # ── Dasha Lord Gochar Multiplier (Fix 48) ────────────────────────────────
     # Research: Effective_Dasha_Strength = Natal_Dasha_Quality × σ(Gochar_Score)
     # Gochar is a multiplicative throttle on dasha, not an additive post-hoc mod.
     if abs(dasha_lord_gochar_mult - 1.0) > 0.001:
         c_dasha = _clamp(c_dasha * dasha_lord_gochar_mult)
+
+    # ── Dasha Pravesha Multiplier ────────────────────────────────────────────
+    # Research rule: lagna relation at dasha commencement acts as a context gate
+    # (1/5/9 supportive, 6/8/12 frictional). Applied multiplicatively to dasha.
+    if abs(dasha_pravesha_mult - 1.0) > 0.001:
+        c_dasha = _clamp(c_dasha * dasha_pravesha_mult)
 
     # ── Promise ceiling for suppressed charts ────────────────────────────────
     # Research: Progressive ceiling based on promise level
@@ -1125,6 +1324,7 @@ def compute_confidence(
             "house_lord_strength":  round(c_hlord,   3),
             "jaimini_sub":          round(c_jaimini, 3),
             "d9_quality":           round(c_d9,      3),
+            "dasha_pravesha_mult":  round(dasha_pravesha_mult, 3),
         },
         "weights_used": {
             "dasha":     round(w_dasha,   3),

@@ -15,6 +15,8 @@ Usage:
 from __future__ import annotations
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+import logging
+import os
 
 # ── Core & Strength ─────────────────────────────────────────────
 from vedic_engine.core.divisional import compute_all_vargas
@@ -56,6 +58,7 @@ from vedic_engine.prediction.bayesian_layer import compute_bayesian_confidence
 from vedic_engine.prediction.classical_modifiers import (
     DOMAIN_CONFIG,
     DASHA_WEIGHTS,
+    TRANSIT_FRAME_WEIGHTS,
     compute_classical_modifier,
     compute_bhava_effectiveness,
     compute_dosha_modifier,
@@ -86,6 +89,8 @@ from vedic_engine.timing.progressions import (
 from vedic_engine.core.coordinates import sign_of
 from vedic_engine.data.models import VedicChart
 
+logger = logging.getLogger(__name__)
+
 # ── Module-level sign name / lord lookup tables ─────────────────
 SIGN_NAMES_LIST = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
@@ -95,6 +100,63 @@ SIGN_LORDS_MAP: Dict[int, str] = {
     0: "MARS", 1: "VENUS", 2: "MERCURY", 3: "MOON", 4: "SUN", 5: "MERCURY",
     6: "VENUS", 7: "MARS", 8: "JUPITER", 9: "SATURN", 10: "SATURN", 11: "JUPITER",
 }
+
+_APPLY_MOORTI_TO_TRANSIT = os.getenv("VE_APPLY_MOORTI_TO_TRANSIT", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+# Phase-1 policy: diagnostics first, enable classical multipliers explicitly.
+_ENABLE_CLASSICAL_MULTIPLIERS = os.getenv("VE_ENABLE_CLASSICAL_MULTIPLIERS", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+_ENABLE_NAKSHATRA_SIGNALS = os.getenv("VE_ENABLE_NAKSHATRA_SIGNALS", "1").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+# Milestone-A flags (default OFF): scaffolding for native integrations.
+_ENABLE_NATIVE_HARSHA_BALA = os.getenv("VE_ENABLE_NATIVE_HARSHA_BALA", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+_ENABLE_TRIPATAKI = os.getenv("VE_ENABLE_TRIPATAKI", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+_ENABLE_PRAVESHA_TIMING = os.getenv("VE_ENABLE_PRAVESHA_TIMING", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+_ENABLE_SHODASHA_FUSION = os.getenv("VE_ENABLE_SHODASHA_FUSION", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+_ENABLE_CONFIDENCE_ARBITRATION = os.getenv("VE_ENABLE_CONFIDENCE_ARBITRATION", "1").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+_USE_TROPICAL_MONTH_FOR_PRAVESHA = os.getenv("VE_USE_TROPICAL_MONTH_FOR_PRAVESHA", "1").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+
+def get_feature_flag_snapshot() -> Dict[str, bool]:
+    """Return runtime feature-flag state for debug/reporting."""
+    return {
+        "VE_ENABLE_CLASSICAL_MULTIPLIERS": _ENABLE_CLASSICAL_MULTIPLIERS,
+        "VE_ENABLE_NAKSHATRA_SIGNALS": _ENABLE_NAKSHATRA_SIGNALS,
+        "VE_ENABLE_NATIVE_HARSHA_BALA": _ENABLE_NATIVE_HARSHA_BALA,
+        "VE_ENABLE_TRIPATAKI": _ENABLE_TRIPATAKI,
+        "VE_ENABLE_PRAVESHA_TIMING": _ENABLE_PRAVESHA_TIMING,
+        "VE_ENABLE_SHODASHA_FUSION": _ENABLE_SHODASHA_FUSION,
+        "VE_ENABLE_CONFIDENCE_ARBITRATION": _ENABLE_CONFIDENCE_ARBITRATION,
+        "VE_USE_TROPICAL_MONTH_FOR_PRAVESHA": _USE_TROPICAL_MONTH_FOR_PRAVESHA,
+    }
+
+
+def _record_runtime_warning(target: Any, key: str, exc: Exception) -> None:
+    """Attach non-fatal pipeline warnings so degraded fallbacks remain observable."""
+    if not isinstance(target, dict):
+        return
+    warnings = target.setdefault("_runtime_warnings", {})
+    if not isinstance(warnings, dict):
+        return
+    warnings[key] = str(exc)
 
 # ── Jaimini / new modules ───────────────────────────────────────
 from vedic_engine.analysis.arudha_padas import arudha_summary
@@ -111,16 +173,33 @@ except ImportError:
     _SUDARSHANA_AVAILABLE = False
 
 try:
-    from vedic_engine.analysis.sarvatobhadra import construct_sbc_grid, check_sbc_vedha
+    from vedic_engine.analysis.sarvatobhadra import (
+        construct_sbc_grid,
+        check_sbc_vedha,
+        nakshatra_of_lon as sbc_nakshatra_of_lon,
+    )
     _SBC_AVAILABLE = True
 except ImportError:
     _SBC_AVAILABLE = False
 
 try:
-    from vedic_engine.analysis.kota_chakra import compute_kota_chakra, compute_kota_status
+    from vedic_engine.analysis.kota_chakra import (
+        compute_kota_chakra,
+        compute_kota_status,
+        nakshatra_of_lon as kota_nakshatra_of_lon,
+    )
     _KOTA_AVAILABLE = True
 except ImportError:
     _KOTA_AVAILABLE = False
+
+try:
+    from vedic_engine.analysis.sanghatta_chakra import (
+        compute_sanghatta_chakra,
+        nakshatra_of_lon as sanghatta_nakshatra_of_lon,
+    )
+    _SANGHATTA_AVAILABLE = True
+except ImportError:
+    _SANGHATTA_AVAILABLE = False
 
 from vedic_engine.prediction.transits import check_vedha  # Phase 1E.1 standalone Vedha
 
@@ -217,6 +296,14 @@ try:
     _VARSHAPHALA_AVAILABLE = True
 except ImportError:
     _VARSHAPHALA_AVAILABLE = False
+
+try:
+    from vedic_engine.core.swisseph_bridge import compute_solar_return, build_chart_from_birth_data
+    _SWE_SOLAR_RETURN_AVAILABLE = True
+    _SWE_CHART_BUILD_AVAILABLE = True
+except ImportError:
+    _SWE_SOLAR_RETURN_AVAILABLE = False
+    _SWE_CHART_BUILD_AVAILABLE = False
 
 # ── Jaimini Extended (File 4) ─────────────────────────────────────
 try:
@@ -510,8 +597,707 @@ def _planet_domain_map(planet_house_map: Dict[str, int],
     return result
 
 
+_SHODASHA_DOMAIN_VARGA_POLICY: Dict[str, List[str]] = {
+    # Domain-isolated varga subsets to reduce cross-domain bleed.
+    "generic": ["D1", "D9", "D60"],
+    "career": ["D1", "D9", "D10", "D60"],
+    "finance": ["D1", "D2", "D9", "D60"],
+    "marriage": ["D1", "D7", "D9", "D60"],
+    "health": ["D1", "D30", "D9", "D60"],
+    "children": ["D1", "D7", "D9", "D60"],
+    "property": ["D1", "D4", "D16", "D60"],
+    "spiritual": ["D1", "D9", "D20", "D60"],
+    "travel": ["D1", "D9", "D12", "D60"],
+}
+
+
+def _compute_shodasha_domain_fusion(
+    vimshopak_data: Dict[str, Any],
+    domain_planets: List[str],
+    domain: str = "generic",
+) -> Dict[str, Any]:
+    """Compute a bounded domain-isolated quality delta from Shodashavarga Vimshopak."""
+    if not isinstance(vimshopak_data, dict) or not vimshopak_data:
+        return {
+            "status": "unavailable",
+            "domain_avg_pct": None,
+            "global_avg_pct": None,
+            "diagnostic_score": None,
+            "delta_applied": 0.0,
+            "source_gap": "vimshopak_payload_missing_or_empty",
+            "policy_vargas": _SHODASHA_DOMAIN_VARGA_POLICY["generic"],
+            "policy_global_source": "unavailable",
+        }
+
+    _domain_key = str(domain or "generic").strip().lower()
+    _policy_vargas = _SHODASHA_DOMAIN_VARGA_POLICY.get(
+        _domain_key,
+        _SHODASHA_DOMAIN_VARGA_POLICY["generic"],
+    )
+    _policy_set = set(_policy_vargas)
+
+    def _extract_pct(entry: Any) -> Optional[float]:
+        if isinstance(entry, dict):
+            _v = entry.get("percentage")
+            if isinstance(_v, (int, float)):
+                return float(_v)
+        return None
+
+    def _extract_policy_pct(entry: Any) -> Optional[float]:
+        if not isinstance(entry, dict):
+            return None
+
+        _breakdown = entry.get("breakdown")
+        if not isinstance(_breakdown, dict) or not _breakdown:
+            return _extract_pct(entry)
+
+        _selected_contrib = 0.0
+        _selected_weight = 0.0
+        for _varga_name, _varga_data in _breakdown.items():
+            if _varga_name not in _policy_set or not isinstance(_varga_data, dict):
+                continue
+            try:
+                _weight = float(_varga_data.get("weight", 0.0) or 0.0)
+                _contrib = float(_varga_data.get("contribution", 0.0) or 0.0)
+            except Exception:
+                continue
+            if _weight <= 0.0:
+                continue
+            _selected_weight += _weight
+            # Contribution should be in [0, weight]; clamp defensively.
+            _selected_contrib += max(0.0, min(_weight, _contrib))
+
+        if _selected_weight > 0.0:
+            return (_selected_contrib / _selected_weight) * 100.0
+
+        return _extract_pct(entry)
+
+    _global_vals = [_extract_pct(v) for v in vimshopak_data.values()]
+    _global_vals = [v for v in _global_vals if isinstance(v, (int, float))]
+    if not _global_vals:
+        return {
+            "status": "unavailable",
+            "domain_avg_pct": None,
+            "global_avg_pct": None,
+            "diagnostic_score": None,
+            "delta_applied": 0.0,
+            "source_gap": "vimshopak_percentages_missing",
+            "policy_vargas": _policy_vargas,
+            "policy_global_source": "unavailable",
+        }
+
+    _policy_global_vals = [_extract_policy_pct(v) for v in vimshopak_data.values()]
+    _policy_global_vals = [v for v in _policy_global_vals if isinstance(v, (int, float))]
+    if _policy_global_vals:
+        _global_avg = float(sum(_policy_global_vals) / len(_policy_global_vals))
+        _global_source = "policy_varga_avg"
+    else:
+        _global_avg = float(sum(_global_vals) / len(_global_vals))
+        _global_source = "full_vimshopak_avg"
+
+    _domain_vals: List[float] = []
+    for _p in (domain_planets or []):
+        _pct = _extract_policy_pct(vimshopak_data.get(_p))
+        if isinstance(_pct, (int, float)):
+            _domain_vals.append(_pct)
+
+    if not _domain_vals:
+        return {
+            "status": "unavailable",
+            "domain_avg_pct": None,
+            "global_avg_pct": round(_global_avg, 3),
+            "diagnostic_score": None,
+            "delta_applied": 0.0,
+            "source_gap": "no_domain_planet_vimshopak_data",
+            "policy_vargas": _policy_vargas,
+            "policy_global_source": _global_source,
+            "domain_planets_used": 0,
+            "domain_planets_total": int(len(domain_planets or [])),
+        }
+
+    _domain_avg = float(sum(_domain_vals) / len(_domain_vals))
+    _diagnostic_score = max(0.0, min(1.0, _domain_avg / 100.0))
+    _relative = (_domain_avg - _global_avg) / 100.0
+    _delta = max(-0.06, min(0.06, _relative * 0.12))
+
+    return {
+        "status": "applied",
+        "domain_avg_pct": round(_domain_avg, 3),
+        "global_avg_pct": round(_global_avg, 3),
+        "diagnostic_score": round(_diagnostic_score, 3),
+        "delta_applied": round(_delta, 3),
+        "source_gap": None,
+        "policy_vargas": _policy_vargas,
+        "policy_global_source": _global_source,
+        "domain_planets_used": int(len(_domain_vals)),
+        "domain_planets_total": int(len(domain_planets or [])),
+    }
+
+
 class PredictionEngine:
     """End-to-end Vedic prediction pipeline."""
+
+    _DASHA_PRAVESHA_DEBIL_SIGN = {
+        "SUN": 6,
+        "MOON": 7,
+        "MARS": 3,
+        "MERCURY": 11,
+        "JUPITER": 9,
+        "VENUS": 5,
+        "SATURN": 0,
+    }
+
+    @staticmethod
+    def _extract_swe_chart_runtime(chart_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize a SWE chart payload into longitudes, speeds, and lagna."""
+        _planets = chart_dict.get("planets", {}) if isinstance(chart_dict, dict) else {}
+        _lagna = chart_dict.get("lagna", {}) if isinstance(chart_dict, dict) else {}
+        return {
+            "planet_lons": {
+                str(p).upper(): float((pdata or {}).get("longitude", 0.0) or 0.0)
+                for p, pdata in _planets.items()
+                if isinstance(pdata, dict)
+            },
+            "planet_speeds": {
+                str(p).upper(): float((pdata or {}).get("speed", 0.0) or 0.0)
+                for p, pdata in _planets.items()
+                if isinstance(pdata, dict)
+            },
+            "lagna_lon": (
+                float(_lagna.get("degree", 0.0) or 0.0)
+                if isinstance(_lagna, dict)
+                else None
+            ),
+        }
+
+    @staticmethod
+    def _find_active_vim_period_bounds(
+        periods: List[Dict[str, Any]],
+        on_date: datetime,
+    ) -> Dict[str, Any]:
+        """Return active MD/AD period objects (with start/end) for a date."""
+        out: Dict[str, Any] = {"mahadasha": None, "antardasha": None}
+        for maha in periods or []:
+            try:
+                _ms = datetime.strptime(str(maha.get("start", "")), "%Y-%m-%d")
+                _me = datetime.strptime(str(maha.get("end", "")), "%Y-%m-%d")
+            except Exception:
+                continue
+            if not (_ms <= on_date < _me):
+                continue
+            out["mahadasha"] = maha
+            for antar in maha.get("sub_periods", []) or []:
+                try:
+                    _as = datetime.strptime(str(antar.get("start", "")), "%Y-%m-%d")
+                    _ae = datetime.strptime(str(antar.get("end", "")), "%Y-%m-%d")
+                except Exception:
+                    continue
+                if _as <= on_date < _ae:
+                    out["antardasha"] = antar
+                    break
+            break
+        return out
+
+    @staticmethod
+    def _pravesha_lagna_relation(pravesha_lagna_sign: int, natal_lagna_sign: int) -> Dict[str, Any]:
+        """Classical dasha-pravesha lagna relation mapping and multiplier."""
+        rel_house = ((int(pravesha_lagna_sign) - int(natal_lagna_sign)) % 12) + 1
+        if rel_house in {1, 5, 9}:
+            return {
+                "house_from_natal_lagna": rel_house,
+                "relation": "trine_support",
+                "multiplier": 1.30,
+            }
+        if rel_house in {6, 8, 12}:
+            return {
+                "house_from_natal_lagna": rel_house,
+                "relation": "dusthana_friction",
+                "multiplier": 0.70,
+            }
+        return {
+            "house_from_natal_lagna": rel_house,
+            "relation": "neutral",
+            "multiplier": 1.00,
+        }
+
+    @staticmethod
+    def _compute_tripataki_varsha_delta(tripataki_block: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert Tripataki moon-vedha score into a bounded annual confidence delta."""
+        out: Dict[str, Any] = {
+            "status": "unavailable",
+            "delta": 0.0,
+            "weighted_score": 0.0,
+            "hit_count": 0,
+            "source_gap": "tripataki_payload_missing",
+        }
+        if not isinstance(tripataki_block, dict) or not tripataki_block:
+            return out
+
+        if not bool(tripataki_block.get("vedha_geometry_available", False)):
+            out["status"] = str(tripataki_block.get("status", "progression_only"))
+            out["source_gap"] = tripataki_block.get("source_gap")
+            return out
+
+        moon_vedha = tripataki_block.get("moon_vedha", {}) or {}
+        try:
+            weighted = float(moon_vedha.get("weighted_score", 0.0) or 0.0)
+        except Exception:
+            weighted = 0.0
+
+        hit_planets = moon_vedha.get("hit_planets", [])
+        hit_count = len(hit_planets) if isinstance(hit_planets, list) else 0
+        delta = max(-0.08, min(0.08, weighted * 0.02))
+
+        out.update(
+            {
+                "status": "applied" if abs(delta) > 0.0001 else "neutral",
+                "delta": round(delta, 3),
+                "weighted_score": round(weighted, 3),
+                "hit_count": int(hit_count),
+                "source_gap": None,
+            }
+        )
+        return out
+
+    @staticmethod
+    def _apply_confidence_arbitration_gate(confidence: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply deterministic contradiction caps with structural-first precedence."""
+        domain = str(confidence.get("domain", "generic") or "generic").strip().lower()
+        raw_input = float(confidence.get("overall_boosted", confidence.get("overall", 0.5)) or 0.5)
+        gate_status = str(confidence.get("gate_status", "UNKNOWN") or "UNKNOWN").upper()
+        weak_promise_elevated = bool(confidence.get("weak_promise_elevated", False))
+
+        profile_version = "2026-04-15-r3"
+        calibration_snapshot = {
+            "reports": 29,
+            "source": "research_prompts/arbitration_calibration_snapshot_2026-04-15.md",
+        }
+
+        # Domain-specific profile calibrated from full_engine_run_report*.txt
+        # distributions (2026-04-14, n=28 snapshots per primary domain).
+        profile: Dict[str, float] = {
+            "promise_failed_cap": 0.30,
+            "promise_failed_elevated_cap": 0.45,
+            "dasha_not_confirmed_cap": 0.50,
+            "lock_below_2_cap": 0.45,
+            "d9_contradiction_cap": 0.58,
+            "bayes_high_uncertainty_cap": 0.65,
+            "bayes_moderate_uncertainty_cap": 0.75,
+            "bayes_weak_verdict_cap": 0.55,
+            "kp_vs_transit_mult": 0.85,
+            "dasha_vs_transit_mult": 0.88,
+        }
+        domain_profiles: Dict[str, Dict[str, float]] = {
+            "career": {
+                "promise_failed_cap": 0.31,
+                "promise_failed_elevated_cap": 0.48,
+                "dasha_not_confirmed_cap": 0.56,
+                "lock_below_2_cap": 0.50,
+                "d9_contradiction_cap": 0.60,
+                "bayes_high_uncertainty_cap": 0.66,
+                "bayes_moderate_uncertainty_cap": 0.74,
+                "bayes_weak_verdict_cap": 0.58,
+            },
+            "finance": {
+                "promise_failed_cap": 0.24,
+                "promise_failed_elevated_cap": 0.39,
+                "dasha_not_confirmed_cap": 0.44,
+                "lock_below_2_cap": 0.39,
+                "d9_contradiction_cap": 0.50,
+                "bayes_high_uncertainty_cap": 0.46,
+                "bayes_moderate_uncertainty_cap": 0.53,
+                "bayes_weak_verdict_cap": 0.45,
+                "kp_vs_transit_mult": 0.82,
+                "dasha_vs_transit_mult": 0.86,
+            },
+            "health": {
+                "promise_failed_cap": 0.24,
+                "promise_failed_elevated_cap": 0.39,
+                "dasha_not_confirmed_cap": 0.46,
+                "lock_below_2_cap": 0.41,
+                "d9_contradiction_cap": 0.54,
+                "bayes_high_uncertainty_cap": 0.50,
+                "bayes_moderate_uncertainty_cap": 0.58,
+                "bayes_weak_verdict_cap": 0.48,
+                "kp_vs_transit_mult": 0.83,
+                "dasha_vs_transit_mult": 0.86,
+            },
+            "marriage": {
+                "promise_failed_cap": 0.21,
+                "promise_failed_elevated_cap": 0.34,
+                "dasha_not_confirmed_cap": 0.40,
+                "lock_below_2_cap": 0.36,
+                "d9_contradiction_cap": 0.43,
+                "bayes_high_uncertainty_cap": 0.40,
+                "bayes_moderate_uncertainty_cap": 0.46,
+                "bayes_weak_verdict_cap": 0.38,
+                "kp_vs_transit_mult": 0.80,
+                "dasha_vs_transit_mult": 0.84,
+            },
+        }
+        profile.update(domain_profiles.get(domain, {}))
+
+        components = confidence.get("components", {}) or {}
+        kp_score = float(components.get("kp_confirmation", 0.0) or 0.0)
+        dasha_score = float(components.get("dasha_alignment", 0.0) or 0.0)
+        transit_score = float(components.get("transit_support", 0.0) or 0.0)
+        d9_score = float(components.get("d9_quality", 0.5) or 0.5)
+
+        agreement = confidence.get("multi_system_agreement", {}) or {}
+        try:
+            lock_level = int(agreement.get("lock_level", 1) or 1)
+        except Exception:
+            lock_level = 1
+
+        bayes = confidence.get("bayesian", {}) or {}
+        try:
+            bayes_uncertainty = float(bayes.get("uncertainty", 0.0) or 0.0)
+        except Exception:
+            bayes_uncertainty = 0.0
+        bayes_verdict = str(bayes.get("bayesian_verdict", "") or "").upper().strip()
+
+        cap = 1.0
+        multiplier = 1.0
+        reasons: List[str] = []
+
+        def _cap(limit: float, reason: str) -> None:
+            nonlocal cap
+            if limit < cap:
+                cap = limit
+                reasons.append(reason)
+
+        if gate_status == "PROMISE_FAILED":
+            if weak_promise_elevated:
+                _cap(float(profile["promise_failed_elevated_cap"]), "promise_failed_elevated_cap")
+            else:
+                _cap(float(profile["promise_failed_cap"]), "promise_failed_cap")
+        elif gate_status == "DASHA_NOT_CONFIRMED":
+            _cap(float(profile["dasha_not_confirmed_cap"]), "dasha_not_confirmed_cap")
+
+        if lock_level < 2:
+            _cap(float(profile["lock_below_2_cap"]), "multi_dasha_lock_below_2_cap")
+
+        # Structural-first precedence (re-fit pass R2):
+        # - PROMISE_FAILED: keep only structural caps (promise/lock).
+        # - DASHA_NOT_CONFIRMED or lock<2: apply structural + uncertainty caps.
+        # - BOTH_GATES_PASSED: apply full contradiction + uncertainty stack.
+        if gate_status == "PROMISE_FAILED":
+            precedence_stage = "structural_promise"
+        elif gate_status == "DASHA_NOT_CONFIRMED" or lock_level < 2:
+            precedence_stage = "structural_dasha"
+        else:
+            precedence_stage = "full"
+
+        if precedence_stage == "full":
+            if kp_score < 0.20 and transit_score >= 0.60:
+                multiplier *= float(profile["kp_vs_transit_mult"])
+                reasons.append("kp_vs_transit_contradiction")
+
+            if dasha_score < 0.25 and transit_score >= 0.65:
+                multiplier *= float(profile["dasha_vs_transit_mult"])
+                reasons.append("dasha_vs_transit_contradiction")
+
+            if d9_score < 0.30 and raw_input >= 0.60:
+                _cap(float(profile["d9_contradiction_cap"]), "d9_quality_contradiction_cap")
+
+        if precedence_stage != "structural_promise":
+            if bayes_uncertainty >= 0.30:
+                multiplier *= 0.85
+                _cap(float(profile["bayes_high_uncertainty_cap"]), "bayesian_high_uncertainty_cap")
+            elif bayes_uncertainty >= 0.22:
+                multiplier *= 0.92
+                _cap(float(profile["bayes_moderate_uncertainty_cap"]), "bayesian_moderate_uncertainty_cap")
+
+            if bayes_verdict in {"VERY WEAK", "WEAK"} and raw_input >= 0.55:
+                _cap(float(profile["bayes_weak_verdict_cap"]), "bayesian_weak_verdict_cap")
+
+        adjusted = max(0.0, min(1.0, raw_input * multiplier))
+        final_score = min(adjusted, cap)
+        applied = abs(final_score - raw_input) > 1e-6
+
+        return {
+            "enabled": True,
+            "applied": bool(applied),
+            "raw_input": round(raw_input, 3),
+            "multiplier_applied": round(multiplier, 3),
+            "cap_applied": round(cap, 3) if cap < 0.999 else None,
+            "final": round(final_score, 3),
+            "domain": domain,
+            "gate_status": gate_status,
+            "lock_level": lock_level,
+            "bayesian_uncertainty": round(bayes_uncertainty, 3),
+            "bayesian_verdict": bayes_verdict,
+            "precedence_stage": precedence_stage,
+            "profile_version": profile_version,
+            "calibration_snapshot": calibration_snapshot,
+            "reasons": reasons,
+        }
+
+    def _compute_dasha_pravesha_context(
+        self,
+        chart: VedicChart,
+        static: Dict[str, Any],
+        vim_periods: List[Dict[str, Any]],
+        on_date: datetime,
+    ) -> Dict[str, Any]:
+        """
+        Compute dasha-pravesha gating context for active MD/AD.
+
+        Rule set (research-backed):
+        - Pravesha lagna in 1/5/9 from natal lagna -> supportive (1.30)
+        - Pravesha lagna in 6/8/12 from natal lagna -> frictional (0.70)
+        - Otherwise neutral (1.00)
+        - If active period lord is debilitated in its pravesha chart, apply
+          a conservative additional dampener and emit diagnostic note.
+        """
+        ctx: Dict[str, Any] = {
+            "status": "unavailable",
+            "multiplier": 1.0,
+            "details": [],
+            "source_gap": None,
+        }
+
+        if not _SWE_CHART_BUILD_AVAILABLE:
+            ctx["source_gap"] = "swisseph_chart_builder_unavailable"
+            return ctx
+
+        _bi = getattr(chart, "birth_info", None)
+        _lat = getattr(_bi, "latitude", None)
+        _lon = getattr(_bi, "longitude", None)
+        _tz = getattr(_bi, "timezone", None)
+        if _lat is None or _lon is None or _tz is None:
+            ctx["source_gap"] = "birth_coordinates_or_timezone_missing"
+            return ctx
+
+        _natal_lagna = int(static.get("meta", {}).get("lagna_sign", chart.lagna_sign))
+        _active = self._find_active_vim_period_bounds(vim_periods, on_date)
+        _md = _active.get("mahadasha") or {}
+        _ad = _active.get("antardasha") or {}
+
+        _entries = []
+        for _level_name, _period, _w in (
+            ("mahadasha", _md, float(DASHA_WEIGHTS.get("mahadasha", 0.50))),
+            ("antardasha", _ad, float(DASHA_WEIGHTS.get("antardasha", 0.30))),
+        ):
+            if not isinstance(_period, dict) or not _period:
+                continue
+
+            _planet = str(_period.get("planet", "")).upper().strip()
+            _start = str(_period.get("start", "")).strip()
+            if not _planet or not _start:
+                continue
+
+            try:
+                _start_dt = datetime.strptime(_start, "%Y-%m-%d")
+                _p_chart = build_chart_from_birth_data(
+                    name=f"Dasha Pravesha {_level_name.title()} {_start}",
+                    date_str=_start_dt.strftime("%Y-%m-%d"),
+                    time_str="00:00:00",
+                    place=str(getattr(_bi, "place", "Dasha Pravesha") or "Dasha Pravesha"),
+                    latitude=float(_lat),
+                    longitude=float(_lon),
+                    tz_offset=float(_tz),
+                    ayanamsa="lahiri",
+                )
+                _lagna_deg = float((_p_chart.get("lagna", {}) or {}).get("degree", 0.0) or 0.0)
+                _lagna_sign = int((_lagna_deg % 360.0) / 30.0)
+                _rel = self._pravesha_lagna_relation(_lagna_sign, _natal_lagna)
+
+                _mult = float(_rel.get("multiplier", 1.0))
+                _diag = []
+
+                _p_lons = (_p_chart.get("planets", {}) or {})
+                _p_lon = float((_p_lons.get(_planet, {}) or {}).get("longitude", 0.0) or 0.0)
+                _p_sign = int((_p_lon % 360.0) / 30.0)
+                _debil_sign = self._DASHA_PRAVESHA_DEBIL_SIGN.get(_planet)
+                if isinstance(_debil_sign, int) and _p_sign == _debil_sign:
+                    _mult = max(0.50, _mult * 0.90)
+                    _diag.append("lord_debilitated_in_pravesha_chart")
+
+                _entries.append(
+                    {
+                        "level": _level_name,
+                        "planet": _planet,
+                        "start": _start,
+                        "lagna_sign": _lagna_sign,
+                        "lagna_sign_name": SIGN_NAMES_LIST[_lagna_sign],
+                        "house_from_natal_lagna": int(_rel.get("house_from_natal_lagna", 0)),
+                        "relation": _rel.get("relation"),
+                        "multiplier": round(_mult, 3),
+                        "weight": _w,
+                        "diagnostics": _diag,
+                    }
+                )
+            except Exception as exc:
+                _entries.append(
+                    {
+                        "level": _level_name,
+                        "planet": _planet,
+                        "start": _start,
+                        "status": "unavailable",
+                        "reason": str(exc),
+                        "weight": _w,
+                    }
+                )
+
+        _usable = [e for e in _entries if isinstance(e, dict) and isinstance(e.get("multiplier"), (int, float))]
+        if not _usable:
+            ctx["details"] = _entries
+            ctx["source_gap"] = "no_active_md_ad_pravesha_computed"
+            return ctx
+
+        _ws = sum(float(e.get("weight", 0.0) or 0.0) for e in _usable)
+        _wm = sum(
+            float(e.get("multiplier", 1.0) or 1.0) * float(e.get("weight", 0.0) or 0.0)
+            for e in _usable
+        )
+        _combined = (_wm / _ws) if _ws > 0 else float(_usable[0].get("multiplier", 1.0) or 1.0)
+        _combined = max(0.70, min(1.30, _combined))
+
+        ctx["status"] = "applied"
+        ctx["multiplier"] = round(_combined, 3)
+        ctx["details"] = _entries
+        return ctx
+
+    def _build_dynamic_annual_context(
+        self,
+        chart: VedicChart,
+        static: Dict[str, Any],
+        birth_dt: datetime,
+        on_date: datetime,
+    ) -> Dict[str, Any]:
+        """
+        Build the annual context for a target date using the active solar year.
+
+        This keeps annual scoring aligned with local research:
+        - Varshaphala must use the active solar-return chart.
+        - Tithi Pravesh must be computed for the active annual year.
+        """
+        annual_context: Dict[str, Any] = {
+            "source": "dynamic_annual_context",
+            "active_year": None,
+            "solar_return_local": None,
+            "solar_return_utc": None,
+            "source_gap": None,
+            "varshaphala": {},
+            "tithi_pravesh": {},
+        }
+
+        if not (_VARSHAPHALA_AVAILABLE or _TITHI_PRAVESH_AVAILABLE):
+            annual_context["source_gap"] = "annual_modules_unavailable"
+            return annual_context
+
+        if not _SWE_SOLAR_RETURN_AVAILABLE:
+            annual_context["source_gap"] = "swisseph_solar_return_unavailable"
+            return annual_context
+
+        _bi = getattr(chart, "birth_info", None)
+        _lat = getattr(_bi, "latitude", None)
+        _lon = getattr(_bi, "longitude", None)
+        if _lat is None or _lon is None:
+            annual_context["source_gap"] = "birth_coordinates_missing"
+            return annual_context
+
+        try:
+            _tz_off = float(getattr(_bi, "timezone", 0.0) or 0.0)
+        except Exception:
+            _tz_off = 0.0
+
+        try:
+            _sr_current = compute_solar_return(
+                birth_dt=birth_dt,
+                year=on_date.year,
+                latitude=float(_lat),
+                longitude=float(_lon),
+                tz_offset=_tz_off,
+                ayanamsa="lahiri",
+            )
+            _sr_current_local = datetime.fromisoformat(_sr_current["solar_return_local"])
+            _active_year = on_date.year if on_date >= _sr_current_local else on_date.year - 1
+            _active_year = max(birth_dt.year, _active_year)
+            _sr_payload = (
+                _sr_current
+                if _active_year == on_date.year
+                else compute_solar_return(
+                    birth_dt=birth_dt,
+                    year=_active_year,
+                    latitude=float(_lat),
+                    longitude=float(_lon),
+                    tz_offset=_tz_off,
+                    ayanamsa="lahiri",
+                )
+            )
+        except Exception as exc:
+            annual_context["source_gap"] = f"solar_return_unavailable: {exc}"
+            return annual_context
+
+        annual_context["active_year"] = _active_year
+        annual_context["solar_return_local"] = _sr_payload.get("solar_return_local")
+        annual_context["solar_return_utc"] = _sr_payload.get("solar_return_utc")
+
+        _sr_runtime = self._extract_swe_chart_runtime(_sr_payload.get("chart", {}))
+        _sr_lons = _sr_runtime.get("planet_lons", {})
+        _sr_speeds = _sr_runtime.get("planet_speeds", {})
+        _sr_lagna_lon = _sr_runtime.get("lagna_lon")
+        _completed_years = max(0, int(_active_year - birth_dt.year))
+        try:
+            _return_local = datetime.fromisoformat(str(_sr_payload.get("solar_return_local", "")))
+        except Exception:
+            _return_local = on_date
+
+        if _VARSHAPHALA_AVAILABLE and _sr_lons and _sr_lagna_lon is not None:
+            try:
+                _varsha = compute_varsha_analysis(
+                    planet_lons=_sr_lons,
+                    planet_speeds=_sr_speeds,
+                    lagna_lon=float(_sr_lagna_lon),
+                    natal_lagna_sign=int(static.get("meta", {}).get("lagna_sign", chart.lagna_sign)),
+                    natal_moon_lon=float(static.get("meta", {}).get("moon_lon", 0.0) or 0.0),
+                    completed_years=_completed_years,
+                    is_day_chart=bool(6 <= _return_local.hour < 18),
+                    return_date=_return_local,
+                )
+                if isinstance(_varsha, dict):
+                    _varsha["annual_context_year"] = _active_year
+                    _varsha["analysis_basis"] = "active_solar_return_chart"
+                    _varsha["solar_return_local"] = _sr_payload.get("solar_return_local")
+                    _varsha["solar_return_utc"] = _sr_payload.get("solar_return_utc")
+                annual_context["varshaphala"] = _varsha
+            except Exception as exc:
+                annual_context["source_gap"] = f"varshaphala_dynamic_failed: {exc}"
+
+        if _TITHI_PRAVESH_AVAILABLE:
+            try:
+                # Tithi module weekday mapping is Sun=0..Sat=6.
+                # Python datetime.weekday() is Mon=0..Sun=6, so convert.
+                _birth_weekday_sun0 = (birth_dt.weekday() + 1) % 7
+                _tp = compute_tithi_pravesh(
+                    natal_moon_lon=float(static.get("meta", {}).get("moon_lon", 0.0) or 0.0),
+                    natal_sun_lon=float(static.get("meta", {}).get("sun_lon", 0.0) or 0.0),
+                    natal_lagna_sign=int(static.get("meta", {}).get("lagna_sign", chart.lagna_sign)),
+                    query_year=_active_year,
+                    birth_weekday=_birth_weekday_sun0,
+                    lagna_sign=int(static.get("meta", {}).get("lagna_sign", chart.lagna_sign)),
+                    birth_datetime=birth_dt,
+                    latitude=_lat,
+                    longitude=_lon,
+                    tz_offset=_tz_off,
+                    ayanamsa="lahiri",
+                    enable_precise_solver=bool(_ENABLE_PRAVESHA_TIMING),
+                    use_tropical_month=bool(_USE_TROPICAL_MONTH_FOR_PRAVESHA),
+                )
+                if isinstance(_tp, dict):
+                    _tp["active_annual_year"] = _active_year
+                    _tp["annual_context_basis"] = "active_solar_return_year"
+                    _tp["reference_solar_return_local"] = _sr_payload.get("solar_return_local")
+                annual_context["tithi_pravesh"] = _tp
+            except Exception as exc:
+                annual_context["source_gap"] = (
+                    annual_context.get("source_gap")
+                    or f"tithi_pravesh_dynamic_failed: {exc}"
+                )
+
+        return annual_context
 
     # ── 1. Static Analysis ──────────────────────────────────────
 
@@ -1141,6 +1927,12 @@ class PredictionEngine:
                 # Conditional Dashas — check eligibility
                 _d9_lagna_name = SIGN_NAMES_LIST[_d9_lagna % 12] if "_d9_lagna" in dir() else "Aries"
                 _lagna_name = SIGN_NAMES_LIST[lagna_sign % 12]
+                try:
+                    from vedic_engine.core.divisional import D12 as _d12f
+                    _d12_lagna_name = SIGN_NAMES_LIST[_d12f(chart.lagna_degree) % 12]
+                except Exception:
+                    # Conservative fallback: if D12 cannot be computed, fall back to D1 lagna.
+                    _d12_lagna_name = _lagna_name
                 _lagna_hora = "sun" if lagna_sign % 2 == 0 else "moon"
 
                 # ── Daytime / Paksha — computed from actual astronomy ──────
@@ -1170,7 +1962,7 @@ class PredictionEngine:
                     lagna_hora=_lagna_hora,
                     d1_lagna_sign=_lagna_name,
                     d9_lagna_sign=_d9_lagna_name,
-                    d12_lagna_sign=_lagna_name,  # simplified
+                    d12_lagna_sign=_d12_lagna_name,
                     lagna_lord=_lagna_lord,
                     seventh_lord=_seventh_lord,
                     tenth_lord=_tenth_lord,
@@ -1780,12 +2572,24 @@ class PredictionEngine:
         # ── 5.1 Tithi Pravesh ────────────────────────────────────
         if _TITHI_PRAVESH_AVAILABLE:
             try:
+                _tz_off = 0.0
+                try:
+                    _tz_off = float(getattr(chart.birth_info, "timezone", 0.0) or 0.0)
+                except Exception:
+                    _tz_off = 0.0
                 _p5_computed["tithi_pravesh"] = compute_tithi_pravesh(
                     natal_moon_lon=moon_lon,
                     natal_sun_lon=sun_lon,
                     query_year=birth_dt.year,
                     birth_weekday=birth_dt.weekday(),
                     lagna_sign=asc_sign,
+                    birth_datetime=birth_dt,
+                    latitude=getattr(chart.birth_info, "latitude", None),
+                    longitude=getattr(chart.birth_info, "longitude", None),
+                    tz_offset=_tz_off,
+                    ayanamsa="lahiri",
+                    enable_precise_solver=bool(_ENABLE_PRAVESHA_TIMING),
+                    use_tropical_month=bool(_USE_TROPICAL_MONTH_FOR_PRAVESHA),
                 )
             except Exception:
                 _p5_computed["tithi_pravesh"] = {}
@@ -1871,24 +2675,46 @@ class PredictionEngine:
         # ── Phase 1E: Kota Chakra + SBC Grid ─────────────────────
         _kota_chakra: Dict = {}
         _sbc_grid: Dict = {}
+        _sanghatta_chakra: Dict = {}
+        _moon_nak_name = ""
         try:
-            _moon_nak_idx = int(moon_lon / (360.0 / 27))
-            _kota_chakra = compute_kota_chakra(_moon_nak_idx)
+            if _KOTA_AVAILABLE:
+                _moon_nak_name = kota_nakshatra_of_lon(moon_lon, include_abhijit=False)
+            elif _SBC_AVAILABLE:
+                _moon_nak_name = sbc_nakshatra_of_lon(moon_lon)
+            elif _SANGHATTA_AVAILABLE:
+                _moon_nak_name = sanghatta_nakshatra_of_lon(moon_lon, include_abhijit=False)
         except Exception:
-            _kota_chakra = {}
-        try:
-            _moon_nak_idx = int(moon_lon / (360.0 / 27))
-            _birth_tithi = int(((moon_lon - sun_lon) % 360) / 12) + 1
-            # Python weekday() 0=Mon → convert to 0=Sun standard
-            _birth_wday = (birth_dt.weekday() + 1) % 7
-            _sbc_grid = construct_sbc_grid(
-                natal_nakshatra=_moon_nak_idx,
-                natal_sign=moon_sign,
-                birth_tithi=_birth_tithi,
-                birth_weekday=_birth_wday,
-            )
-        except Exception:
-            _sbc_grid = {}
+            _moon_nak_name = ""
+
+        if _KOTA_AVAILABLE and _moon_nak_name:
+            try:
+                _kota_chakra = compute_kota_chakra(_moon_nak_name)
+            except Exception:
+                _kota_chakra = {}
+
+        if _SBC_AVAILABLE and _moon_nak_name:
+            try:
+                _birth_tithi = int(((moon_lon - sun_lon) % 360) / 12) + 1
+                # Python weekday() 0=Mon → convert to 0=Sun standard
+                _birth_wday = (birth_dt.weekday() + 1) % 7
+                _sbc_grid = construct_sbc_grid(
+                    natal_nakshatra=_moon_nak_name,
+                    natal_sign=moon_sign,
+                    birth_tithi=_birth_tithi,
+                    birth_weekday=_birth_wday,
+                )
+            except Exception:
+                _sbc_grid = {}
+
+        if _SANGHATTA_AVAILABLE and _moon_nak_name:
+            try:
+                _sanghatta_chakra = compute_sanghatta_chakra(
+                    _moon_nak_name,
+                    include_abhijit=True,
+                )
+            except Exception:
+                _sanghatta_chakra = {}
 
         # (PyJHora bridge moved to top of analyze_static — see "Phase 6 (EARLY)")
 
@@ -1984,6 +2810,7 @@ class PredictionEngine:
                 "yogas":       _extended_yogas,
                 "kota_chakra": _kota_chakra,
                 "sbc_grid":    _sbc_grid,
+                "sanghatta_chakra": _sanghatta_chakra,
                 "longevity":   _longevity,
                 "nadi_amsha":  _nadi_amsha,
                 # ── Phase 3A: Nadi Jyotish
@@ -2033,6 +2860,8 @@ class PredictionEngine:
         except Exception:
             birth_dt = datetime.fromisoformat(static["meta"]["birth_dt"])
 
+        annual_context = self._build_dynamic_annual_context(chart, static, birth_dt, on_date)
+
         # ── Vimshottari dasha (3 levels)
         try:
             vim_periods = compute_mahadasha_periods(moon_lon, birth_dt, levels=3)
@@ -2040,6 +2869,22 @@ class PredictionEngine:
             vim_sandhi  = detect_dasha_sandhi(vim_periods, on_date)
         except Exception as e:
             vim_periods, vim_active, vim_sandhi = [], {"error": str(e)}, {"in_sandhi": False}
+
+        # ── Dasha Pravesha gating context (research Milestone-F unresolved gap)
+        try:
+            dasha_pravesha = self._compute_dasha_pravesha_context(
+                chart=chart,
+                static=static,
+                vim_periods=vim_periods,
+                on_date=on_date,
+            )
+        except Exception as _e:
+            dasha_pravesha = {
+                "status": "unavailable",
+                "multiplier": 1.0,
+                "details": [],
+                "source_gap": f"dasha_pravesha_failed: {_e}",
+            }
 
         # ── Dasha Diagnostic Matrix (6-factor analysis)
         dasha_diag: Dict = {}
@@ -2112,10 +2957,19 @@ class PredictionEngine:
             transit_evals = evaluate_all_transits(
                 transit_positions=transit_pos,
                 natal_moon_sign=moon_sign,
+                natal_lagna_sign=static.get("meta", {}).get("lagna_sign"),
                 bhinna_av=bhinna_av,
                 sarva_av=sarva_av,
                 natal_moon_nak=natal_moon_nak,
                 pav=pav_data,
+                sbc_grid=static.get("computed", {}).get("sbc_grid"),
+                kota_chakra=static.get("computed", {}).get("kota_chakra"),
+                sanghatta_chakra=static.get("computed", {}).get("sanghatta_chakra"),
+                retrograde_planets=[
+                    _p for _p, _r in (static.get("chart_raw", {}).get("retrogrades", {}) or {}).items()
+                    if _r
+                ],
+                apply_moorti_to_saturn_score=(_APPLY_MOORTI_TO_TRANSIT or _ENABLE_CLASSICAL_MULTIPLIERS),
             )
         except Exception as e:
             transit_pos, transit_evals = {}, {"error": str(e)}
@@ -2214,7 +3068,6 @@ class PredictionEngine:
 
         # ── Dasha lord transit tracker
         try:
-            vim_active_here = dynamic_vim_active if 'dynamic_vim_active' in dir() else vim_active
             md_lord = "RAHU"
             ad_lord = "SATURN"
             if isinstance(vim_active, dict):
@@ -2327,6 +3180,16 @@ class PredictionEngine:
                 vim_active, transit_pos, static
             ),
             "sudarshana":       sudarshana_eval,
+            "annual_context": {
+                "source": annual_context.get("source"),
+                "active_year": annual_context.get("active_year"),
+                "solar_return_local": annual_context.get("solar_return_local"),
+                "solar_return_utc": annual_context.get("solar_return_utc"),
+                "source_gap": annual_context.get("source_gap"),
+            },
+            "varshaphala": annual_context.get("varshaphala", {}),
+            "tithi_pravesh": annual_context.get("tithi_pravesh", {}),
+            "dasha_pravesha": dasha_pravesha,
         }
 
     # ── 3+4. Full Prediction ─────────────────────────────────────
@@ -2478,12 +3341,51 @@ class PredictionEngine:
                         _entry["_sudarshana_norm_2d"] = _suda_n
                         _entry["_sudarshana_convergence"] = _sc_conv
 
+                    # 2E — Sarvatobhadra Vedha: sensitive-point piercing penalty.
+                    _sbc = _entry.get("sbc_vedha", {})
+                    if isinstance(_sbc, dict):
+                        _sbc_sev = float(_sbc.get("severity", 0.0) or 0.0)
+                        if bool(_sbc.get("natal_sensitive_pierced", False)):
+                            # Up to 25% reduction for severe piercing; capped for stability.
+                            _sbc_factor = max(0.75, 1.0 - (0.25 * _sbc_sev))
+                            _net = round(_net * _sbc_factor, 4)
+                            _entry["_sbc_factor_2e"] = _sbc_factor
+
+                    # 2F — Kota Chakra: inward malefics reduce, inward benefics support.
+                    _kota = _entry.get("kota", {})
+                    if isinstance(_kota, dict):
+                        _ksev = float(_kota.get("severity", 0.0) or 0.0)
+                        _kdir = _kota.get("direction")
+                        _kmal = bool(_kota.get("is_malefic", False))
+                        if _kmal and _kdir == "inward":
+                            _k_factor = max(0.70, 1.0 - (0.30 * _ksev))
+                            _net = round(_net * _k_factor, 4)
+                            _entry["_kota_factor_2f"] = _k_factor
+                        elif (not _kmal) and _kdir == "inward":
+                            _boost = 0.03 * max(0.0, 1.0 - _ksev)
+                            _net = round(min(1.0, _net + _boost), 4)
+                            _entry["_kota_support_2f"] = round(_boost, 4)
+
+                    # 2G — Sanghatta Chakra: collision star activation impact.
+                    _sang = _entry.get("sanghatta", {})
+                    if isinstance(_sang, dict):
+                        _s_impact = float(_sang.get("impact_score", 0.0) or 0.0)
+                        if _s_impact != 0.0:
+                            _net = round(min(1.0, max(0.0, _net + _s_impact)), 4)
+                            _entry["_sanghatta_impact_2g"] = round(_s_impact, 4)
+
                     _entry["net_score"] = max(0.0, min(1.0, _net))
                     transit_evals_adj[_pn] = _entry
             else:
                 transit_evals_adj = {}
-        except Exception:
+        except (TypeError, ValueError, KeyError) as _phase2_exc:
             transit_evals_adj = dict(transit_evals)   # fallback: pass through unchanged
+            _record_runtime_warning(dynamic, "phase_2c2g_transit_adjustment", _phase2_exc)
+            logger.debug("Phase 2C-2G transit adjustment fallback: %s", _phase2_exc)
+        except Exception as _phase2_exc:
+            transit_evals_adj = dict(transit_evals)
+            _record_runtime_warning(dynamic, "phase_2c2g_transit_adjustment_unexpected", _phase2_exc)
+            logger.debug("Phase 2C-2G transit adjustment unexpected fallback: %s", _phase2_exc)
 
         # ── Phase 2I: Upagraha affliction + Phase 2K: Shodhya Pinda — second pass ───
         # 2I: Transit planets occupying the natal sign of a major aprakasha (shadow)
@@ -2539,8 +3441,12 @@ class PredictionEngine:
 
                 _pd2["net_score"] = round(max(0.0, min(1.0, _net2)), 4)
                 transit_evals_adj[_pn2] = _pd2
-        except Exception:
-            pass   # 2I/2K are best-effort; transit_evals_adj stays as-is
+        except (TypeError, ValueError, KeyError) as _phase2k_exc:
+            _record_runtime_warning(dynamic, "phase_2i2k_adjustment", _phase2k_exc)
+            logger.debug("Phase 2I/2K best-effort adjustment fallback: %s", _phase2k_exc)
+        except Exception as _phase2k_exc:
+            _record_runtime_warning(dynamic, "phase_2i2k_adjustment_unexpected", _phase2k_exc)
+            logger.debug("Phase 2I/2K unexpected fallback: %s", _phase2k_exc)
 
         kp_sigs = static.get("kp", {}).get("planet_sigs", {}) or {}
         # Transform Dict[str, Dict] → Dict[str, List[int]] (extract signified_houses)
@@ -2607,8 +3513,14 @@ class PredictionEngine:
                     combust_planets=static.get("combust_planets"),
                     ashtakvarga_bindus=static.get("ashtakvarga", {}).get("planet_totals") if isinstance(static.get("ashtakvarga"), dict) else None,
                 )
+            except (TypeError, ValueError, KeyError) as _pe:
+                promise_result = None
+                _record_runtime_warning(dynamic, "promise_gate_compute", _pe)
+                logger.debug("Promise gate fallback: %s", _pe)
             except Exception as _pe:
                 promise_result = None
+                _record_runtime_warning(dynamic, "promise_gate_compute_unexpected", _pe)
+                logger.debug("Promise gate unexpected fallback: %s", _pe)
 
         # ── Phase 6 L2: master overrides (checked before normal score blending) ──
         override_active = False
@@ -2631,10 +3543,18 @@ class PredictionEngine:
                 _ovr_computed,
                 domain,
             )
-        except Exception:
+        except (TypeError, ValueError, KeyError) as _ovr_exc:
             override_active = False
             override_conf = None
             override_desc = None
+            _record_runtime_warning(dynamic, "master_override_gate", _ovr_exc)
+            logger.debug("Master override gate fallback: %s", _ovr_exc)
+        except Exception as _ovr_exc:
+            override_active = False
+            override_conf = None
+            override_desc = None
+            _record_runtime_warning(dynamic, "master_override_gate_unexpected", _ovr_exc)
+            logger.debug("Master override gate unexpected fallback: %s", _ovr_exc)
 
         # ── Build Jaimini sub-score data (wire 4 pre-computed modules → confidence) ──
         jaimini_data: Optional[Dict] = None
@@ -2787,6 +3707,14 @@ class PredictionEngine:
         except Exception:
             _dlt_gochar_mult = 1.0
 
+        # ── Dasha Pravesha multiplier (1/5/9 vs 6/8/12 annualized gating) ──
+        _dasha_pravesha_block = dynamic.get("dasha_pravesha", {}) or {}
+        try:
+            _dasha_pravesha_mult = float(_dasha_pravesha_block.get("multiplier", 1.0) or 1.0)
+        except Exception:
+            _dasha_pravesha_mult = 1.0
+        _dasha_pravesha_mult = max(0.70, min(1.30, _dasha_pravesha_mult))
+
         confidence = compute_confidence(
             dasha_planet=dasha_planet,
             antardasha_planet=antar_planet,
@@ -2818,7 +3746,15 @@ class PredictionEngine:
             age_years=_native_age,
             planet_lons=static.get("chart_raw", {}).get("planet_lons"),
             dasha_lord_gochar_mult=_dlt_gochar_mult,
+            dasha_pravesha_mult=_dasha_pravesha_mult,
         )
+
+        confidence["dasha_pravesha"] = {
+            "status": _dasha_pravesha_block.get("status", "unavailable"),
+            "multiplier": round(_dasha_pravesha_mult, 3),
+            "details": _dasha_pravesha_block.get("details", []),
+            "source_gap": _dasha_pravesha_block.get("source_gap"),
+        }
 
         # ── Deeptadi Avastha Hard-Gate (Classical Phaladeepika) ──────────────
         # Uses ONLY Deeptadi states (dignity-based, 9-state system).
@@ -3059,6 +3995,195 @@ class PredictionEngine:
         except Exception:
             _bridge_result = {"modifier": 1.0, "available": False}
 
+        # ── Phase 1 Classical Multipliers (diagnostic-first) ─────────────
+        # Uses conservative, reversible rollout:
+        # - always compute baseline + adjusted candidate
+        # - apply adjusted only when VE_ENABLE_CLASSICAL_MULTIPLIERS=1
+        _baseline_before_classical = float(base_final)
+        _pushkara_mult = 1.0
+        _moorti_mult = 1.0
+        _tarabala_mult = 1.0
+        _frame_mult = 1.0
+        _nakshatra_signal_mult = 1.0
+        _nak_moon_mult = 1.0
+        _nak_pushkara_mult = 1.0
+        _nak_theme_mult = 1.0
+        _nak_theme_hits = 0
+        _nak_theme_total = 0
+        _nak_combined_moon_score = 0.0
+        _classical_total_mult = 1.0
+        _tarabala_source = "none"
+        _tara_num = None
+
+        try:
+            _nak = static.get("nakshatra_analysis", {}) or {}
+            _pk_map = _nak.get("pushkara_planets", {}) or {}
+
+            # Prefer live transit Moon Tarabala (dynamic) over natal-static fallback.
+            _moon_tr = (transit_evals_adj.get("MOON", {}) or {}) if isinstance(transit_evals_adj, dict) else {}
+            _tara_live = (_moon_tr.get("tarabala", {}) or {}) if isinstance(_moon_tr, dict) else {}
+            _tara = _tara_live if isinstance(_tara_live, dict) and _tara_live else (_nak.get("tarabala", {}) or {})
+            _tarabala_source = "transit_moon" if _tara is _tara_live and bool(_tara_live) else "nakshatra_analysis"
+
+            # Domain karaka / domain house-lord pushkara boosts.
+            _karaka_pk = _pk_map.get(str(karaka), {}) if isinstance(_pk_map, dict) else {}
+            _lord_pk = _pk_map.get(str(lord_planet), {}) if isinstance(_pk_map, dict) else {}
+
+            _karaka_in_pushkara = bool(
+                isinstance(_karaka_pk, dict)
+                and _karaka_pk.get("is_pushkara_navamsa")
+                and float(_karaka_pk.get("effective_multiplier", 1.0)) > 1.0
+            )
+            _lord_in_pushkara = bool(
+                isinstance(_lord_pk, dict)
+                and _lord_pk.get("is_pushkara_navamsa")
+                and float(_lord_pk.get("effective_multiplier", 1.0)) > 1.0
+            )
+
+            _karaka_mult = 1.5 if _karaka_in_pushkara else 1.0
+            _lord_mult = 1.3 if _lord_in_pushkara else 1.0
+            _pushkara_mult = _karaka_mult * _lord_mult
+
+            # Moorti multiplier on major transit planets relevant to this domain.
+            _major = {"SATURN", "JUPITER", "RAHU", "KETU"}
+            _moorti_vals: List[float] = []
+            for _p in domain_planets_list:
+                _pu = str(_p).upper()
+                if _pu not in _major:
+                    continue
+                _tr = transit_evals_adj.get(_pu, {}) if isinstance(transit_evals_adj, dict) else {}
+                if isinstance(_tr, dict):
+                    _m = _tr.get("moorti_adjustment_factor")
+                    if isinstance(_m, (int, float)):
+                        _moorti_vals.append(float(_m))
+            if _moorti_vals:
+                _moorti_mult = sum(_moorti_vals) / len(_moorti_vals)
+
+            # Tarabala multiplier map aligned to 9-Tara quality bands.
+            _TARA_MULT = {
+                1: 0.3,   # Janma
+                2: 1.2,   # Sampat
+                3: 0.4,   # Vipat
+                4: 1.15,  # Kshema
+                5: 0.5,   # Pratyak/Pratyari
+                6: 1.1,   # Sadhana/Sadhaka
+                7: 0.2,   # Naidhana (worst)
+                8: 1.1,   # Mitra
+                9: 1.3,   # Parama Mitra / Ati Mitra
+            }
+
+            try:
+                _tara_num = int(_tara.get("tara_num", _tara.get("tara_number", 0)) or 0)
+            except Exception:
+                _tara_num = 0
+
+            if _tara_num in _TARA_MULT:
+                _tarabala_mult = float(_TARA_MULT[_tara_num])
+            else:
+                # Backward compatibility for older payloads.
+                _tara_eff = float(_tara.get("effective_multiplier", _tara.get("multiplier", _tara.get("score", 0.0))) or 0.0)
+                _tarabala_mult = max(0.2, min(2.0, 1.0 + _tara_eff))
+
+            # Naidhana (7th Tara) gets hard safety floor.
+            if _tara_num == 7:
+                _tarabala_mult = min(_tarabala_mult, 0.2)
+
+            # Weighted transit-frame support (Lagna + Moon + Dasha-lord).
+            # Uses configured classical weights instead of fixed ad-hoc blending.
+            _w_lagna = float(TRANSIT_FRAME_WEIGHTS.get("lagna", 0.50))
+            _w_moon = float(TRANSIT_FRAME_WEIGHTS.get("moon", 0.275))
+            _w_dasha = float(TRANSIT_FRAME_WEIGHTS.get("dasha_lord", 0.20))
+            _w_total = max(0.0001, _w_lagna + _w_moon + _w_dasha)
+
+            _moon_support = 1.0 if bool(_moon_tr.get("is_favorable_gochar")) else 0.0
+            _lagna_support = 1.0 if bool(_moon_tr.get("is_favorable_gochar_lagna")) else 0.0
+            _dasha_tr = transit_evals_adj.get(str(dasha_planet).upper(), {}) if isinstance(transit_evals_adj, dict) else {}
+            _dasha_support = 1.0 if float((_dasha_tr or {}).get("net_score", 0.0)) >= 0.5 else 0.0
+
+            _weighted_support = (
+                (_w_lagna * _lagna_support)
+                + (_w_moon * _moon_support)
+                + (_w_dasha * _dasha_support)
+            ) / _w_total
+            # Map support ratio to conservative multiplier band [0.85, 1.15].
+            _frame_mult = round(0.85 + (0.30 * _weighted_support), 3)
+
+            # Nakshatra signal integration (previously diagnostics-only):
+            # 1) combined_moon_score, 2) pushkara_diagnostic.effective_factor,
+            # 3) transit_themes, 4) moon_naming_star presence.
+            if _ENABLE_NAKSHATRA_SIGNALS and isinstance(_nak, dict) and _nak:
+                try:
+                    _nak_combined_moon_score = float(_nak.get("combined_moon_score", 0.0) or 0.0)
+                except Exception:
+                    _nak_combined_moon_score = 0.0
+                # Typical range ~[-0.18, +0.18] -> bounded multiplier [0.85, 1.15]
+                _nak_moon_mult = max(0.85, min(1.15, 1.0 + (_nak_combined_moon_score * 0.60)))
+
+                _pk_diag = _nak.get("pushkara_diagnostic", {}) or {}
+                try:
+                    _pk_eff = float(_pk_diag.get("effective_factor", 1.0) or 1.0)
+                except Exception:
+                    _pk_eff = 1.0
+                # Convert effective factor into a conservative confidence multiplier.
+                _nak_pushkara_mult = max(0.90, min(1.20, 1.0 + ((_pk_eff - 1.0) * 0.25)))
+
+                # Domain alignment from transit theme domains over domain planets.
+                _theme_map = {
+                    "career": {"authority", "ambition", "service", "skill", "learning", "power", "victory"},
+                    "finance": {"wealth", "completion", "nourishment", "architecture", "independence", "victory"},
+                    "marriage": {"nourishment", "devotion", "pleasure", "completion", "renewal"},
+                    "health": {"health", "healing", "purification", "service", "austerity", "invincibility"},
+                }
+                _wanted = _theme_map.get(domain_norm, set())
+                _themes = _nak.get("transit_themes", {}) or {}
+                if isinstance(_themes, dict) and _wanted:
+                    _hits = 0
+                    _total = 0
+                    for _dp in domain_planets_list:
+                        _dpu = str(_dp).upper()
+                        _td = _themes.get(_dpu, {})
+                        if not isinstance(_td, dict):
+                            continue
+                        _total += 1
+                        _t_dom = str(_td.get("domain", "")).lower()
+                        if _t_dom in _wanted:
+                            _hits += 1
+                    _nak_theme_hits = _hits
+                    _nak_theme_total = _total
+                    _ratio = (float(_hits) / float(_total)) if _total > 0 else 0.0
+                    _nak_theme_mult = max(0.90, min(1.10, 0.90 + (0.20 * _ratio)))
+
+                # Presence-only validation signal (lightweight, no direct force).
+                _moon_name_present = bool(_nak.get("moon_naming_star"))
+                _moon_name_mult = 1.01 if _moon_name_present else 1.00
+
+                _nakshatra_signal_mult = (
+                    _nak_moon_mult * _nak_pushkara_mult * _nak_theme_mult * _moon_name_mult
+                )
+                _nakshatra_signal_mult = max(0.80, min(1.35, _nakshatra_signal_mult))
+
+            _classical_total_mult = (
+                _pushkara_mult * _moorti_mult * _tarabala_mult * _frame_mult * _nakshatra_signal_mult
+            )
+            _classical_total_mult = max(0.2, min(2.5, _classical_total_mult))
+        except Exception:
+            _pushkara_mult = 1.0
+            _moorti_mult = 1.0
+            _tarabala_mult = 1.0
+            _frame_mult = 1.0
+            _nakshatra_signal_mult = 1.0
+            _nak_moon_mult = 1.0
+            _nak_pushkara_mult = 1.0
+            _nak_theme_mult = 1.0
+            _nak_theme_hits = 0
+            _nak_theme_total = 0
+            _nak_combined_moon_score = 0.0
+            _classical_total_mult = 1.0
+
+        _classical_adjusted_candidate = min(0.999, max(0.0, _baseline_before_classical * _classical_total_mult))
+        if _ENABLE_CLASSICAL_MULTIPLIERS:
+            base_final = _classical_adjusted_candidate
+
         confidence["raw"] = round(_raw_base, 3)
         confidence["planet_effectiveness"] = round(planet_eff, 4)
         confidence["bhava_effectiveness"] = round(bhava_eff, 4)
@@ -3068,7 +4193,36 @@ class PredictionEngine:
         confidence["dosha_modifier"] = round(dosha_mod, 4)
         confidence["yoga_boost"] = round(yoga_boost, 4)
         confidence["bridge_cross_validation"] = _bridge_result
+        confidence["classical_phase1"] = {
+            "enabled": _ENABLE_CLASSICAL_MULTIPLIERS,
+            "baseline_before_classical": round(_baseline_before_classical, 3),
+            "pushkara_multiplier": round(_pushkara_mult, 3),
+            "moorti_multiplier": round(_moorti_mult, 3),
+            "tarabala_multiplier": round(_tarabala_mult, 3),
+            "transit_frame_multiplier": round(_frame_mult, 3),
+            "nakshatra_signals_enabled": _ENABLE_NAKSHATRA_SIGNALS,
+            "nakshatra_signal_multiplier": round(_nakshatra_signal_mult, 3),
+            "nakshatra_moon_multiplier": round(_nak_moon_mult, 3),
+            "nakshatra_pushkara_multiplier": round(_nak_pushkara_mult, 3),
+            "nakshatra_theme_multiplier": round(_nak_theme_mult, 3),
+            "nakshatra_theme_hits": int(_nak_theme_hits),
+            "nakshatra_theme_total": int(_nak_theme_total),
+            "nakshatra_combined_moon_score": round(_nak_combined_moon_score, 3),
+            "tarabala_source": _tarabala_source,
+            "tara_number": int(_tara_num) if isinstance(_tara_num, int) and _tara_num > 0 else None,
+            "total_multiplier_capped": round(_classical_total_mult, 3),
+            "adjusted_candidate": round(_classical_adjusted_candidate, 3),
+            "policy": "diagnostic-first",
+        }
         confidence["domain_signals"] = DOMAIN_SIGNALS.get(domain_norm, {})
+        confidence["feature_flags"] = get_feature_flag_snapshot()
+        confidence["integration_debug"] = {
+            "native_harsha_planned": _ENABLE_NATIVE_HARSHA_BALA,
+            "tripataki_planned": _ENABLE_TRIPATAKI,
+            "pravesha_planned": _ENABLE_PRAVESHA_TIMING,
+            "shodasha_fusion_planned": _ENABLE_SHODASHA_FUSION,
+            "milestone": "A_scaffold_only",
+        }
         confidence["overall"] = round(base_final, 3)
         confidence["final"] = round(base_final, 3)
 
@@ -3354,8 +4508,28 @@ class PredictionEngine:
         # Scores annual Solar-return chart relevance for the domain.
         # Returns 0.0–1.0; injected as 1.0 pseudo-obs into Bayesian layer.
         _varsha_score: "float | None" = None
+        _harsha_delta_2h = 0.0
+        _harsha_score_2h = None
+        _harsha_lord_2h = ""
+        _trip_delta_2h = 0.0
+        _trip_status_2h = "disabled"
+        _trip_score_2h = None
+        _trip_hits_2h = 0
+        _trip_source_gap_2h = None
+        _prav_delta_2h = 0.0
+        _prav_status_2h = "disabled"
+        _prav_score_2h = None
+        _prav_basis_2h = "sidereal_month"
+        _prav_source_gap_2h = None
+        _shod_delta_2h = 0.0
+        _shod_status_2h = "disabled"
+        _shod_domain_avg_2h = None
+        _shod_global_avg_2h = None
+        _shod_diag_2h = None
+        _shod_source_gap_2h = None
         try:
-            _varsha = static.get("varshaphala", {})
+            _annual_meta = dynamic.get("annual_context", {}) or {}
+            _varsha = dynamic.get("varshaphala", {}) or static.get("varshaphala", {})
             if _varsha and isinstance(_varsha, dict):
                 _vh_score = 0.50  # neutral baseline
                 # Muntha house: 1/5/9/10/11 = auspicious; 6/8/12 = inauspicious
@@ -3385,8 +4559,131 @@ class PredictionEngine:
                             _vh_score += 0.08
                         elif _ty_quality in ("bad", "very_bad"):        # Ishrafa / Rodha
                             _vh_score -= 0.05
+
+                # Mudda dasha lord: short annual timing trigger.
+                _mudda_current = (_varsha.get("mudda_dasha", {}) or {}).get("current", {})
+                if isinstance(_mudda_current, dict):
+                    _mudda_lord = str(_mudda_current.get("lord", "")).upper().strip()
+                    _harsha_lord_2h = _mudda_lord
+                    if _mudda_lord in domain_planets_list:
+                        _vh_score += 0.06
+                    elif _mudda_lord:
+                        _vh_score -= 0.02
+
+                # Native Harsha Bala modifier (Milestone-B), default OFF.
+                if _ENABLE_NATIVE_HARSHA_BALA:
+                    _hb = (_varsha.get("harsha_bala", {}) or {}).get("by_planet", {})
+                    if isinstance(_hb, dict) and _harsha_lord_2h in _hb:
+                        _harsha_entry = _hb.get(_harsha_lord_2h, {}) or {}
+                        _harsha_score_2h = float(_harsha_entry.get("score", 0.0) or 0.0)
+                        if _harsha_score_2h >= 15.0:
+                            _harsha_delta_2h = 0.08
+                        elif _harsha_score_2h <= 5.0:
+                            _harsha_delta_2h = -0.08
+                        _vh_score += _harsha_delta_2h
+
+                # Native Tripataki (Milestone-C): progression core available.
+                _trip = _varsha.get("tripataki", {}) or {}
+                if _ENABLE_TRIPATAKI:
+                    _trip_eval = self._compute_tripataki_varsha_delta(_trip)
+                    _trip_status_2h = str(_trip_eval.get("status", "unavailable"))
+                    _trip_delta_2h = float(_trip_eval.get("delta", 0.0) or 0.0)
+                    _trip_score_2h = _trip_eval.get("weighted_score")
+                    _trip_hits_2h = int(_trip_eval.get("hit_count", 0) or 0)
+                    _trip_source_gap_2h = _trip_eval.get("source_gap")
+                    _vh_score += _trip_delta_2h
+
+                # Native Pravesha (Milestone-D): diagnostic scaffold only.
+                # No score delta is applied until school/epoch policy is finalized.
+                if _ENABLE_PRAVESHA_TIMING:
+                    _tp = (
+                        dynamic.get("tithi_pravesh", {})
+                        or (static.get("computed", {}) or {}).get("tithi_pravesh", {})
+                    )
+                    _prav_basis_2h = "tropical_month" if _USE_TROPICAL_MONTH_FOR_PRAVESHA else "sidereal_month"
+                    if isinstance(_tp, dict) and _tp:
+                        _prav_status_2h = "diagnostic_only"
+                        _tp_diag = 0.50
+                        _tp_lq = str(_tp.get("lagna_quality", "UNKNOWN")).upper().strip()
+                        _tp_yl = str(_tp.get("year_lord", "UNKNOWN")).upper().strip()
+                        if _tp_lq == "TRIKONA_PROSPERITY":
+                            _tp_diag += 0.08
+                        elif _tp_lq == "KENDRA_SUCCESS":
+                            _tp_diag += 0.06
+                        elif _tp_lq == "DUSTHANA_TROUBLE":
+                            _tp_diag -= 0.08
+                        if _tp_yl in domain_planets_list:
+                            _tp_diag += 0.06
+                        elif _tp_yl not in {"", "UNKNOWN"}:
+                            _tp_diag -= 0.02
+                        if bool(_tp.get("tithi_match", False)):
+                            _tp_diag += 0.04
+                        _prav_score_2h = round(min(1.0, max(0.0, _tp_diag)), 3)
+                        _prav_delta_2h = 0.0
+                    else:
+                        _prav_status_2h = "unavailable"
+                        _prav_source_gap_2h = "tithi_pravesh_payload_missing_or_empty"
+                    _vh_score += _prav_delta_2h
+
+                # Shodashavarga domain-isolated fusion (Milestone-E).
+                if _ENABLE_SHODASHA_FUSION:
+                    _shf = _compute_shodasha_domain_fusion(
+                        static.get("vimshopak", {}) or {},
+                        domain_planets_list,
+                        domain=domain,
+                    )
+                    _shod_status_2h = str(_shf.get("status", "unavailable"))
+                    _shod_domain_avg_2h = _shf.get("domain_avg_pct")
+                    _shod_global_avg_2h = _shf.get("global_avg_pct")
+                    _shod_diag_2h = _shf.get("diagnostic_score")
+                    _shod_delta_2h = float(_shf.get("delta_applied", 0.0) or 0.0)
+                    _shod_source_gap_2h = _shf.get("source_gap")
+                    _vh_score += _shod_delta_2h
+
                 _varsha_score = round(min(1.0, max(0.0, _vh_score)), 3)
                 confidence["varshaphala_score_2h"] = _varsha_score
+                confidence["harsha_bala_native_2h"] = {
+                    "enabled": bool(_ENABLE_NATIVE_HARSHA_BALA),
+                    "mudda_lord": _harsha_lord_2h,
+                    "harsha_score": round(_harsha_score_2h, 3) if isinstance(_harsha_score_2h, (int, float)) else None,
+                    "delta_applied": round(_harsha_delta_2h, 3),
+                }
+                confidence["tripataki_native_2h"] = {
+                    "enabled": bool(_ENABLE_TRIPATAKI),
+                    "status": _trip_status_2h,
+                    "delta_applied": round(_trip_delta_2h, 3),
+                    "weighted_score": round(_trip_score_2h, 3) if isinstance(_trip_score_2h, (int, float)) else None,
+                    "hit_count": int(_trip_hits_2h),
+                    "geometry_available": bool(_trip.get("vedha_geometry_available", False)) if isinstance(_trip, dict) else False,
+                    "source_gap": (
+                        _trip_source_gap_2h
+                        if _trip_source_gap_2h is not None
+                        else (_trip.get("source_gap") if isinstance(_trip, dict) else None)
+                    ),
+                }
+                confidence["pravesha_native_2h"] = {
+                    "enabled": bool(_ENABLE_PRAVESHA_TIMING),
+                    "status": _prav_status_2h,
+                    "calendar_basis": _prav_basis_2h,
+                    "diagnostic_score": _prav_score_2h,
+                    "delta_applied": round(_prav_delta_2h, 3),
+                    "source_gap": _prav_source_gap_2h,
+                }
+                confidence["shodasha_fusion_2h"] = {
+                    "enabled": bool(_ENABLE_SHODASHA_FUSION),
+                    "status": _shod_status_2h,
+                    "domain_avg_pct": _shod_domain_avg_2h,
+                    "global_avg_pct": _shod_global_avg_2h,
+                    "diagnostic_score": _shod_diag_2h,
+                    "delta_applied": round(_shod_delta_2h, 3),
+                    "source_gap": _shod_source_gap_2h,
+                }
+                confidence["annual_context_2h"] = {
+                    "active_year": _annual_meta.get("active_year"),
+                    "solar_return_local": _annual_meta.get("solar_return_local"),
+                    "solar_return_utc": _annual_meta.get("solar_return_utc"),
+                    "source_gap": _annual_meta.get("source_gap"),
+                }
         except Exception:
             _varsha_score = None
 
@@ -3574,6 +4871,28 @@ class PredictionEngine:
         except Exception:
             prog_boost = 0.0
 
+        # ── Final deterministic arbitration gate ───────────────────────────
+        # Applies post-blend contradiction handling and uncertainty-aware caps
+        # so optimistic downstream modifiers cannot violate gate semantics.
+        try:
+            if _ENABLE_CONFIDENCE_ARBITRATION:
+                _arb = self._apply_confidence_arbitration_gate(confidence)
+                confidence["arbitration_gate"] = _arb
+                confidence["overall_boosted"] = round(float(_arb.get("final", confidence.get("overall_boosted", 0.5))), 3)
+                confidence["final"] = confidence["overall_boosted"]
+            else:
+                confidence["arbitration_gate"] = {
+                    "enabled": False,
+                    "applied": False,
+                    "reason": "feature_flag_disabled",
+                }
+        except Exception as _arb_exc:
+            confidence["arbitration_gate"] = {
+                "enabled": bool(_ENABLE_CONFIDENCE_ARBITRATION),
+                "applied": False,
+                "reason": f"arbitration_failed: {_arb_exc}",
+            }
+
         # ── Domain-relevant transit summary
         domain_transits = {p: transit_evals[p] for p in domain_planets_list
                            if p in transit_evals}
@@ -3622,7 +4941,13 @@ class PredictionEngine:
         raw_conf = confidence.get("overall_boosted", confidence.get("overall", 0.5))
         try:
             calibrated = calibrate_confidence(raw_conf, domain)
-        except Exception:
+        except (TypeError, ValueError, KeyError) as _cal_exc:
+            _record_runtime_warning(dynamic, "confidence_calibration", _cal_exc)
+            logger.debug("Confidence calibration fallback: %s", _cal_exc)
+            calibrated = {"raw": raw_conf, "calibrated": raw_conf, "reliability_band": "Unknown"}
+        except Exception as _cal_exc:
+            _record_runtime_warning(dynamic, "confidence_calibration_unexpected", _cal_exc)
+            logger.debug("Confidence calibration unexpected fallback: %s", _cal_exc)
             calibrated = {"raw": raw_conf, "calibrated": raw_conf, "reliability_band": "Unknown"}
 
         return {
@@ -3663,6 +4988,7 @@ class PredictionEngine:
             # ── New promise / diagnostic / consensus layers ──
             "promise":         promise_result or {},
             "dasha_diagnostic":dasha_diag,
+            "runtime_warnings": dynamic.get("_runtime_warnings", {}),
             "multi_dasha_consensus": consensus_result,
             "yoga_compounding":static.get("yoga_compounding", {}),
             "chara_dasha":     dynamic.get("chara_dasha", {}),
@@ -3681,7 +5007,9 @@ class PredictionEngine:
             "dhana_stacking":  static.get("dhana_stacking", {}),
             # ── Nakshatra Analysis (File 2) ──
             "nakshatra_analysis": static.get("nakshatra_analysis", {}),
-            "varshaphala": static.get("varshaphala", {}),
+            "varshaphala": dynamic.get("varshaphala", {}) or static.get("varshaphala", {}),
+            "tithi_pravesh": dynamic.get("tithi_pravesh", {}) or (static.get("computed", {}) or {}).get("tithi_pravesh", {}),
+            "annual_context": dynamic.get("annual_context", {}),
             # ── Jaimini Extended (File 4) ──
             "jaimini_extended": static.get("jaimini_extended", {}),
             # ── File 5: Prashna, Kalachakra, Medical, Conditional Dashas ──

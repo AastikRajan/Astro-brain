@@ -56,11 +56,21 @@ def compute_tithi_pravesh(
     natal_sun_lon: float,
     natal_moon_lon: float,
     natal_lagna_sign: int,
-    year: int,
+    year: Optional[int] = None,
     transit_sun_lon: Optional[float] = None,
     transit_moon_lon: Optional[float] = None,
     pravesh_weekday: Optional[int] = None,
     pravesh_lagna_sign: Optional[int] = None,
+    query_year: Optional[int] = None,
+    birth_weekday: Optional[int] = None,
+    lagna_sign: Optional[int] = None,
+    use_tropical_month: bool = False,
+    birth_datetime: Optional[datetime] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    tz_offset: float = 0.0,
+    ayanamsa: str = "lahiri",
+    enable_precise_solver: bool = False,
 ) -> Dict[str, Any]:
     """
     Compute Tithi Pravesh analysis for a given year.
@@ -82,6 +92,17 @@ def compute_tithi_pravesh(
     Returns:
         Comprehensive TP analysis dict.
     """
+    # Backward-compatible aliases used by existing engine wiring.
+    if year is None:
+        year = query_year
+    if year is None:
+        year = datetime.now().year
+
+    if pravesh_weekday is None:
+        pravesh_weekday = birth_weekday
+    if pravesh_lagna_sign is None:
+        pravesh_lagna_sign = lagna_sign
+
     natal_tithi_angle = compute_natal_tithi_angle(natal_moon_lon, natal_sun_lon)
     natal_tithi = get_natal_tithi_number(natal_moon_lon, natal_sun_lon)
     natal_sun_sign = int(natal_sun_lon / 30) % 12
@@ -110,6 +131,67 @@ def compute_tithi_pravesh(
         tp_tithi = int(tp_angle / 12.0) + 1
         tithi_match = (tp_tithi == natal_tithi)
 
+    precise_pravesha: Dict[str, Any] = {"status": "not_requested"}
+    if enable_precise_solver and birth_datetime is not None:
+        try:
+            from vedic_engine.core.astronomy import (
+                compute_natal_pravesha_anchors,
+                find_nakshatra_pravesha_epoch,
+                find_yoga_pravesha_epoch,
+            )
+
+            anchors = compute_natal_pravesha_anchors(
+                birth_datetime=birth_datetime,
+                tz_offset=tz_offset,
+                ayanamsa=ayanamsa,
+            )
+            if anchors.get("status") == "ok":
+                natal_trop_sign = int(anchors.get("natal_tropical_sun_sign", natal_sun_sign))
+                natal_sid_moon = float(
+                    anchors.get("natal_sidereal_moon_longitude", natal_moon_lon)
+                ) % 360.0
+                natal_sid_yoga = float(
+                    anchors.get(
+                        "natal_sidereal_yoga_sum",
+                        (natal_sun_lon + natal_moon_lon) % 360.0,
+                    )
+                ) % 360.0
+                nak = find_nakshatra_pravesha_epoch(
+                    natal_tropical_sun_sign=natal_trop_sign,
+                    natal_sidereal_moon_longitude=natal_sid_moon,
+                    target_year=year,
+                    tz_offset=tz_offset,
+                    ayanamsa=ayanamsa,
+                )
+                yoga = find_yoga_pravesha_epoch(
+                    natal_tropical_sun_sign=natal_trop_sign,
+                    natal_sidereal_yoga_sum=natal_sid_yoga,
+                    target_year=year,
+                    tz_offset=tz_offset,
+                    ayanamsa=ayanamsa,
+                )
+                precise_pravesha = {
+                    "status": "ok",
+                    "natal_tropical_sun_sign": natal_trop_sign,
+                    "natal_sidereal_moon_longitude": round(natal_sid_moon, 8),
+                    "natal_sidereal_yoga_sum": round(natal_sid_yoga, 8),
+                    "nakshatra_pravesha": nak,
+                    "yoga_pravesha": yoga,
+                    "source": "core.astronomy",
+                    "timezone_offset": tz_offset,
+                    "ayanamsa": ayanamsa,
+                }
+            else:
+                precise_pravesha = {
+                    "status": "unavailable",
+                    "reason": anchors.get("reason", "natal_anchor_failure"),
+                }
+        except Exception as e:
+            precise_pravesha = {
+                "status": "unavailable",
+                "reason": str(e),
+            }
+
     return {
         "year": year,
         "natal_tithi": natal_tithi,
@@ -127,6 +209,13 @@ def compute_tithi_pravesh(
             "year_lord_note": f"Year Lord {year_lord} — assess its dignity/house in TP chart for annual fortune",
             "lagna_note": f"TP Lagna quality: {lagna_quality}",
         },
+        "calendar_basis": "tropical_month" if use_tropical_month else "sidereal_month",
+        "source_scope": (
+            "diagnostic_plus_precise_pravesha_solver"
+            if precise_pravesha.get("status") == "ok"
+            else "diagnostic_without_iterative_solver"
+        ),
+        "precise_pravesha": precise_pravesha,
     }
 
 

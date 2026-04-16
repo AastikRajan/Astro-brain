@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple
 
 from vedic_engine.config import (
     TRANSIT_FAVORABLE, VEDHA_TABLE, VEDHA_EXCEPTIONS,
-    GOCHAR_EFFECTS, COMBUSTION_DEGREES,
+    GOCHAR_EFFECTS, GOCHAR_SCORES, COMBUSTION_DEGREES,
     VEDHA_REDUCTION, KAKSHYA_LORDS, KAKSHYA_SPAN,
     MANIFESTATION_ZONES, MANIFESTATION_OUTSIDE_MULTIPLIER,
     NAISARGIKA_FRIENDS, NAISARGIKA_ENEMIES,
@@ -26,7 +26,23 @@ from vedic_engine.config import (
     VIPAREETA_VEDHA_TABLE,
 )
 from vedic_engine.core.coordinates import sign_of, nakshatra_of
-from vedic_engine.analysis.special_points import compute_tarabala, compute_chandrabala
+from vedic_engine.analysis.special_points import compute_tarabala
+from vedic_engine.analysis.sarvatobhadra import (
+    check_sbc_vedha as _check_sbc_vedha,
+    nakshatra_of_lon as _sbc_nakshatra_of_lon,
+)
+from vedic_engine.analysis.kota_chakra import (
+    compute_kota_status as _compute_kota_status,
+    nakshatra_of_lon as _kota_nakshatra_of_lon,
+)
+from vedic_engine.analysis.sanghatta_chakra import (
+    compute_sanghatta_status as _compute_sanghatta_status,
+    nakshatra_of_lon as _sanghatta_nakshatra_of_lon,
+)
+from vedic_engine.prediction.classical_modifiers import BAV_TRANSIT_MULTIPLIERS
+from vedic_engine.timing.moorti_nirnaya import compute_paya as _compute_paya
+from vedic_engine.timing.chandravali import compute_chandravali as _compute_chandravali
+from vedic_engine.timing.latta import compute_latta_from_longitudes as _compute_latta_from_longitudes
 
 
 PLANET_NAMES = ["SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN", "RAHU", "KETU"]
@@ -449,6 +465,7 @@ def evaluate_transit(
         planet: str,
         transit_lon: float,
         natal_moon_sign: int,
+    natal_lagna_sign: Optional[int] = None,
         bhinna_av: Optional[List[int]] = None,
         sarva_av: Optional[List[int]] = None,
         other_transit_signs: Optional[Dict[str, int]] = None,
@@ -462,6 +479,7 @@ def evaluate_transit(
         planet: planet name
         transit_lon: transit longitude (sidereal)
         natal_moon_sign: birth Moon sign index (0-11)
+        natal_lagna_sign: birth Lagna sign index (0-11), optional
         bhinna_av: planet's Bhinna AV for each sign (list of 12)
         sarva_av: Sarvashtakvarga for each sign (list of 12)
         other_transit_signs: {other_planet: sign_idx} for Vedha check
@@ -514,10 +532,27 @@ def evaluate_transit(
 
     # Net score: 0-1  (weighted sum of 4 components)
     # ── Gochar (house from Moon) ──────────────────────────────
-    gochar_score = 0.4 if is_favorable else 0.0
+    # Prefer full classical matrix when available (+1 / 0 / -1), fallback to
+    # favorable-house boolean for backward compatibility.
+    gochar_classical = 1 if is_favorable else -1
+    if p and p in GOCHAR_SCORES:
+        gochar_classical = int(GOCHAR_SCORES.get(p, {}).get(house_from_moon, 0))
+
+    if gochar_classical > 0:
+        gochar_score = 0.4
+    elif gochar_classical == 0:
+        gochar_score = 0.2
+    else:
+        gochar_score = 0.0
     if vedha_blocked:
         # Quantitative reduction: enemy=full nullify, friend=50% reduction, etc.
         gochar_score *= vedha_keep_factor
+
+    # ── BAV transit multiplier (classical bindu gating) ───────
+    bav_transit_multiplier = 1.0
+    if bav_score is not None:
+        bav_transit_multiplier = float(BAV_TRANSIT_MULTIPLIERS.get(int(bav_score), 1.0))
+        gochar_score *= bav_transit_multiplier
 
     # ── Manifestation zone: dampen score outside primary zone ──
     gochar_score *= zone_mult
@@ -551,9 +586,18 @@ def evaluate_transit(
         # < 25 = weak sign → 0
 
     # ── House from Lagna (secondary gochar check) ─────────────
-    # Not computed here (lagna_sign not passed); placeholder 0.10 if favorable
-    # left as a hook — set to 0.10 when is_favorable as proxy
-    lagna_score = 0.10 if is_favorable else 0.0
+    # Classical transit synthesis: Chandra Lagna is primary, Janma Lagna is
+    # secondary but real. Use actual Lagna-house favorability when available.
+    house_from_lagna = None
+    is_favorable_lagna = None
+    lagna_score = 0.0
+    if natal_lagna_sign is not None:
+        house_from_lagna = ((transit_sign - natal_lagna_sign) % 12) + 1
+        is_favorable_lagna = house_from_lagna in favorable_houses
+        lagna_score = 0.10 if is_favorable_lagna else 0.0
+    else:
+        # Backward-compatible fallback when lagna is unavailable.
+        lagna_score = 0.10 if is_favorable else 0.0
 
     # ── Combustion Check ──────────────────────────────────────────
     is_combust = False
@@ -650,8 +694,12 @@ def evaluate_transit(
         "transit_sign_idx": transit_sign,
         "degree_in_sign": round(degree_in_sign, 2),
         "house_from_moon": house_from_moon,
+        "house_from_lagna": house_from_lagna,
         "is_favorable_gochar": is_favorable,
+        "is_favorable_gochar_lagna": is_favorable_lagna,
+        "gochar_classical_score": gochar_classical,
         "bav_score": bav_score,
+        "bav_transit_multiplier": round(bav_transit_multiplier, 3),
         "sav_score": sav_score,
         "sav_above_avg": sav_score > sav_avg if sav_score else None,
         "vedha_blocked": vedha_blocked,
@@ -688,10 +736,16 @@ def _gochar_interpretation(planet: str, house_from_moon: int) -> str:
 def evaluate_all_transits(
         transit_positions: Dict[str, float],
         natal_moon_sign: int,
+    natal_lagna_sign: Optional[int] = None,
         bhinna_av: Optional[Dict[str, List[int]]] = None,
         sarva_av: Optional[List[int]] = None,
         natal_moon_nak: Optional[int] = None,
         pav: Optional[Dict[str, Dict[str, List[int]]]] = None,
+    sbc_grid: Optional[Dict] = None,
+    kota_chakra: Optional[Dict] = None,
+    sanghatta_chakra: Optional[Dict] = None,
+    retrograde_planets: Optional[List[str]] = None,
+    apply_moorti_to_saturn_score: bool = False,
 ) -> Dict[str, Dict]:
     """Evaluate all planet transits including Tarabala and Chandrabala for Moon."""
     other_signs = {p: sign_of(lon) for p, lon in transit_positions.items()}
@@ -708,12 +762,25 @@ def evaluate_all_transits(
             planet=pname,
             transit_lon=lon,
             natal_moon_sign=natal_moon_sign,
+            natal_lagna_sign=natal_lagna_sign,
             bhinna_av=bav,
             sarva_av=sarva_av,
             other_transit_signs=other_signs,
             transit_sun_lon=sun_lon,
             pav_data=pav_planet,
         )
+
+    # ── Latta (planetary kick) stars — diagnostic-only integration ──
+    try:
+        _latta_payload = _compute_latta_from_longitudes(
+            transit_positions,
+            include_abhijit=True,
+        )
+        for _planet, _latta in _latta_payload.items():
+            if _planet in results and isinstance(results[_planet], dict):
+                results[_planet]["latta"] = _latta
+    except Exception:
+        pass
 
     # ── Tarabala (transit Moon nakshatra vs birth Moon nakshatra) ──
     if "MOON" in transit_positions and natal_moon_nak is not None:
@@ -730,8 +797,109 @@ def evaluate_all_transits(
     # ── Chandrabala (transit Moon sign vs natal Moon sign) ─────────
     if "MOON" in transit_positions:
         transit_moon_sign = sign_of(transit_positions["MOON"])
-        chandrabala = compute_chandrabala(natal_moon_sign, transit_moon_sign)
+        chandrabala = _compute_chandravali(
+            natal_moon_sign=natal_moon_sign,
+            transit_moon_sign=transit_moon_sign,
+            profile="transit",
+        )
         results["MOON"]["chandrabala"] = chandrabala
+
+    # ── Classical Moorti/Paya adjustment (major slow transits only) ──
+    # Major planets: Saturn, Jupiter, Rahu, Ketu.
+    # Default behavior is diagnostic-only; optional toggle applies to net score.
+    _major_moorti_planets = ("SATURN", "JUPITER", "RAHU", "KETU")
+    for _mp in _major_moorti_planets:
+        if _mp not in results or _mp not in transit_positions:
+            continue
+
+        _sign = sign_of(transit_positions[_mp])
+        _from_moon = ((_sign - natal_moon_sign) % 12) + 1
+        _paya_info = _compute_paya(_from_moon)
+
+        _base_score = float(results[_mp].get("net_score", 0.0))
+        _moorti_mult = float(_paya_info.get("moorti_multiplier", 1.0))
+        # Node-specific dampening: shadow planets are weighted lower than
+        # physical slow movers for direct Moorti impact.
+        _node_weight = 0.7 if _mp in ("RAHU", "KETU") else 1.0
+        _moorti_mult *= _node_weight
+        _moorti_adjusted = max(0.0, min(1.0, _base_score * _moorti_mult))
+
+        results[_mp]["moorti"] = {
+            "house_from_moon": _from_moon,
+            **_paya_info,
+        }
+        results[_mp]["net_score_moorti_adjusted"] = round(_moorti_adjusted, 3)
+        results[_mp]["moorti_adjustment_factor"] = round(_moorti_mult, 3)
+        results[_mp]["moorti_node_weight"] = _node_weight
+        results[_mp]["moorti_applied_to_net_score"] = bool(apply_moorti_to_saturn_score)
+
+        if apply_moorti_to_saturn_score:
+            results[_mp]["net_score"] = round(_moorti_adjusted, 3)
+
+    # ── Sarvatobhadra Vedha diagnostics (if natal grid available) ──
+    if isinstance(sbc_grid, dict) and sbc_grid:
+        for _planet, _lon in transit_positions.items():
+            if _planet not in results or not isinstance(results[_planet], dict):
+                continue
+            try:
+                _nak = _sbc_nakshatra_of_lon(float(_lon))
+                _sbc = _check_sbc_vedha(
+                    transit_planet=_planet,
+                    transit_nakshatra=_nak,
+                    sbc_grid=sbc_grid,
+                    is_retrograde=False,
+                    is_fast=False,
+                )
+                results[_planet]["sbc_vedha"] = _sbc
+            except Exception:
+                continue
+
+    # ── Kota Chakra diagnostics (if natal fort matrix available) ──
+    if isinstance(kota_chakra, dict) and kota_chakra:
+        try:
+            _transit_naks = {
+                _p: _kota_nakshatra_of_lon(float(_lon), include_abhijit=True)
+                for _p, _lon in transit_positions.items()
+            }
+            _retro_set = {str(p).upper() for p in (retrograde_planets or [])}
+            _retro_set.update({"RAHU", "KETU"})
+            _kota = _compute_kota_status(
+                kota_chakra=kota_chakra,
+                transit_planets=_transit_naks,
+                retrograde_planets=_retro_set,
+            )
+            _overall = float(_kota.get("overall_severity", 0.0) or 0.0)
+            _durga = bool(_kota.get("durga_bhanga_yoga", False))
+            _by_planet = _kota.get("planet_evaluations", {}) if isinstance(_kota, dict) else {}
+            for _p, _ev in _by_planet.items():
+                if _p in results and isinstance(results[_p], dict):
+                    results[_p]["kota"] = _ev
+                    results[_p]["kota_overall_severity"] = _overall
+                    results[_p]["kota_durga_bhanga_yoga"] = _durga
+        except Exception:
+            pass
+
+    # ── Sanghatta Chakra diagnostics (special-tara collision point) ──
+    if isinstance(sanghatta_chakra, dict) and sanghatta_chakra:
+        try:
+            _transit_naks = {
+                _p: _sanghatta_nakshatra_of_lon(float(_lon), include_abhijit=True)
+                for _p, _lon in transit_positions.items()
+            }
+            _retro_set = {str(p).upper() for p in (retrograde_planets or [])}
+            _sang = _compute_sanghatta_status(
+                sanghatta_chakra=sanghatta_chakra,
+                transit_planets=_transit_naks,
+                retrograde_planets=_retro_set,
+            )
+            _overall = float(_sang.get("overall_impact", 0.0) or 0.0)
+            _by_planet = _sang.get("planet_evaluations", {}) if isinstance(_sang, dict) else {}
+            for _p, _ev in _by_planet.items():
+                if _p in results and isinstance(results[_p], dict):
+                    results[_p]["sanghatta"] = _ev
+                    results[_p]["sanghatta_overall_impact"] = _overall
+        except Exception:
+            pass
 
     return results
 
@@ -772,13 +940,16 @@ def detect_sade_sati(
         elif bav_score <= 2:
             intensity = "intense (low AV score amplifies difficulties)"
 
+    _paya = _compute_paya(saturn_from_moon)
+
     return {
         "in_sade_sati": in_sade_sati,
         "in_dhaiya": in_dhaiya,
         "saturn_from_moon": saturn_from_moon,
         "phase": phase,
         "intensity": intensity,
-        "paya": _compute_paya(saturn_from_moon),
+        "paya": _paya,
+        "moorti_multiplier": _paya.get("moorti_multiplier", 1.0),
         "advice": (
             "Focus on discipline, service, patience. Avoid major new ventures in peak phase."
             if in_sade_sati else
@@ -787,30 +958,4 @@ def detect_sade_sati(
     }
 
 
-# ─── Paya (Saturn Transit Quality by Moon House) ─────────────────
-# Research: "Paya = Feet classification based on Moon's house relative to
-# Saturn's transit ingress." — Vedic Astrology Computational Logic.md
-#   Gold Paya   : Moon in 1, 6, 11 from transit Saturn → Very Auspicious
-#   Silver Paya : Moon in 2, 5, 9             → Auspicious
-#   Copper Paya : Moon in 3, 7, 10            → Average
-#   Iron Paya   : Moon in 4, 8, 12            → Difficult
-
-_PAYA_MAP = {
-    1: ("Gold",   "Very Auspicious — Saturn transit carries hidden blessings"),
-    6: ("Gold",   "Very Auspicious — Saturn transit carries hidden blessings"),
-    11:("Gold",   "Very Auspicious — Saturn transit carries hidden blessings"),
-    2: ("Silver", "Auspicious — some hardship with silver lining"),
-    5: ("Silver", "Auspicious — some hardship with silver lining"),
-    9: ("Silver", "Auspicious — some hardship with silver lining"),
-    3: ("Copper", "Average — mixed results, effort required"),
-    7: ("Copper", "Average — mixed results, effort required"),
-    10:("Copper", "Average — mixed results, effort required"),
-    4: ("Iron",   "Difficult — intensified pressure, patience key"),
-    8: ("Iron",   "Difficult — intensified pressure, patience key"),
-    12:("Iron",   "Difficult — intensified pressure, patience key"),
-}
-
-
-def _compute_paya(saturn_from_moon: int) -> dict:
-    metal, desc = _PAYA_MAP.get(saturn_from_moon, ("Iron", "Unknown"))
-    return {"metal": metal, "description": desc}
+# Paya/Moorti mapping is centralized in vedic_engine.timing.moorti_nirnaya.

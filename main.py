@@ -145,6 +145,24 @@ def print_static_summary(static: dict):
         scores_row = "  " + "  ".join(f"{s:>3}" for s in sav)
         print(signs_row)
         print(scores_row)
+        sav_profile = av.get("sav_profile", {}) if isinstance(av, dict) else {}
+        if isinstance(sav_profile, dict) and sav_profile:
+            vit = sav_profile.get("vittya", {})
+            tee = sav_profile.get("teertha", {})
+            sca = sav_profile.get("savings_capacity", {})
+            h18 = sav_profile.get("h1_vs_h8", {})
+            if vit or tee or sca or h18:
+                print("  Advanced SAV:")
+                if vit:
+                    print(f"    Vittya   : {vit.get('score', 0)}  [{vit.get('status', '?')}]  ratio={vit.get('ratio', 0):.2f}")
+                if tee:
+                    print(f"    Teertha  : {tee.get('score', 0)}  [{tee.get('status', '?')}]  ratio={tee.get('ratio', 0):.2f}")
+                if sca:
+                    can_save = "YES" if sca.get("can_save") else "NO"
+                    print(f"    H2 vs H12: {sca.get('h2', '?')} vs {sca.get('h12', '?')}  can_save={can_save}")
+                if h18:
+                    h18_ok = "OK" if h18.get("healthy_balance") else "RISK"
+                    print(f"    H1 vs H8 : {h18.get('h1', '?')} vs {h18.get('h8', '?')}  [{h18_ok}]")
 
     # Functional Analysis (lagna-specific roles)
     fa = static.get("functional", {})
@@ -438,12 +456,16 @@ def print_dynamic_summary(dynamic: dict):
             paya_str = f" [{paya.get('metal','')} Paya]" if paya else ""
             print(f"  [!] SADE SATI ACTIVE - {ss.get('phase','')}{paya_str}")
             print(f"     Intensity: {ss.get('intensity','')}")
+            if paya:
+                print(f"     Moorti multiplier: ×{paya.get('moorti_multiplier', ss.get('moorti_multiplier', 1.0)):.2f}")
             if paya and paya.get('metal') in ('Iron', 'Copper'):
                 print(f"     Paya note: {paya.get('description','')}")
         elif ss.get("in_dhaiya"):
             paya = ss.get("paya", {})
             paya_str = f" [{paya.get('metal','')} Paya]" if paya else ""
             print(f"  [!] DHAIYA ACTIVE - {ss.get('phase','')}{paya_str}")
+            if paya:
+                print(f"     Moorti multiplier: ×{paya.get('moorti_multiplier', ss.get('moorti_multiplier', 1.0)):.2f}")
         else:
             print("  [OK] No Sade Sati or Dhaiya at this time.")
 
@@ -537,6 +559,11 @@ def print_dynamic_summary(dynamic: dict):
                 vedha   = " [VEDHA]" if t.get("vedha_blocked") else ""
                 score   = t.get("net_score", 0)
                 print(f"  {sym} {planet:<10} H{hs:<3} in {sgn:<14} {fav} score={score:.2f}{vedha}")
+                if t.get("net_score_moorti_adjusted") is not None:
+                    ms = t.get("net_score_moorti_adjusted", score)
+                    mf = t.get("moorti_adjustment_factor", 1.0)
+                    mm = (t.get("moorti", {}) or {}).get("moorti", "?")
+                    print(f"    Moorti adj : {mm} ×{mf:.2f} -> score={ms:.2f}")
 
     # Transit-to-Natal Longitude Aspects (top aspects by strength)
     ta = dynamic.get("transit_aspects", {})
@@ -663,6 +690,21 @@ def print_domain_report(domain_report: dict):
             mini_bar = "█" * int(v * 10)
             print(f"    {k:<30} {v:.2f}  {mini_bar}")
 
+    # ── Classical Phase-1 (diagnostic-first) ───────────────────────────
+    cph = conf.get("classical_phase1", {})
+    if cph and isinstance(cph, dict):
+        enabled = cph.get("enabled", False)
+        base_c  = cph.get("baseline_before_classical", score)
+        cand_c  = cph.get("adjusted_candidate", score)
+        tmult   = cph.get("total_multiplier_capped", 1.0)
+        pmult   = cph.get("pushkara_multiplier", 1.0)
+        mmult   = cph.get("moorti_multiplier", 1.0)
+        taram   = cph.get("tarabala_multiplier", 1.0)
+        state   = "ENABLED" if enabled else "DIAGNOSTIC"
+        print(f"\n  Classical Phase-1    : {state}")
+        print(f"    baseline={base_c:.0%}  adjusted={cand_c:.0%}  total×{tmult:.2f}")
+        print(f"    pushkara×{pmult:.2f}  moorti×{mmult:.2f}  tarabala×{taram:.2f}")
+
     # ── Dispositor chain insight
     disp = domain_report.get("dispositor", {})
     if disp and isinstance(disp, dict) and "error" not in disp:
@@ -712,8 +754,13 @@ def print_domain_report(domain_report: dict):
     argala_mod = conf.get("argala_mod")
     if argala_mod is not None:
         argala_data = domain_report.get("argala", {})
-        lagna_verdict = argala_data.get("lagna", {}).get("verdict", "")
+        lagna_argala = argala_data.get("lagna", {}) if isinstance(argala_data, dict) else {}
+        lagna_verdict = lagna_argala.get("verdict", "")
+        unob_cnt = lagna_argala.get("unobstructable_count")
+        reverse_mode = lagna_argala.get("node_reverse_mode")
         print(f"  Argala Modifier      : {argala_mod:+.1%}  [{lagna_verdict}]")
+        if unob_cnt is not None or reverse_mode:
+            print(f"    Argala details     : unobstructable={int(unob_cnt or 0)}  node_mode={reverse_mode or 'ketu'}")
 
     # ── Aspect transit modifier (longitude-based weighted orb)
     asp_mod   = conf.get("aspect_transit_mod")
@@ -961,9 +1008,14 @@ def print_chart_sections(domain_report: dict):
             tara_num  = tara.get("tara_num", "?")
             nature    = tara.get("nature", "?")
             mult      = tara.get("multiplier", 0)
+            eff_mult  = tara.get("effective_multiplier", mult)
+            paryaya   = tara.get("paryaya_cycle")
             flag = "⚠ NAIDHANA — avoid major decisions" if tara.get("is_highly_negative") else ""
             print(f"  Tarabala: Tara {tara_num} ({tara_name}) — {nature}  "
-                  f"[multiplier {mult:+.2f}]  {flag}")
+                f"[multiplier {mult:+.2f}, effective {eff_mult:+.2f}]  {flag}")
+            if paryaya in (1, 2, 3):
+                decay = tara.get("paryaya_malefic_decay", 1.0)
+                print(f"    Paryaya cycle: {paryaya}  (malefic decay ×{decay:.2f})")
         chandra = nak_data.get("chandrabala", {})
         if chandra:
             house_fm = chandra.get("house_from_natal_moon", "?")
@@ -993,8 +1045,16 @@ def print_chart_sections(domain_report: dict):
         if pushkara:
             for pname, pk in pushkara.items():
                 mult = pk.get("multiplier", 1)
+                eff_mult = pk.get("effective_multiplier", mult)
                 label = "PUSHKARA BHAGA (3×)" if pk.get("is_pushkara_bhaga") else "Pushkara Navamsa (2×)"
-                print(f"  {pname}: {label}  — {pk.get('note', '')[:80]}")
+                dusthana_note = " [dusthana nullified]" if pk.get("dusthana_nullified") else ""
+                print(f"  {pname}: {label}  [raw {mult:.2f}×, effective {eff_mult:.2f}×]{dusthana_note}"
+                      f"  — {pk.get('note', '')[:80]}")
+        pk_diag = nak_data.get("pushkara_diagnostic", {})
+        if pk_diag and isinstance(pk_diag, dict) and pk_diag.get("planet_count", 0) > 0:
+            print(f"  Pushkara A/B : raw={pk_diag.get('raw_factor', 1.0):.2f}×  "
+                  f"effective={pk_diag.get('effective_factor', 1.0):.2f}×  "
+                  f"delta={pk_diag.get('a_b_delta', 0.0):+.2f}")
         dwi = nak_data.get("dwisaptati", {})
         if dwi and dwi.get("eligible"):
             print(f"\n  DWISAPTATI SAMA DASHA ACTIVE — 72-year cycle")
